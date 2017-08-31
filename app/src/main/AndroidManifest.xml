@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    package="org.dync.ijkplayer">
+
+    <uses-permission android:name="android.permission.INTERNET" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+
+    <application
+        android:allowBackup="true"
+        android:icon="@mipmap/ic_launcher"
+        android:label="@string/app_name"
+        android:roundIcon="@mipmap/ic_launcher_round"
+        android:supportsRtl="true"
+        android:theme="@style/AppTheme">
+        <activity android:name=".MainActivity">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
+        <!-- 这里可以选择性设置，不是必选项 -->
+        <service
+            android:name="org.dync.ijkplayerlib.widget.services.MediaPlayerService"
+            android:enabled="false"
+            android:exported="false"
+            android:icon="@mipmap/ic_launcher"
+            android:label="@string/app_name" />
+
+        <activity android:name=".SettingActivity" />
+        <activity android:name=".VideoActivity"></activity>
+    </application>
+
+</manifest>

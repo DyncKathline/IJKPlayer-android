@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">ijkPlayer</string>
+
+
+    <string name="toggle_player">Player</string>
+    <string name="toggle_render">Render</string>
+    <string name="toggle_ratio">Scale</string>
+    <string name="show_info">Info</string>
+</resources>
