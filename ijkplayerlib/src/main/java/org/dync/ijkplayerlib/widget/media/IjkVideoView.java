@@ -1174,4 +1174,33 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     public int getSelectedTrack(int trackType) {
         return MediaPlayerCompat.getSelectedTrack(mMediaPlayer, trackType);
     }
+
+    ///////////////////////////////额外增加的方法//////////////////////////////////
+
+    /**
+     * 参考{@link IRenderView#AR_ASPECT_FIT_PARENT}、{@link IRenderView#AR_ASPECT_FILL_PARENT}、{@link IRenderView#AR_ASPECT_WRAP_CONTENT}
+     * {@link IRenderView#AR_16_9_FIT_PARENT}、{@link IRenderView#AR_4_3_FIT_PARENT}
+     * 设置播放区域拉伸类型
+     */
+    public void setAspectRatio(int aspectRatio) {
+        for (int i = 0; i < s_allAspectRatio.length; i++) {
+            if (s_allAspectRatio[i] == aspectRatio) {
+                mCurrentAspectRatioIndex = i;
+                if (mRenderView != null) {
+                    mRenderView.setAspectRatio(mCurrentAspectRatio);
+                }
+                break;
+            }
+        }
+    }
+
+    /**
+     * 设置旋转角度
+     */
+    public void setPlayerRotation(int rotation) {
+        mVideoRotationDegree = rotation;
+        if (mRenderView != null) {
+            mRenderView.setVideoRotation(mVideoRotationDegree);
+        }
+    }
 }

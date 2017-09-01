@@ -6,4 +6,7 @@
     <string name="toggle_render">Render</string>
     <string name="toggle_ratio">Scale</string>
     <string name="show_info">Info</string>
+
+
+    <string name="small_problem">出现了点小问题,稍后重试</string>
 </resources>
