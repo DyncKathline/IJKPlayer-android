@@ -133,74 +133,8 @@
         layout="@layout/simple_player_touch_gestures"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_centerInParent="true"/>
-
-    <!--声音亮度控制-->
-    <LinearLayout
-        android:id="@+id/simple_player_settings_container"
-        android:layout_width="250dp"
-        android:layout_height="match_parent"
-        android:layout_alignParentLeft="true"
-        android:background="#80000000"
-        android:gravity="center_vertical"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <LinearLayout
-            android:id="@+id/simple_player_volume_controller_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/qcloud_player_icon_audio_vol_mute"
-                android:visibility="gone" />
-
-            <SeekBar
-                android:id="@+id/simple_player_volume_controller"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="150dp"
-                android:layout_height="wrap_content" />
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/qcloud_player_icon_audio_vol"
-                android:visibility="gone" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/simple_player_brightness_controller_container"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="20dp"
-            android:gravity="center"
-            android:orientation="horizontal">
-
-            <SeekBar
-                android:id="@+id/simple_player_brightness_controller"
-                style="?android:attr/progressBarStyleHorizontal"
-                android:layout_width="150dp"
-                android:layout_height="wrap_content" />
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:padding="5dp"
-                android:src="@drawable/qcloud_player_icon_brightness"
-                android:visibility="gone" />
-
-            <ImageView
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:src="@drawable/qcloud_player_icon_brightness"
-                android:visibility="gone" />
-        </LinearLayout>
-
-    </LinearLayout>
 
     <!--底部栏-->
     <LinearLayout

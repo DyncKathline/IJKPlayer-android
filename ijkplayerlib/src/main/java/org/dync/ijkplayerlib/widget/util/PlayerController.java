@@ -352,12 +352,15 @@ public class PlayerController {
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
 
             int index = (int) (mMaxVolume * progress * 0.01);
-            if (index > mMaxVolume)
+            if (index > mMaxVolume) {
                 index = mMaxVolume;
-            else if (index < 0)
+            } else if (index < 0) {
                 index = 0;
+            }
             // 变更声音
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0);
+            if (audioManager != null) {
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0);
+            }
         }
 
         /**开始拖动*/
@@ -395,27 +398,27 @@ public class PlayerController {
 
     public interface GestureListener {
         void onProgressSlide(long newPosition, long duration, int showDelta);
+
         void onVolumeSlide(int volume);
+
         void onBrightnessSlide(float brightness);
+
         void endGesture();
     }
 
-    public PlayerController setGestureListener(GestureListener listener){
+    public PlayerController setGestureListener(GestureListener listener) {
         mGestureListener = listener;
         return this;
     }
 
-    public PlayerController setVolumeController(SeekBar volumeController){
+    public PlayerController setVolumeController() {
         screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
-        /**声音进度*/
-        volumeController.setMax(100);
-        volumeController.setOnSeekBarChangeListener(this.onVolumeControllerChangeListener);
         return this;
     }
 
-    public PlayerController setBrightnessController(SeekBar brightnessController){
+    public PlayerController setBrightnessController() {
         try {
             int e = Settings.System.getInt(this.mContext.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
             float progress = 1.0F * (float) e / 255.0F;
@@ -425,19 +428,17 @@ public class PlayerController {
         } catch (Settings.SettingNotFoundException var7) {
             var7.printStackTrace();
         }
-        brightnessController.setMax(100);
-        brightnessController.setOnSeekBarChangeListener(this.onBrightnessControllerChangeListener);
         return this;
     }
 
-    public PlayerController setVideoController(SeekBar videoController){
+    public PlayerController setVideoController(SeekBar videoController) {
         this.videoController = videoController;
         videoController.setMax(1000);
         videoController.setOnSeekBarChangeListener(mSeekListener);
         return this;
     }
 
-    public PlayerController setVideoRootLayout(View rootLayout){
+    public PlayerController setVideoRootLayout(View rootLayout) {
         final GestureDetector gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
         rootLayout.setClickable(true);
         rootLayout.setOnTouchListener(new View.OnTouchListener() {
@@ -701,11 +702,11 @@ public class PlayerController {
         return this;
     }
 
-    public int getMaxPlayTime(){
+    public int getMaxPlayTime() {
         return maxPlaytime;
     }
 
-    public boolean isCharge(){
+    public boolean isCharge() {
         return isCharge;
     }
 
@@ -967,7 +968,7 @@ public class PlayerController {
         if (mAutoPlayRunnable != null) {
             mAutoPlayRunnable.start();
         }
-        if(mGestureListener != null){
+        if (mGestureListener != null) {
             mGestureListener.endGesture();
         }
     }
@@ -992,8 +993,8 @@ public class PlayerController {
 
         if (isCharge && maxPlaytime + 1000 < getCurrentPosition()) {
             pausePlay();
-        }else {
-            if(syncProgressListener != null){
+        } else {
+            if (syncProgressListener != null) {
                 syncProgressListener.syncTime(position, duration);
             }
         }
@@ -1006,7 +1007,7 @@ public class PlayerController {
 
     private SyncProgressListener syncProgressListener;
 
-    public PlayerController setSyncProgressListener(SyncProgressListener listener){
+    public PlayerController setSyncProgressListener(SyncProgressListener listener) {
         syncProgressListener = listener;
         return this;
     }
@@ -1017,24 +1018,26 @@ public class PlayerController {
      * @param percent
      */
     private void onVolumeSlide(float percent) {
-        if (volume == -1) {
-            volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-            if (volume < 0)
-                volume = 0;
-        }
-        int index = (int) (percent * mMaxVolume) + volume;
-        if (index > mMaxVolume)
-            index = mMaxVolume;
-        else if (index < 0)
-            index = 0;
+        if (audioManager != null) {
+            if (volume == -1) {
+                volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+                if (volume < 0)
+                    volume = 0;
+            }
+            int index = (int) (percent * mMaxVolume) + volume;
+            if (index > mMaxVolume)
+                index = mMaxVolume;
+            else if (index < 0)
+                index = 0;
 
-        // 变更声音
-        audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0);
+            // 变更声音
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0);
 
-        // 变更进度条
-        int i = (int) (index * 1.0 / mMaxVolume * 100);
-        if(mGestureListener != null){
-            mGestureListener.onVolumeSlide(i);
+            // 变更进度条
+            int i = (int) (index * 1.0 / mMaxVolume * 100);
+            if (mGestureListener != null) {
+                mGestureListener.onVolumeSlide(i);
+            }
         }
     }
 
@@ -1056,7 +1059,7 @@ public class PlayerController {
             delta = -position;
         }
         int showDelta = (int) delta / 1000;
-        if(mGestureListener != null){
+        if (mGestureListener != null) {
             mGestureListener.onProgressSlide(newPosition, duration, showDelta);
         }
     }
@@ -1084,7 +1087,7 @@ public class PlayerController {
             lpa.screenBrightness = 0.01f;
         }
         mActivity.getWindow().setAttributes(lpa);
-        if(mGestureListener != null){
+        if (mGestureListener != null) {
             mGestureListener.onBrightnessSlide(lpa.screenBrightness);
         }
     }
