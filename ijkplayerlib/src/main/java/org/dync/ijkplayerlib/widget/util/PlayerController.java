@@ -532,7 +532,7 @@ public class PlayerController {
      */
     public PlayerController onConfigurationChanged(final Configuration newConfig) {
         isPortrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
-        doOnConfigurationChanged(isPortrait);
+        setFullScreen(false);
         return this;
     }
 
@@ -917,9 +917,8 @@ public class PlayerController {
     /**
      * 设置界面方向
      */
-    private void setFullScreen(boolean fullScreen) {
+    public void setFullScreen(boolean fullScreen) {
         if (mActivity != null) {
-
             WindowManager.LayoutParams attrs = mActivity.getWindow().getAttributes();
             if (fullScreen) {
                 attrs.flags |= WindowManager.LayoutParams.FLAG_FULLSCREEN;

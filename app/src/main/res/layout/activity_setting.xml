@@ -64,38 +64,41 @@
             android:orientation="horizontal"
             android:padding="5dp">
 
-            <CheckBox
-                android:layout_width="0dp"
+            <RadioGroup
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:checked="true"
-                android:text="Auto Select"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                android:orientation="vertical">
 
-            <CheckBox
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="AndroidMediaPlayer"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Auto Select"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
 
-            <CheckBox
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="IjkMediaPlayer"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="AndroidMediaPlayer"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
 
-            <CheckBox
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="IjkExoMediaPlayer"
-                android:textColor="#000000"
-                android:textSize="16sp" />
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IjkMediaPlayer"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+                <RadioButton
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="IjkExoMediaPlayer"
+                    android:textColor="#000000"
+                    android:textSize="16sp" />
+
+            </RadioGroup>
+
         </LinearLayout>
 
     </LinearLayout>

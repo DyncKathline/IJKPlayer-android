@@ -3,6 +3,7 @@ package org.dync.ijkplayer;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -176,7 +177,7 @@ public class VideoActivity extends AppCompatActivity {
 
         // prefer mVideoPath
         Settings settings = new Settings(this);
-        settings.setPlayer(Settings.PV_PLAYER__AndroidMediaPlayer);
+        settings.setPlayer(Settings.PV_PLAYER__Auto);
         if (mVideoPath != null)
             mVideoView.setVideoPath(mVideoPath);
         else if (mVideoUri != null)
@@ -267,6 +268,14 @@ public class VideoActivity extends AppCompatActivity {
             mVideoView.enterBackground();
         }
         IjkMediaPlayer.native_profileEnd();
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if (mPlayerController != null) {
+            mPlayerController.onConfigurationChanged(newConfig);
+        }
     }
 
     @Override
