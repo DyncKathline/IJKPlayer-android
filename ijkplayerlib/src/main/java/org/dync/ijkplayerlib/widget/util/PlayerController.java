@@ -532,7 +532,7 @@ public class PlayerController {
      */
     public PlayerController onConfigurationChanged(final Configuration newConfig) {
         isPortrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
-        setFullScreen(false);
+        doOnConfigurationChanged(isPortrait);
         return this;
     }
 
