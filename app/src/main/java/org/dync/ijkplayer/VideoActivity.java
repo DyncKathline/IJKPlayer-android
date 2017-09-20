@@ -18,13 +18,15 @@ import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.dync.ijkplayer.utils.StatusBarUtil;
 import org.dync.ijkplayerlib.widget.media.AndroidMediaController;
+import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.media.MeasureHelper;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
 
-import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 public class VideoActivity extends AppCompatActivity {
     private static final String TAG = "VideoActivity";
@@ -44,6 +46,8 @@ public class VideoActivity extends AppCompatActivity {
     private TextView tv_fastForward;
     private TextView tv_fastForwardTag;
     private TextView tv_fastForwardAll;
+    private LinearLayout app_video_loading;
+    private TextView app_video_speed;
     private LinearLayout app_video_brightness_box;
     private LinearLayout app_video_volume_box;
     private TextView tv_volume;
@@ -52,6 +56,7 @@ public class VideoActivity extends AppCompatActivity {
     private SeekBar sbVdieo;
     private ImageView iv_paly;
     private LinearLayout app_video_fastForward_box;
+    private LinearLayout ll_bottom;
 
     public static Intent newIntent(Context context, String videoPath, String videoTitle) {
         Intent intent = new Intent(context, VideoActivity.class);
@@ -103,23 +108,40 @@ public class VideoActivity extends AppCompatActivity {
             }
         }
 
-        // init player
-        // 这里可以不写，如果要写，最好配合IjkMediaPlayer.native_profileEnd();使用
-//        IjkMediaPlayer.loadLibrariesOnce(null);
-//        IjkMediaPlayer.native_profileBegin("libijkplayer.so");
-
         initView();
-//        ActionBar actionBar = getSupportActionBar();
+        initPlayer();
+        initVideoListener();
+
+        StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary), false);
+    }
+
+    private void initPlayer() {
+        //        ActionBar actionBar = getSupportActionBar();
 //        mMediaController = new AndroidMediaController(this, false);
 //        mMediaController.setSupportActionBar(actionBar);
 //        mVideoView.setMediaController(mMediaController);
 
         mPlayerController = new PlayerController(this, mVideoView)
-                .operatorPanl()
-                .setVideoRootLayout(findViewById(R.id.app_video_box))
+                .setVideoParentLayout(findViewById(R.id.rl_video_view_layout))
                 .setVideoController((SeekBar) findViewById(R.id.seekbar))
                 .setVolumeController()
                 .setBrightnessController()
+                .setVideoParentRatio(IRenderView.AR_16_9_FIT_PARENT)
+                .setVideoRatio(IRenderView.AR_16_9_FIT_PARENT)
+                .setPortrait(true)
+                .setKeepScreenOn(true)
+                .setAutoControlListener(iv_paly)
+                .setAutoControlPanel(true)
+                .setPanelControl(new PlayerController.PanelControlListener() {
+                    @Override
+                    public void operatorPanel(boolean isShowControlPanel) {
+                        if (isShowControlPanel) {
+                            ll_bottom.setVisibility(View.VISIBLE);
+                        } else {
+                            ll_bottom.setVisibility(View.GONE);
+                        }
+                    }
+                })
                 .setSyncProgressListener(new PlayerController.SyncProgressListener() {
                     @Override
                     public void syncTime(long position, long duration) {
@@ -173,8 +195,6 @@ public class VideoActivity extends AppCompatActivity {
                     }
                 });
 
-        initVideoListener();
-
         // prefer mVideoPath
         Settings settings = new Settings(this);
         settings.setPlayer(Settings.PV_PLAYER__Auto);
@@ -188,11 +208,18 @@ public class VideoActivity extends AppCompatActivity {
             return;
         }
         mVideoView.start();
+        if (app_video_loading != null) {
+            app_video_loading.setVisibility(View.VISIBLE);
+        }
     }
 
     private void initView() {
         mVideoView = (IjkVideoView) findViewById(R.id.video_view);
         tv_speed = (TextView) findViewById(R.id.app_video_speed);
+
+        //加载中布局
+        app_video_loading = (LinearLayout) findViewById(R.id.app_video_loading);
+        app_video_speed = (TextView) findViewById(R.id.app_video_speed);
 
         //快进快退
         app_video_fastForward_box = (LinearLayout) findViewById(R.id.app_video_fastForward_box);
@@ -208,6 +235,7 @@ public class VideoActivity extends AppCompatActivity {
         tv_volume = (TextView) findViewById(R.id.app_video_volume);
 
         //
+        ll_bottom = (LinearLayout) findViewById(R.id.ll_bottom);
         iv_paly = (ImageView) findViewById(R.id.play_icon);
         tv_current_time = (TextView) findViewById(R.id.tv_current_time);
         tv_total_time = (TextView) findViewById(R.id.tv_total_time);
@@ -218,13 +246,78 @@ public class VideoActivity extends AppCompatActivity {
         iv_paly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mVideoView.isPlaying()){
+                if (mVideoView.isPlaying()) {
                     mVideoView.pause();
                     updatePlayBtnBg(true);
-                }else {
+                } else {
                     mVideoView.start();
                     updatePlayBtnBg(false);
                 }
+            }
+        });
+        mVideoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
+            @Override
+            public void onPrepared(IMediaPlayer iMediaPlayer) {
+                updatePlayBtnBg(false);
+                mPlayerController.setPlayRate(1.0f);
+            }
+        });
+        mVideoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
+            @Override
+            public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
+                switch (what) {
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING:
+                        Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始渲染
+                        Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
+                        if (app_video_loading != null) {
+                            app_video_loading.setVisibility(View.GONE);
+                        }
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
+                        Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
+                        if (app_video_loading != null) {
+                            app_video_loading.setVisibility(View.VISIBLE);
+                        }
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
+                        Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
+                        if (app_video_loading != null) {
+                            app_video_loading.setVisibility(View.GONE);
+                        }
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
+                        Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
+                        if (app_video_speed != null) {
+                            app_video_loading.setVisibility(View.VISIBLE);
+                            app_video_speed.setText(PlayerController.getFormatSize(extra));
+                        }
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_BAD_INTERLEAVING:
+                        Log.d(TAG, "MEDIA_INFO_BAD_INTERLEAVING:");
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE:
+                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_METADATA_UPDATE://视频数据更新
+                        Log.d(TAG, "MEDIA_INFO_METADATA_UPDATE: " + extra);
+                        if (app_video_speed != null) {
+                            app_video_loading.setVisibility(View.VISIBLE);
+                            app_video_speed.setText(PlayerController.getFormatSize(extra));
+                        }
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_UNSUPPORTED_SUBTITLE:
+                        Log.d(TAG, "MEDIA_INFO_UNSUPPORTED_SUBTITLE:");
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_SUBTITLE_TIMED_OUT:
+                        Log.d(TAG, "MEDIA_INFO_SUBTITLE_TIMED_OUT:");
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START:
+                        Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
+                        break;
+                }
+                return true;
             }
         });
     }
@@ -237,13 +330,13 @@ public class VideoActivity extends AppCompatActivity {
             int resid;
             if (isPlay) {
                 // 暂停
-                resid = R.drawable.simple_player_center_pause;
+                resid = R.drawable.simple_player_center_play;
             } else {
                 // 播放
-                resid = R.drawable.simple_player_center_play;
+                resid = R.drawable.simple_player_center_pause;
             }
             iv_paly.setImageResource(resid);
-        }catch (Exception e){
+        } catch (Exception e) {
 
         }
 
@@ -261,21 +354,28 @@ public class VideoActivity extends AppCompatActivity {
         super.onStop();
 
         if (mBackPressed || !mVideoView.isBackgroundPlayEnabled()) {
-            mVideoView.stopPlayback();
-            mVideoView.release(true);
-            mVideoView.stopBackgroundPlay();
+//            mVideoView.stopPlayback();
+//            mVideoView.release(true);
+//            mVideoView.stopBackgroundPlay();
+            mVideoView.pause();
+            updatePlayBtnBg(true);
         } else {
             mVideoView.enterBackground();
         }
-        IjkMediaPlayer.native_profileEnd();
     }
 
     @Override
     public void onConfigurationChanged(Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         if (mPlayerController != null) {
-            mPlayerController.onConfigurationChanged(newConfig);
+            mPlayerController.onConfigurationChanged();
+            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
+                StatusBarUtil.setFitsSystemWindows(this, true);
+            } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
+                StatusBarUtil.setFitsSystemWindows(this, false);
+            }
         }
+
     }
 
     @Override

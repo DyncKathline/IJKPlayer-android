@@ -1,4 +1,4 @@
-package org.dync.ijkplayer;
+package org.dync.ijkplayer.utils;
 
 import android.content.Context;
 import android.net.ConnectivityManager;
