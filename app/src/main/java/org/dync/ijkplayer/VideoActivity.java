@@ -259,6 +259,19 @@ public class VideoActivity extends AppCompatActivity {
                 mPlayerController.setPlayRate(1.0f);
             }
         });
+        mVideoView.setTcpSeepListener(new IjkVideoView.TcpSeepListener() {
+            @Override
+            public void updateSpeed(long speed) {
+                if(speed == -1){
+                    return;
+                }
+                if (app_video_speed != null) {
+                    String formatSize = PlayerController.getFormatSize(speed);
+                    Log.d(TAG, "updateSpeed: " + formatSize);
+                    app_video_speed.setText(formatSize);
+                }
+            }
+        });
         mVideoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
@@ -276,13 +289,19 @@ public class VideoActivity extends AppCompatActivity {
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
                         if (app_video_loading != null) {
                             app_video_loading.setVisibility(View.VISIBLE);
+                            app_video_speed.setVisibility(View.VISIBLE);
+                            app_video_speed.setText("");
                         }
+                        mVideoView.startTcpSpeed();
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
                         if (app_video_loading != null) {
                             app_video_loading.setVisibility(View.GONE);
+                            app_video_speed.setVisibility(View.GONE);
+                            app_video_speed.setText("");
                         }
+                        mVideoView.stopTcpSpeed();
                         break;
                     case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
                         Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
