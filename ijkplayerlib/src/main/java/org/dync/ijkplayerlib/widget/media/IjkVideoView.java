@@ -25,6 +25,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.text.TextUtils;
@@ -37,6 +38,7 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.services.MediaPlayerService;
@@ -326,7 +328,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     (TextUtils.isEmpty(scheme) || scheme.equalsIgnoreCase("file"))) {
                 IMediaDataSource dataSource = new FileMediaDataSource(new File(mUri.toString()));
                 mMediaPlayer.setDataSource(dataSource);
-            }  else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                 mMediaPlayer.setDataSource(mAppContext, mUri, mHeaders);
             } else {
                 mMediaPlayer.setDataSource(mUri.toString());
@@ -1055,6 +1057,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0);
 
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
+
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 1);
                 }
                 mediaPlayer = ijkMediaPlayer;
             }
@@ -1201,6 +1205,19 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mVideoRotationDegree = rotation;
         if (mRenderView != null) {
             mRenderView.setVideoRotation(mVideoRotationDegree);
+        }
+    }
+
+    /**
+     * 设置播放速率，这里仅对支持IjkMediaPlayer播放器
+     *
+     * @param rate  0.2~2.0之间
+     */
+    public void setPlayRate(@FloatRange(from=0.2, to=2.0)float rate) {
+        if(mMediaPlayer instanceof IjkMediaPlayer){
+            ((IjkMediaPlayer)mMediaPlayer).setSpeed(rate);
+        }else {
+            Toast.makeText(getContext(), getResources().getString(R.string.TrackType_unknown), Toast.LENGTH_SHORT).show();
         }
     }
 }
