@@ -26,6 +26,8 @@ import android.widget.SeekBar;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
+import java.math.BigDecimal;
+
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
@@ -1177,15 +1179,26 @@ public class PlayerController {
     /**
      * 下载速度格式化显示
      */
-    public static String getFormatSize(int size) {
-        long fileSize = (long) size;
+    public static String getFormatSize(long size) {
+        long fileSize = size;
         String showSize = "";
+
+        int   scale  =   2;//设置位数
+        int   roundingMode  =  BigDecimal.ROUND_HALF_UP;//表示四舍五入，可以选择其他舍值方式，例如去尾，等等.
+        BigDecimal bd = null;
+
         if (fileSize >= 0 && fileSize < 1024) {
             showSize = fileSize + "Kb/s";
         } else if (fileSize >= 1024 && fileSize < (1024 * 1024)) {
-            showSize = Long.toString(fileSize / 1024) + "KB/s";
+            float speed = fileSize * 1.0f / 1024;
+            bd = new BigDecimal((double)speed);
+            bd = bd.setScale(scale,roundingMode);
+            showSize = Float.toString(bd.floatValue()) + "KB/s";
         } else if (fileSize >= (1024 * 1024) && fileSize < (1024 * 1024 * 1024)) {
-            showSize = Long.toString(fileSize / (1024 * 1024)) + "MB/s";
+            float speed = fileSize * 1.0f / (1024 * 1024);
+            bd = new BigDecimal((double)speed);
+            bd = bd.setScale(scale,roundingMode);
+            showSize = Float.toString(bd.floatValue()) + "MB/s";
         }
         return showSize;
     }

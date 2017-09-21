@@ -25,6 +25,8 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Handler;
+import android.os.Message;
 import android.support.annotation.FloatRange;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -1211,13 +1213,76 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     /**
      * 设置播放速率，这里仅对支持IjkMediaPlayer播放器
      *
-     * @param rate  0.2~2.0之间
+     * @param rate 0.2~2.0之间
      */
-    public void setPlayRate(@FloatRange(from=0.2, to=2.0)float rate) {
-        if(mMediaPlayer instanceof IjkMediaPlayer){
-            ((IjkMediaPlayer)mMediaPlayer).setSpeed(rate);
-        }else {
+    public void setPlayRate(@FloatRange(from = 0.2, to = 2.0) float rate) {
+        if (mMediaPlayer instanceof IjkMediaPlayer) {
+            ((IjkMediaPlayer) mMediaPlayer).setSpeed(rate);
+        } else {
             Toast.makeText(getContext(), getResources().getString(R.string.TrackType_unknown), Toast.LENGTH_SHORT).show();
         }
+    }
+
+    /**
+     * 获取网速，这里仅对支持IjkMediaPlayer播放器
+     *
+     * @return 返回-1为不支持网速的获取
+     */
+    public long getTcpSpeed() {
+        if (mMediaPlayer instanceof IjkMediaPlayer) {
+            return ((IjkMediaPlayer) mMediaPlayer).getTcpSpeed();
+        }
+        return -1;
+    }
+
+    private final int TCP_SPEED = 0x1234;
+    private Runnable runnable;
+    private long delayMillis = 500;
+
+    public interface TcpSeepListener {
+        void updateSpeed(long speed);
+    }
+
+    private TcpSeepListener tcpSeepListener;
+
+    public void setTcpSeepListener(TcpSeepListener listener) {
+        tcpSeepListener = listener;
+    }
+
+    private Handler mHandler = new Handler(new Handler.Callback() {
+        @Override
+        public boolean handleMessage(Message message) {
+            switch (message.what) {
+                case TCP_SPEED:
+                    if(tcpSeepListener != null) {
+                        Log.d(TAG, "updateSpeed:" + getTcpSpeed());
+                        tcpSeepListener.updateSpeed(getTcpSpeed());
+                    }
+                    break;
+            }
+            return true;
+        }
+    });
+
+    /**
+     * 开始网络监测
+     */
+    public void startTcpSpeed() {
+        runnable = new Runnable() {
+            @Override
+            public void run() {
+                mHandler.sendEmptyMessage(TCP_SPEED);
+                mHandler.postDelayed(runnable, delayMillis);
+            }
+        };
+        mHandler.post(runnable);
+    }
+
+    /**
+     * 停止网络监测
+     */
+    public void stopTcpSpeed() {
+        mHandler.removeCallbacks(runnable);
+        mHandler.removeMessages(TCP_SPEED);
     }
 }
