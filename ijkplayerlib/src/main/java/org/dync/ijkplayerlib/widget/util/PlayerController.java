@@ -155,9 +155,10 @@ public class PlayerController {
      * 设置Gesture手势器是否可用
      */
     private boolean isGestureEnabled;
-
-    private boolean isCharge;
-    private int maxPlaytime;
+    /**
+     * 设置最大播放时间，时间不做限制时设置为-1
+     */
+    private int maxPlaytime = -1;
     /**
      * 是否只有全屏，默认非全屏，true为全屏，false为非全屏
      */
@@ -186,10 +187,6 @@ public class PlayerController {
      * 隐藏提示的box
      */
     private static final int MESSAGE_HIDE_CENTER_BOX = 4;
-    /**
-     * 重新播放
-     */
-    private static final int MESSAGE_RESTART_PLAY = 5;
 
 
     /**
@@ -219,10 +216,6 @@ public class PlayerController {
                         sendMessageDelayed(msg, 1000 - (pos % 1000));
                     }
                     break;
-                /**重新去播放*/
-                case MESSAGE_RESTART_PLAY:
-                    startPlay();
-                    break;
             }
         }
     };
@@ -242,7 +235,7 @@ public class PlayerController {
      * 进度条滑动监听
      */
     private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
-
+        private boolean isMaxTime;
         /**数值的改变*/
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -252,7 +245,18 @@ public class PlayerController {
             } else {
                 long duration = getDuration();
                 int position = (int) ((duration * progress * 1.0) / 1000);
+                newPosition = position;
                 String time = generateTime(position);
+                Log.d(TAG, "onProgressChanged: time= " + time + ", progress= " + progress);
+                if (maxPlaytime != -1 && maxPlaytime + 1000 < position) {
+                    Log.d(TAG, "onProgressChanged: -------------");
+                    isMaxTime = true;
+                    long pos = 1000L * maxPlaytime / duration;
+                    seekBar.setProgress((int) pos);
+                    mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
+                }else {
+                    isMaxTime = false;
+                }
             }
 
         }
@@ -272,10 +276,15 @@ public class PlayerController {
         public void onStopTrackingTouch(SeekBar seekBar) {
             if (videoView != null) {
                 long duration = getDuration();
-                videoView.seekTo((int) ((duration * seekBar.getProgress() * 1.0) / 1000));
-                mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
+                newPosition = (long) ((duration * seekBar.getProgress() * 1.0) / 1000);
+//                videoView.seekTo((int) ((duration * seekBar.getProgress() * 1.0) / 1000));
+//                mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
             }
             isDragging = false;
+            if (!isMaxTime && newPosition >= 0) {
+                mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
+                mHandler.sendEmptyMessage(MESSAGE_SEEK_NEW_POSITION);
+            }
             mHandler.sendEmptyMessageDelayed(MESSAGE_SHOW_PROGRESS, 1000);
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.start(AutoControlPanelRunnable.AUTO_INTERVAL);
@@ -483,7 +492,6 @@ public class PlayerController {
      * 暂停播放
      */
     public PlayerController pausePlay() {
-        getCurrentPosition();
         if (videoView != null) {
             videoView.pause();
         }
@@ -495,10 +503,7 @@ public class PlayerController {
      */
     public PlayerController stopPlay() {
         if (videoView != null) {
-            videoView.stopPlayback();
-        }
-        if (mHandler != null) {
-            mHandler.removeMessages(MESSAGE_RESTART_PLAY);
+            videoView.release(false);
         }
         return this;
     }
@@ -549,24 +554,29 @@ public class PlayerController {
         return this;
     }
 
+    private MaxPlayListener maxPlayListener;
+
+    public PlayerController setMaxPlayListener(MaxPlayListener listener) {
+        maxPlayListener = listener;
+        return this;
+    }
+
+    public interface MaxPlayListener {
+        void update();
+    }
+
     /**
-     * 设置最大观看时长
+     * 设置最大观看时长，时间不做限制时设置为-1
      *
-     * @param isCharge    true为收费 false为免费即不做限制
      * @param maxPlaytime 最大能播放时长，单位秒
      */
-    public PlayerController setChargeTie(boolean isCharge, int maxPlaytime) {
-        this.isCharge = isCharge;
+    public PlayerController setMaxPlayTime(int maxPlaytime) {
         this.maxPlaytime = maxPlaytime * 1000;
         return this;
     }
 
     public int getMaxPlayTime() {
         return maxPlaytime;
-    }
-
-    public boolean isCharge() {
-        return isCharge;
     }
 
     /**==========================================Activity生命周期方法回调=============================*/
@@ -597,7 +607,6 @@ public class PlayerController {
      */
     public PlayerController onDestroy() {
         orientationEventListener.disable();
-        mHandler.removeMessages(MESSAGE_RESTART_PLAY);
         mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
         if (videoView != null) {
 //            videoView.stopPlayback();
@@ -815,9 +824,9 @@ public class PlayerController {
     /**
      * 设置Gesture手势器是否可用
      */
-    public PlayerController setGestureEnabled(boolean enabled){
+    public PlayerController setGestureEnabled(boolean enabled) {
         isGestureEnabled = enabled;
-        if(isGestureEnabled) {
+        if (isGestureEnabled) {
             gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
         }
         setVideoParentTouchEvent(isGestureEnabled);
@@ -961,7 +970,7 @@ public class PlayerController {
             mAutoControlPanelRunnable = new AutoControlPanelRunnable();
         } else {
             isShowControlPanel = true;
-            if(mAutoControlPanelRunnable != null) {
+            if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.stop();
             }
             mAutoControlPanelRunnable = null;
@@ -1185,27 +1194,27 @@ public class PlayerController {
         long fileSize = size;
         String showSize = "";
 
-        int   scale  =   2;//设置位数
-        int   roundingMode  =  BigDecimal.ROUND_HALF_UP;//表示四舍五入，可以选择其他舍值方式，例如去尾，等等.
+        int scale = 2;//设置位数
+        int roundingMode = BigDecimal.ROUND_HALF_UP;//表示四舍五入，可以选择其他舍值方式，例如去尾，等等.
         BigDecimal bd = null;
 
         if (fileSize >= 0 && fileSize < 1024) {
             showSize = fileSize + "Kb/s";
         } else if (fileSize >= 1024 && fileSize < (1024 * 1024)) {
             float speed = fileSize * 1.0f / 1024;
-            bd = new BigDecimal((double)speed);
-            bd = bd.setScale(scale,roundingMode);
+            bd = new BigDecimal((double) speed);
+            bd = bd.setScale(scale, roundingMode);
             showSize = Float.toString(bd.floatValue()) + "KB/s";
         } else if (fileSize >= (1024 * 1024) && fileSize < (1024 * 1024 * 1024)) {
             float speed = fileSize * 1.0f / (1024 * 1024);
-            bd = new BigDecimal((double)speed);
-            bd = bd.setScale(scale,roundingMode);
+            bd = new BigDecimal((double) speed);
+            bd = bd.setScale(scale, roundingMode);
             showSize = Float.toString(bd.floatValue()) + "MB/s";
         }
         return showSize;
     }
 
-    public static String formatedSpeed(long bytes,long elapsed_milli) {
+    public static String formatedSpeed(long bytes, long elapsed_milli) {
         if (elapsed_milli <= 0) {
             return "0 B/s";
         }
@@ -1214,19 +1223,19 @@ public class PlayerController {
             return "0 B/s";
         }
 
-        float bytes_per_sec = ((float)bytes) * 1000.f /  elapsed_milli;
+        float bytes_per_sec = ((float) bytes) * 1000.f / elapsed_milli;
         if (bytes_per_sec >= 1000 * 1000) {
-            return String.format(Locale.US, "%.2f MB/s", ((float)bytes_per_sec) / 1000 / 1000);
+            return String.format(Locale.US, "%.2f MB/s", ((float) bytes_per_sec) / 1000 / 1000);
         } else if (bytes_per_sec >= 1000) {
-            return String.format(Locale.US, "%.1f KB/s", ((float)bytes_per_sec) / 1000);
+            return String.format(Locale.US, "%.1f KB/s", ((float) bytes_per_sec) / 1000);
         } else {
-            return String.format(Locale.US, "%d B/s", (long)bytes_per_sec);
+            return String.format(Locale.US, "%d B/s", (long) bytes_per_sec);
         }
     }
 
     public static String formatedDurationMilli(long duration) {
-        if (duration >=  1000) {
-            return String.format(Locale.US, "%.2f sec", ((float)duration) / 1000);
+        if (duration >= 1000) {
+            return String.format(Locale.US, "%.2f sec", ((float) duration) / 1000);
         } else {
             return String.format(Locale.US, "%d msec", duration);
         }
@@ -1234,11 +1243,17 @@ public class PlayerController {
 
     public static String formatedSize(long bytes) {
         if (bytes >= 100 * 1000) {
-            return String.format(Locale.US, "%.2f MB", ((float)bytes) / 1000 / 1000);
+            return String.format(Locale.US, "%.2f MB", ((float) bytes) / 1000 / 1000);
         } else if (bytes >= 100) {
-            return String.format(Locale.US, "%.1f KB", ((float)bytes) / 1000);
+            return String.format(Locale.US, "%.1f KB", ((float) bytes) / 1000);
         } else {
             return String.format(Locale.US, "%d B", bytes);
+        }
+    }
+
+    public void setVideoInfo(TextView view, String value) {
+        if (view != null) {
+            view.setText(value);
         }
     }
 
@@ -1308,6 +1323,7 @@ public class PlayerController {
 
     /**
      * 对播放区域设置Touch事件
+     *
      * @param enabled
      */
     private void setVideoParentTouchEvent(final boolean enabled) {
@@ -1345,8 +1361,6 @@ public class PlayerController {
         if (newPosition >= 0) {
             mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
             mHandler.sendEmptyMessage(MESSAGE_SEEK_NEW_POSITION);
-        } else {
-            /**什么都不做(do nothing)*/
         }
         mHandler.removeMessages(MESSAGE_HIDE_CENTER_BOX);
         mHandler.sendEmptyMessageDelayed(MESSAGE_HIDE_CENTER_BOX, 500);
@@ -1379,8 +1393,10 @@ public class PlayerController {
             videoController.setSecondaryProgress(percent * 10);
         }
 
-        if (isCharge && maxPlaytime + 1000 < getCurrentPosition()) {
-            pausePlay();
+        if (maxPlaytime != -1 && maxPlaytime + 1000 < getCurrentPosition()) {
+            if (maxPlayListener != null) {
+                maxPlayListener.update();
+            }
         } else {
             if (syncProgressListener != null) {
                 syncProgressListener.syncTime(position, duration);
@@ -1425,10 +1441,13 @@ public class PlayerController {
      */
     private void onProgressSlide(float percent) {
         int position = videoView.getCurrentPosition();
-        long duration = videoView.getDuration();
-        long deltaMax = Math.min(100 * 1000, duration - position);
-        long delta = (long) (deltaMax * percent);
+        int duration = videoView.getDuration();
+        long deltaMin = Math.min(100 * 1000, duration - position);
+        long delta = (long) (deltaMin * percent);
         newPosition = delta + position;
+        if (maxPlaytime != -1 && maxPlaytime + 1000 < newPosition) {
+            return;
+        }
         if (newPosition > duration) {
             newPosition = duration;
         } else if (newPosition <= 0) {
@@ -1579,12 +1598,6 @@ public class PlayerController {
                 operatorPanel();
             }
             return true;
-        }
-    }
-
-    public void setVideoInfo(TextView view, String value) {
-        if(view != null) {
-            view.setText(value);
         }
     }
 }

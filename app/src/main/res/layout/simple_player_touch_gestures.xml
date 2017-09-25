@@ -74,7 +74,7 @@
             android:layout_height="wrap_content"
             android:layout_below="@+id/operation_bg"
             android:paddingTop="8dp"
-            android:text="50%"
+            android:text=""
             android:textColor="@android:color/white"
             android:textSize="16dp"/>
 
@@ -88,7 +88,7 @@
                 android:id="@+id/app_video_fastForward_target"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="50%"
+                android:text=""
                 android:textColor="@android:color/white"
                 android:textSize="16dp"/>
 
@@ -96,7 +96,7 @@
                 android:id="@+id/app_video_fastForward_all"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:text="50%"
+                android:text=""
                 android:textColor="@android:color/white"
                 android:textSize="16dp"/>
 

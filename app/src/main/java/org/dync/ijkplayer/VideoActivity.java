@@ -263,10 +263,8 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if (mVideoView.isPlaying()) {
-                    mVideoView.pause();
                     updatePlayBtnBg(true);
                 } else {
-                    mVideoView.start();
                     updatePlayBtnBg(false);
                 }
             }
@@ -333,22 +331,14 @@ public class VideoActivity extends AppCompatActivity {
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
-                        int networkType = NetworkUtils.getNetworkType(mContext);
-                        switch (networkType) {
-                            case -1:
-                            case 0:
-                            case 1:
-                                mVideoView.pause();
-                                updatePlayBtnBg(true);
-                                break;
+                        if (!NetworkUtils.isNetworkConnected(mContext)) {
+                            updatePlayBtnBg(true);
                         }
                         if (app_video_loading != null) {
                             app_video_loading.setVisibility(View.VISIBLE);
                             app_video_speed.setVisibility(View.VISIBLE);
                             app_video_speed.setText("");
                         }
-//                        mVideoView.startTcpSpeed();
-
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
@@ -357,7 +347,6 @@ public class VideoActivity extends AppCompatActivity {
                             app_video_speed.setVisibility(View.GONE);
                             app_video_speed.setText("");
                         }
-//                        mVideoView.stopTcpSpeed();
                         break;
                     case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
                         Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
@@ -480,8 +469,7 @@ public class VideoActivity extends AppCompatActivity {
                         if (error == -101) {//断网了
                             int bufferPercentage = mVideoView.getBufferPercentage();
                             Log.d(TAG, "onNativeInvoke: bufferPercentage=" + bufferPercentage + "%");
-                            mVideoView.pause();
-                            updatePlayBtnBg(true);
+//                            updatePlayBtnBg(true);
                         }
                         break;
                     case IjkMediaPlayer.OnNativeInvokeListener.CTRL_WILL_TCP_OPEN:
@@ -562,11 +550,18 @@ public class VideoActivity extends AppCompatActivity {
             }
             if (app_video_speed != null) {
                 String formatSize = formatedSpeed(tcpSpeed, 1000);
-                Log.d(TAG, "updateSpeed: " + formatSize);
                 app_video_speed.setText(formatSize);
             }
-            if(videoCachedDuration == 0){//没有缓存了
-
+            if (videoCachedDuration == 0) {//没有缓存了，如果断网
+                if(NetworkUtils.isNetworkConnected(mContext)){
+                    int currentPosition = mVideoView.getCurrentPosition();
+                    mPlayerController.seekTo(currentPosition);
+                    updatePlayBtnBg(false);
+                    iv_paly.setEnabled(true);
+                }else {
+                    updatePlayBtnBg(true);
+                    iv_paly.setEnabled(false);
+                }
             }
         }
     }
@@ -580,9 +575,11 @@ public class VideoActivity extends AppCompatActivity {
             if (isPlay) {
                 // 暂停
                 resid = R.drawable.simple_player_center_play;
+                mVideoView.pause();
             } else {
                 // 播放
                 resid = R.drawable.simple_player_center_pause;
+                mVideoView.start();
             }
             iv_paly.setImageResource(resid);
         } catch (Exception e) {
@@ -606,7 +603,6 @@ public class VideoActivity extends AppCompatActivity {
 //            mVideoView.stopPlayback();
 //            mVideoView.release(true);
 //            mVideoView.stopBackgroundPlay();
-            mVideoView.pause();
             updatePlayBtnBg(true);
         } else {
             mVideoView.enterBackground();
@@ -616,7 +612,7 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mPlayerController != null) {
+        if (mPlayerController != null) {
             mPlayerController.onDestroy();
         }
         if (mVideoView != null) {
