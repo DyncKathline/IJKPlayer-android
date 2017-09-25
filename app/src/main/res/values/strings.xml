@@ -9,4 +9,6 @@
 
 
     <string name="small_problem">出现了点小问题,稍后重试</string>
+    <string name="invalid_video">无效的视频</string>
+    <string name="error_button">确定</string>
 </resources>
