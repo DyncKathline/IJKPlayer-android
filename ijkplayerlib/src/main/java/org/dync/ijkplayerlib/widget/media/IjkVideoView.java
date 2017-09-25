@@ -25,6 +25,7 @@ import android.media.AudioManager;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.annotation.FloatRange;
@@ -40,7 +41,6 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.services.MediaPlayerService;
@@ -58,6 +58,7 @@ import tv.danmaku.ijk.media.player.AndroidMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkTimedText;
+import tv.danmaku.ijk.media.player.MediaPlayerProxy;
 import tv.danmaku.ijk.media.player.TextureMediaPlayer;
 import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
 import tv.danmaku.ijk.media.player.misc.ITrackInfo;
@@ -1061,6 +1062,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
 
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 1);
+
+                    ijkMediaPlayer.setOnNativeInvokeListener(mNativeInvokeListener);
                 }
                 mediaPlayer = ijkMediaPlayer;
             }
@@ -1213,65 +1216,70 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     /**
      * 设置播放速率，这里仅对支持IjkMediaPlayer播放器
      *
-     * @param rate 0.2~2.0之间
+     * @param speed 0.2~2.0之间
      */
-    public void setPlayRate(@FloatRange(from = 0.2, to = 2.0) float rate) {
+    public void setSpeed(@FloatRange(from = 0.2, to = 2.0) float speed) {
         if (mMediaPlayer instanceof IjkMediaPlayer) {
-            ((IjkMediaPlayer) mMediaPlayer).setSpeed(rate);
+            ((IjkMediaPlayer) mMediaPlayer).setSpeed(speed);
         } else {
-            Toast.makeText(getContext(), getResources().getString(R.string.TrackType_unknown), Toast.LENGTH_SHORT).show();
+            Log.d(TAG, "not support setSpeed: ");
         }
     }
 
-    /**
-     * 获取网速，这里仅对支持IjkMediaPlayer播放器
-     *
-     * @return 返回-1为不支持网速的获取
-     */
-    public long getTcpSpeed() {
-        if (mMediaPlayer instanceof IjkMediaPlayer) {
-            return ((IjkMediaPlayer) mMediaPlayer).getTcpSpeed();
-        }
-        return -1;
-    }
-
-    private final int TCP_SPEED = 0x1234;
     private Runnable runnable;
     private long delayMillis = 500;
+    public static final int UPDATE_VIDEO_INFO = 1;
 
-    public interface TcpSeepListener {
-        void updateSpeed(long speed);
+    public interface VideoInfoListener {
+        /**
+         * 这里一般可以获取{@link IjkMediaPlayer#getVideoCachedDuration()}、{@link IjkMediaPlayer#getAudioCachedDuration()}、{@link IjkMediaPlayer#getTcpSpeed()}</br>
+         * 具体可看IjkMediaPlayer
+         * @param mMediaPlayer
+         */
+        void updateVideoInfo(IMediaPlayer mMediaPlayer);
     }
 
-    private TcpSeepListener tcpSeepListener;
+    private VideoInfoListener videoInfoListener;
 
-    public void setTcpSeepListener(TcpSeepListener listener) {
-        tcpSeepListener = listener;
+    public void setVideoInfoListener(VideoInfoListener listener) {
+        videoInfoListener = listener;
     }
 
     private Handler mHandler = new Handler(new Handler.Callback() {
         @Override
         public boolean handleMessage(Message message) {
             switch (message.what) {
-                case TCP_SPEED:
-                    if(tcpSeepListener != null) {
-                        Log.d(TAG, "updateSpeed:" + getTcpSpeed());
-                        tcpSeepListener.updateSpeed(getTcpSpeed());
+                case UPDATE_VIDEO_INFO: {
+                    IjkMediaPlayer mp = null;
+                    if (mMediaPlayer == null)
+                        break;
+                    if (mMediaPlayer instanceof IjkMediaPlayer) {
+                        mp = (IjkMediaPlayer) mMediaPlayer;
+                    } else if (mMediaPlayer instanceof MediaPlayerProxy) {
+                        MediaPlayerProxy proxy = (MediaPlayerProxy) mMediaPlayer;
+                        IMediaPlayer internal = proxy.getInternalMediaPlayer();
+                        if (internal != null && internal instanceof IjkMediaPlayer)
+                            mp = (IjkMediaPlayer) internal;
                     }
-                    break;
+                    if (mp == null)
+                        break;
+                    if(videoInfoListener != null) {
+                        videoInfoListener.updateVideoInfo(mp);
+                    }
+                }
             }
             return true;
         }
     });
 
     /**
-     * 开始网络监测
+     * 开始视频监测，建议在{@link #setOnPreparedListener(IMediaPlayer.OnPreparedListener)}中调用
      */
-    public void startTcpSpeed() {
+    public void startVideoInfo() {
         runnable = new Runnable() {
             @Override
             public void run() {
-                mHandler.sendEmptyMessage(TCP_SPEED);
+                mHandler.obtainMessage(UPDATE_VIDEO_INFO).sendToTarget();
                 mHandler.postDelayed(runnable, delayMillis);
             }
         };
@@ -1279,10 +1287,30 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     }
 
     /**
-     * 停止网络监测
+     * 停止视频检测，建议在onDestroy()方法中调用
      */
-    public void stopTcpSpeed() {
+    public void stopVideoInfo(){
         mHandler.removeCallbacks(runnable);
-        mHandler.removeMessages(TCP_SPEED);
+        mHandler.removeMessages(UPDATE_VIDEO_INFO);
     }
+
+    public void setOnNativeInvokeListener(OnNativeInvokeListener listener) {
+        mOnNativeInvokeListener = listener;
+    }
+
+    private OnNativeInvokeListener mOnNativeInvokeListener;
+
+    public interface OnNativeInvokeListener {
+        boolean onNativeInvoke(IMediaPlayer mediaPlayer, int what, Bundle bundle);
+    }
+
+    private IjkMediaPlayer.OnNativeInvokeListener mNativeInvokeListener = new IjkMediaPlayer.OnNativeInvokeListener() {
+        @Override
+        public boolean onNativeInvoke(int i, Bundle bundle) {
+            if (mOnNativeInvokeListener != null) {
+                mOnNativeInvokeListener.onNativeInvoke(mMediaPlayer, i, bundle);
+            }
+            return false;
+        }
+    };
 }

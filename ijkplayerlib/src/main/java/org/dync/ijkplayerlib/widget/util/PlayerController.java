@@ -22,11 +22,13 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.SeekBar;
+import android.widget.TextView;
 
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
 import java.math.BigDecimal;
+import java.util.Locale;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
@@ -126,7 +128,7 @@ public class PlayerController {
     /**
      * 是否显示控制面板，默认为隐藏，true为显示false为隐藏
      */
-    private boolean isShowControlPanl;
+    private boolean isShowControlPanel;
     /**
      * 禁止触摸，默认可以触摸，true为禁止false为可触摸
      */
@@ -147,6 +149,12 @@ public class PlayerController {
      * 播放的时候是否需要网络提示，默认显示网络提示，true为显示网络提示，false不显示网络提示
      */
     private boolean isGNetWork = true;
+
+    private GestureDetector gestureDetector;
+    /**
+     * 设置Gesture手势器是否可用
+     */
+    private boolean isGestureEnabled;
 
     private boolean isCharge;
     private int maxPlaytime;
@@ -206,7 +214,7 @@ public class PlayerController {
                 /**滑动中，同步播放进度*/
                 case MESSAGE_SHOW_PROGRESS:
                     long pos = syncProgress();
-                    if (!isDragging && isShowControlPanl) {
+                    if (!isDragging && isShowControlPanel) {
                         msg = obtainMessage(MESSAGE_SHOW_PROGRESS);
                         sendMessageDelayed(msg, 1000 - (pos % 1000));
                     }
@@ -433,14 +441,14 @@ public class PlayerController {
      *
      * @param rate 0.2~2.0之间
      * @Override public void onPrepared(IMediaPlayer iMediaPlayer) {
-     * mPlayerController.setPlayRate(1.5f);
+     * mPlayerController.setSpeed(1.5f);
      * }
      * });
      * </code>
      */
     public PlayerController setPlayRate(@FloatRange(from = 0.2, to = 2.0) float rate) {
         if (videoView != null) {
-            videoView.setPlayRate(rate);
+            videoView.setSpeed(rate);
         }
         return this;
     }
@@ -592,7 +600,7 @@ public class PlayerController {
         mHandler.removeMessages(MESSAGE_RESTART_PLAY);
         mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
         if (videoView != null) {
-            videoView.stopPlayback();
+//            videoView.stopPlayback();
             videoView.release(true);
         }
         if (playerSupport) {
@@ -794,12 +802,25 @@ public class PlayerController {
 
     /**
      * 设置基于内置的GestureDetector进行控制，内置类{@link PlayerGestureListener}，回调{@link GestureListener}，
+     * 该方法在{@link #setVideoParentLayout(View)}之后调用有效
      *
      * @param listener
      * @return
      */
     public PlayerController setGestureListener(GestureListener listener) {
         mGestureListener = listener;
+        return this;
+    }
+
+    /**
+     * 设置Gesture手势器是否可用
+     */
+    public PlayerController setGestureEnabled(boolean enabled){
+        isGestureEnabled = enabled;
+        if(isGestureEnabled) {
+            gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
+        }
+        setVideoParentTouchEvent(isGestureEnabled);
         return this;
     }
 
@@ -847,37 +868,15 @@ public class PlayerController {
     }
 
     /**
-     * 设置点击区域，基本上是播放器的父布局
+     * 设置点击区域，基本上是播放器的父布局，建议第一个调用
      *
      * @param rootLayout
      * @return
      */
     public PlayerController setVideoParentLayout(View rootLayout) {
-        final GestureDetector gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
         videoParentLayout = rootLayout;
-        rootLayout.setClickable(true);
-        rootLayout.setOnTouchListener(new View.OnTouchListener() {
-            @Override
-            public boolean onTouch(View view, MotionEvent motionEvent) {
-                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_DOWN:
-                        if (mAutoControlPanelRunnable != null) {
-                            mAutoControlPanelRunnable.stop();
-                        }
-                        break;
-                }
-                if (gestureDetector.onTouchEvent(motionEvent))
-                    return true;
-                // 处理手势结束
-                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
-                    case MotionEvent.ACTION_UP:
-                        endGesture();
-                        break;
-                }
-                return false;
-            }
-        });
-
+//        gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
+//        setVideoParentTouchEvent(true);
 
         orientationEventListener = new OrientationEventListener(mActivity) {
             @Override
@@ -936,10 +935,6 @@ public class PlayerController {
      */
     public PlayerController setPanelControl(PanelControlListener listener) {
         panelControlListener = listener;
-        mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
-        if (mAutoControlPanelRunnable != null) {
-            mAutoControlPanelRunnable.start(0);
-        }
         return this;
     }
 
@@ -955,18 +950,25 @@ public class PlayerController {
     }
 
     /**
-     * 设置是否自动显示隐藏操作面板，要设置{@link #setPanelControl(PanelControlListener)}才能生效
+     * 设置是否自动显示隐藏操作面板，调用该方法才能自动隐藏操作面板
      *
      * @param isAuto
      * @return
      */
     public PlayerController setAutoControlPanel(boolean isAuto) {
         if (isAuto) {
-            isShowControlPanl = false;
+            isShowControlPanel = false;
             mAutoControlPanelRunnable = new AutoControlPanelRunnable();
         } else {
-            isShowControlPanl = true;
+            isShowControlPanel = true;
+            if(mAutoControlPanelRunnable != null) {
+                mAutoControlPanelRunnable.stop();
+            }
             mAutoControlPanelRunnable = null;
+        }
+        mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
+        if (mAutoControlPanelRunnable != null) {
+            mAutoControlPanelRunnable.start(0);
         }
         return this;
     }
@@ -975,7 +977,7 @@ public class PlayerController {
      * 这个方法要调用{@link #setAutoControlPanel(boolean)}，并且设置setAutoControlPanel(true)时才能生效
      * 这里最终执行的回调是{@link PanelControlListener}对应着{@link #setPanelControl(PanelControlListener)}
      *
-     * @param views 设置控件按下时移除执行{@link #operatorPanl()}方法，离开控件时执行{@link #operatorPanl()}方法
+     * @param views 设置控件按下时移除执行{@link #operatorPanel()}方法，离开控件时执行{@link #operatorPanel()}方法
      * @return
      */
     public PlayerController setAutoControlListener(View... views) {
@@ -1003,9 +1005,9 @@ public class PlayerController {
     /**
      * 显示或隐藏操作面板
      */
-    public PlayerController operatorPanl() {
-        isShowControlPanl = !isShowControlPanl;
-        if (isShowControlPanl) {
+    private PlayerController operatorPanel() {
+        isShowControlPanel = !isShowControlPanel;
+        if (isShowControlPanel) {
             mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.start(AutoControlPanelRunnable.AUTO_INTERVAL);
@@ -1017,7 +1019,7 @@ public class PlayerController {
             }
         }
         if (panelControlListener != null) {
-            panelControlListener.operatorPanel(isShowControlPanl);
+            panelControlListener.operatorPanel(isShowControlPanel);
         }
         return this;
     }
@@ -1203,6 +1205,43 @@ public class PlayerController {
         return showSize;
     }
 
+    public static String formatedSpeed(long bytes,long elapsed_milli) {
+        if (elapsed_milli <= 0) {
+            return "0 B/s";
+        }
+
+        if (bytes <= 0) {
+            return "0 B/s";
+        }
+
+        float bytes_per_sec = ((float)bytes) * 1000.f /  elapsed_milli;
+        if (bytes_per_sec >= 1000 * 1000) {
+            return String.format(Locale.US, "%.2f MB/s", ((float)bytes_per_sec) / 1000 / 1000);
+        } else if (bytes_per_sec >= 1000) {
+            return String.format(Locale.US, "%.1f KB/s", ((float)bytes_per_sec) / 1000);
+        } else {
+            return String.format(Locale.US, "%d B/s", (long)bytes_per_sec);
+        }
+    }
+
+    public static String formatedDurationMilli(long duration) {
+        if (duration >=  1000) {
+            return String.format(Locale.US, "%.2f sec", ((float)duration) / 1000);
+        } else {
+            return String.format(Locale.US, "%d msec", duration);
+        }
+    }
+
+    public static String formatedSize(long bytes) {
+        if (bytes >= 100 * 1000) {
+            return String.format(Locale.US, "%.2f MB", ((float)bytes) / 1000 / 1000);
+        } else if (bytes >= 100) {
+            return String.format(Locale.US, "%.1f KB", ((float)bytes) / 1000);
+        } else {
+            return String.format(Locale.US, "%d B", bytes);
+        }
+    }
+
     /**
      * ==========================================内部方法=============================
      */
@@ -1265,6 +1304,36 @@ public class PlayerController {
     private void tryFullScreen(boolean fullScreen) {
         showActionBar(fullScreen);
         setFullScreen(fullScreen);
+    }
+
+    /**
+     * 对播放区域设置Touch事件
+     * @param enabled
+     */
+    private void setVideoParentTouchEvent(final boolean enabled) {
+        videoParentLayout.setClickable(true);
+        videoParentLayout.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View view, MotionEvent motionEvent) {
+                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_DOWN:
+                        if (mAutoControlPanelRunnable != null) {
+                            mAutoControlPanelRunnable.stop();
+                        }
+                        break;
+                }
+                if (enabled && gestureDetector.onTouchEvent(motionEvent)) {
+                    return true;
+                }
+                // 处理手势结束
+                switch (motionEvent.getAction() & MotionEvent.ACTION_MASK) {
+                    case MotionEvent.ACTION_UP:
+                        endGesture();
+                        break;
+                }
+                return false;
+            }
+        });
     }
 
     /**
@@ -1403,7 +1472,6 @@ public class PlayerController {
     /**
      * ==========================================内部类=============================
      */
-
     private class AutoControlPanelRunnable implements Runnable {
 
         public static final int AUTO_INTERVAL = 5000;
@@ -1419,7 +1487,7 @@ public class PlayerController {
 
         @Override
         public void run() {
-            operatorPanl();
+            operatorPanel();
         }
     }
 
@@ -1508,10 +1576,15 @@ public class PlayerController {
         public boolean onSingleTapUp(MotionEvent e) {
             /**视频视窗单击事件*/
             if (!isForbidTouch) {
-                operatorPanl();
+                operatorPanel();
             }
             return true;
         }
     }
 
+    public void setVideoInfo(TextView view, String value) {
+        if(view != null) {
+            view.setText(value);
+        }
+    }
 }
