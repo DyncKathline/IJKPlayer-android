@@ -18,6 +18,7 @@
 package org.dync.ijkplayerlib.widget.media;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -1241,6 +1242,12 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     private VideoInfoListener videoInfoListener;
 
+    /**
+     * 设置该方法监听必须调用{@link #startVideoInfo()}方法才能启动监听，结束时调用{@link #stopVideoInfo()}结束监听<br>
+     * 调用{@link #startVideoInfo()}方法可以在{@link #setOnPreparedListener(IMediaPlayer.OnPreparedListener)}中执行，
+     * 调用{@link #stopVideoInfo()}方法可以在{@link Activity#onDestroy()}执行
+     * @param listener
+     */
     public void setVideoInfoListener(VideoInfoListener listener) {
         videoInfoListener = listener;
     }

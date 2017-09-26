@@ -433,6 +433,7 @@ public class PlayerController {
      * @return
      */
     public PlayerController setPortrait(boolean isPortrait) {
+        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         if (isPortrait) {
             onConfigurationPortrait();
         } else {
@@ -455,7 +456,7 @@ public class PlayerController {
      * });
      * </code>
      */
-    public PlayerController setPlayRate(@FloatRange(from = 0.2, to = 2.0) float rate) {
+    public PlayerController setSpeed(@FloatRange(from = 0.2, to = 2.0) float rate) {
         if (videoView != null) {
             videoView.setSpeed(rate);
         }
@@ -627,6 +628,7 @@ public class PlayerController {
      * }
      */
     public PlayerController onConfigurationChanged(final Configuration newConfig) {
+        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         isPortrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
         doOnConfigurationChanged(isPortrait);
         return this;
@@ -641,6 +643,7 @@ public class PlayerController {
      * }
      */
     public PlayerController onConfigurationChanged() {
+        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             Log.e(TAG, "onConfigurationChanged: " + "横屏");
             mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//全屏
@@ -1075,6 +1078,7 @@ public class PlayerController {
      * 横竖屏切换
      */
     public PlayerController toggleScreenOrientation() {
+        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);// 竖屏
         } else if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
