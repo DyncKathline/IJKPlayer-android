@@ -121,7 +121,7 @@ public class VideoActivity extends AppCompatActivity {
         initPlayer();
         initVideoListener();
 
-        StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary), false);
+        StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
     }
 
     private void initPlayer() {

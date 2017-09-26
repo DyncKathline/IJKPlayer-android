@@ -1,7 +1,6 @@
 package org.dync.ijkplayer.utils;
 
 import android.app.Activity;
-import android.graphics.Color;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
@@ -24,20 +23,12 @@ public class StatusBarUtil {
      * @param activity
      */
     public static void transparencyBar(Activity activity) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window window = activity.getWindow();
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
-                    | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
-            Window window = activity.getWindow();
-            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
-                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            //透明状态栏
+            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
+            //透明导航栏
+//            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
         }
     }
 
@@ -48,27 +39,10 @@ public class StatusBarUtil {
      * @param colorId
      */
     public static void setStatusBarColor(Activity activity, int colorId) {
-        setStatusBarColor(activity, colorId, true);
-    }
-
-    /**
-     * 修改状态栏颜色，支持4.4以上版本
-     *
-     * @param activity
-     * @param colorId  直接使用资源ID，即R.color.xxx
-     * @param isFollow 是否保持沉浸式状态
-     */
-    public static void setStatusBarColor(Activity activity, int colorId, boolean isFollow) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            Window window = activity.getWindow();
-//      window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            if (!isFollow) {
-                window.setStatusBarColor(colorId);
-            }
-        } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //使用SystemBarTint库使4.4版本状态栏变色，需要先将状态栏设置为透明
             transparencyBar(activity);
-            ViewGroup contentFrameLayout = (ViewGroup) activity.findViewById(Window.ID_ANDROID_CONTENT);
+            ViewGroup contentFrameLayout = activity.findViewById(Window.ID_ANDROID_CONTENT);
             View parentView = contentFrameLayout.getChildAt(0);
             if (parentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                 parentView.setFitsSystemWindows(true);
@@ -86,20 +60,21 @@ public class StatusBarUtil {
     }
 
     /**
-     *  设置WindowManager.LayoutParams.FLAG_FULLSCREEN时，由于使用了fitSystemWindows()方法,导致的问题
-     *  支持4.4以上版本，在5.0以上可以不需要调用该方法了
+     * 设置WindowManager.LayoutParams.FLAG_FULLSCREEN时，由于使用了fitSystemWindows()方法,导致的问题
+     * 支持4.4以上版本，在6.0以上可以不需要调用该方法了
+     *
      * @param activity
-     * @param flag_fullscreen   true：添加全屏   false：清除全屏
+     * @param flag_fullscreen true：添加全屏   false：清除全屏
      */
     public static void setFitsSystemWindows(Activity activity, boolean flag_fullscreen) {
-        ViewGroup contentFrameLayout = activity.findViewById(Window.ID_ANDROID_CONTENT);
+        ViewGroup contentFrameLayout = (ViewGroup) activity.findViewById(Window.ID_ANDROID_CONTENT);
         View parentView = contentFrameLayout.getChildAt(0);
-        if(flag_fullscreen){
+        if (flag_fullscreen) {
             activity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//全屏
-        }else {
+        } else {
             activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//清除全屏
         }
-        if (parentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP) {
+        if (parentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
             if (tintManager != null) {
                 if (flag_fullscreen) {
                     tintManager.setStatusBarTintEnabled(false);
