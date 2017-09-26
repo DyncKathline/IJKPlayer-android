@@ -289,22 +289,9 @@ public class VideoActivity extends AppCompatActivity {
                 mPlayerController
                         .setGestureEnabled(true)
                         .setAutoControlPanel(true);//视频加载后才自动隐藏操作面板
-                mPlayerController.setPlayRate(1.0f);
+                mPlayerController.setSpeed(1.0f);
             }
         });
-//        mVideoView.setTcpSeepListener(new IjkVideoView.TcpSeepListener() {
-//            @Override
-//            public void updateSpeed(IMediaPlayer mMediaPlayer, long speed) {
-//                if (speed == -1) {
-//                    return;
-//                }
-//                if (app_video_speed != null) {
-//                    String formatSize = formatedSpeed(speed, 1000);
-//                    Log.d(TAG, "updateSpeed: " + formatSize);
-//                    app_video_speed.setText(formatSize);
-//                }
-//            }
-//        });
         mVideoView.setVideoInfoListener(new IjkVideoView.VideoInfoListener() {
             @Override
             public void updateVideoInfo(IMediaPlayer mMediaPlayer) {
