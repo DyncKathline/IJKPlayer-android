@@ -1,6 +1,7 @@
 package org.dync.ijkplayer.utils;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Build;
 import android.view.View;
 import android.view.ViewGroup;
@@ -25,10 +26,8 @@ public class StatusBarUtil {
     public static void transparencyBar(Activity activity) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             Window window = activity.getWindow();
-            //透明状态栏
-            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
-            //透明导航栏
-//            window.addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+            window.setFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS,
+                    WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
     }
 
@@ -42,7 +41,7 @@ public class StatusBarUtil {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //使用SystemBarTint库使4.4版本状态栏变色，需要先将状态栏设置为透明
             transparencyBar(activity);
-            ViewGroup contentFrameLayout = activity.findViewById(Window.ID_ANDROID_CONTENT);
+            ViewGroup contentFrameLayout = (ViewGroup) activity.findViewById(Window.ID_ANDROID_CONTENT);
             View parentView = contentFrameLayout.getChildAt(0);
             if (parentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                 parentView.setFitsSystemWindows(true);
@@ -61,7 +60,7 @@ public class StatusBarUtil {
 
     /**
      * 设置WindowManager.LayoutParams.FLAG_FULLSCREEN时，由于使用了fitSystemWindows()方法,导致的问题
-     * 支持4.4以上版本，在6.0以上可以不需要调用该方法了
+     * 支持4.4以上版本
      *
      * @param activity
      * @param flag_fullscreen true：添加全屏   false：清除全屏
@@ -74,13 +73,41 @@ public class StatusBarUtil {
         } else {
             activity.getWindow().clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//清除全屏
         }
-        if (parentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH && Build.VERSION.SDK_INT < Build.VERSION_CODES.M) {
+        if (parentView != null && Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
             if (tintManager != null) {
                 if (flag_fullscreen) {
                     tintManager.setStatusBarTintEnabled(false);
                 } else {
                     tintManager.setStatusBarTintEnabled(true);
                 }
+            }
+        }
+    }
+
+    /**
+     *
+     * @param activity
+     * @param navigationBarState    navigationBar是否可见，true：可见   false：不可见
+     */
+    public static void setSystemUI(Activity activity, boolean navigationBarState){
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            Window window = activity.getWindow();
+            if(!navigationBarState){
+                window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
+                        | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
+                //添加Flag把状态栏设为可绘制模式
+                window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
+                int uiFlags = 0;
+//                uiFlags |= View.SYSTEM_UI_FLAG_LAYOUT_STABLE;//隐藏NavigationBar时会留下空白
+                uiFlags |= View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN;
+                uiFlags |= View.SYSTEM_UI_FLAG_HIDE_NAVIGATION;
+                uiFlags |= View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION;
+                uiFlags |= View.SYSTEM_UI_FLAG_IMMERSIVE_STICKY;
+                window.getDecorView().setSystemUiVisibility(uiFlags);
+                window.setNavigationBarColor(Color.TRANSPARENT);
+                window.setStatusBarColor(Color.TRANSPARENT);
+            }else {
+                window.getDecorView().setSystemUiVisibility(0);
             }
         }
     }

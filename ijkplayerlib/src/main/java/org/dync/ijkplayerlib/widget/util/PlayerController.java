@@ -21,9 +21,11 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
@@ -64,6 +66,8 @@ public class PlayerController {
     private IjkVideoView videoView;
 
     private SeekBar videoController;
+
+    private RelativeLayout mPreviewLayout;
 
     /**
      * 当前播放位置
@@ -257,6 +261,18 @@ public class PlayerController {
                 }else {
                     isMaxTime = false;
                 }
+
+                if(preViewListener != null) {
+                    preViewListener.updatePreView(videoUrl, newPosition);
+                }
+                int width = seekBar.getWidth();
+                int offset = (int) (width - (mContext.getResources().getDimension(R.dimen.seek_bar_image_w) / 2)) / 1000 * progress;
+                Log.d(TAG, "onProgressChanged: width= " + width + ", offset= " + offset);
+
+                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) mPreviewLayout.getLayoutParams();
+                layoutParams.leftMargin = offset;
+                //设置帧预览图的显示位置
+                mPreviewLayout.setLayoutParams(layoutParams);
             }
 
         }
@@ -268,6 +284,9 @@ public class PlayerController {
             mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.stop();
+            }
+            if(mPreviewLayout != null){
+                mPreviewLayout.setVisibility(View.VISIBLE);
             }
         }
 
@@ -289,8 +308,24 @@ public class PlayerController {
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.start(AutoControlPanelRunnable.AUTO_INTERVAL);
             }
+            if(mPreviewLayout != null){
+                mPreviewLayout.setVisibility(View.GONE);
+            }
         }
     };
+
+    public interface PreViewListener{
+        void updatePreView(String videoPath, long time);
+    }
+
+    private PreViewListener preViewListener;
+    private String videoUrl;
+
+    public PlayerController setPreViewListener(String url, PreViewListener listener) {
+        videoUrl = url;
+        preViewListener = listener;
+        return this;
+    }
 
     /**
      * 亮度进度条滑动监听
@@ -876,6 +911,11 @@ public class PlayerController {
         this.videoController = videoController;
         videoController.setMax(1000);
         videoController.setOnSeekBarChangeListener(mSeekListener);
+        return this;
+    }
+
+    public PlayerController setPreviewLayout(RelativeLayout previewLayout) {
+        mPreviewLayout = previewLayout;
         return this;
     }
 

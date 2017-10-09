@@ -15,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -66,6 +67,7 @@ public class VideoActivity extends AppCompatActivity {
     private LinearLayout ll_bottom;
     private LinearLayout app_video_replay;
     private ImageView app_video_replay_icon;
+    private ImageView iv_preview;
 
     public static Intent newIntent(Context context, String videoPath, String videoTitle) {
         Intent intent = new Intent(context, VideoActivity.class);
@@ -138,6 +140,13 @@ public class VideoActivity extends AppCompatActivity {
         mPlayerController = new PlayerController(this, mVideoView)
                 .setVideoParentLayout(findViewById(R.id.rl_video_view_layout))//建议第一个调用
                 .setVideoController((SeekBar) findViewById(R.id.seekbar))
+                .setPreviewLayout((RelativeLayout) findViewById(R.id.preview_layout))
+                .setPreViewListener(mVideoPath, new PlayerController.PreViewListener() {
+                    @Override
+                    public void updatePreView(String videoPath, long time) {
+
+                    }
+                })
                 .setVolumeController()
                 .setBrightnessController()
                 .setVideoParentRatio(IRenderView.AR_16_9_FIT_PARENT)
@@ -254,8 +263,10 @@ public class VideoActivity extends AppCompatActivity {
         tv_current_time = (TextView) findViewById(R.id.tv_current_time);
         tv_total_time = (TextView) findViewById(R.id.tv_total_time);
         sbVdieo = (SeekBar) findViewById(R.id.seekbar);
-        sbVdieo.setEnabled(false);
-        iv_paly.setEnabled(false);
+        initVideoControl();
+
+        //
+        iv_preview = (ImageView) findViewById(R.id.iv_preview);
     }
 
     public void initVideoListener() {
@@ -390,6 +401,15 @@ public class VideoActivity extends AppCompatActivity {
                 return true;
             }
         });
+        mVideoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(IMediaPlayer iMediaPlayer) {
+                updatePlayBtnBg(true);
+                mVideoView.release(false);
+                mVideoView.stopVideoInfo();
+                initVideoControl();
+            }
+        });
         mVideoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(IMediaPlayer iMediaPlayer, int framework_err, int impl_err) {
@@ -407,6 +427,7 @@ public class VideoActivity extends AppCompatActivity {
                             .setGestureEnabled(false)
                             .setAutoControlPanel(false);
                 }
+                mVideoView.stopVideoInfo();
                 final int messageId;
 
                 if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
@@ -477,6 +498,12 @@ public class VideoActivity extends AppCompatActivity {
                 return false;
             }
         });
+    }
+
+    private void initVideoControl() {
+        iv_paly.setEnabled(false);
+        sbVdieo.setEnabled(false);
+        sbVdieo.setProgress(0);
     }
 
     private void showVideoInfo(IMediaPlayer mMediaPlayer) {

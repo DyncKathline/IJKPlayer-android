@@ -141,6 +141,22 @@
             android:layout_centerInParent="true"
             android:layout_gravity="center" />
 
+        <!--预览图-->
+        <RelativeLayout
+            android:id="@+id/preview_layout"
+            android:layout_width="@dimen/seek_bar_image_w"
+            android:layout_height="100dp"
+            android:layout_above="@+id/ll_bottom"
+            android:visibility="gone">
+
+            <ImageView
+                android:id="@+id/preview_image"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#000000" />
+
+        </RelativeLayout>
+
         <!--底部栏-->
         <LinearLayout
             android:id="@+id/ll_bottom"
@@ -148,7 +164,7 @@
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
             android:layout_gravity="bottom"
-            android:background="#555"
+            android:background="#2555"
             android:gravity="center_vertical"
             android:orientation="horizontal"
             android:padding="10dp">
@@ -312,6 +328,11 @@
                 android:layout_height="wrap_content" />
 
         </LinearLayout>
+
+        <ImageView
+            android:id="@+id/iv_preview"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
 
     </LinearLayout>
 
