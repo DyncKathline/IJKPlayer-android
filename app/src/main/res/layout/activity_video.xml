@@ -219,7 +219,23 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/rl_video_view_layout"
-        android:orientation="vertical" />
+        android:orientation="vertical" >
+
+        <Button
+            android:id="@+id/btn_url1"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="视频源1" />
+
+        <Button
+            android:id="@+id/btn_url2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="视频源2" />
+
+    </LinearLayout>
 
     <LinearLayout
         android:layout_width="match_parent"

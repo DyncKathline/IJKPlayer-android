@@ -15,7 +15,6 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -140,13 +139,6 @@ public class VideoActivity extends AppCompatActivity {
         mPlayerController = new PlayerController(this, mVideoView)
                 .setVideoParentLayout(findViewById(R.id.rl_video_view_layout))//建议第一个调用
                 .setVideoController((SeekBar) findViewById(R.id.seekbar))
-                .setPreviewLayout((RelativeLayout) findViewById(R.id.preview_layout))
-                .setPreViewListener(mVideoPath, new PlayerController.PreViewListener() {
-                    @Override
-                    public void updatePreView(String videoPath, long time) {
-
-                    }
-                })
                 .setVolumeController()
                 .setBrightnessController()
                 .setVideoParentRatio(IRenderView.AR_16_9_FIT_PARENT)
@@ -219,7 +211,7 @@ public class VideoActivity extends AppCompatActivity {
 
         // prefer mVideoPath
         Settings settings = new Settings(this);
-        settings.setPlayer(Settings.PV_PLAYER__Auto);
+        settings.setPlayer(Settings.PV_PLAYER__AndroidMediaPlayer);
         if (mVideoPath != null)
             mVideoView.setVideoPath(mVideoPath);
         else if (mVideoUri != null)
@@ -346,57 +338,57 @@ public class VideoActivity extends AppCompatActivity {
                             app_video_speed.setText("");
                         }
                         break;
-                    case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
-                        Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_BAD_INTERLEAVING://
-                        Log.d(TAG, "MEDIA_INFO_BAD_INTERLEAVING:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
-                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_METADATA_UPDATE://视频数据更新
-                        Log.d(TAG, "MEDIA_INFO_METADATA_UPDATE: " + extra);
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_TIMED_TEXT_ERROR://
-                        Log.d(TAG, "MEDIA_INFO_TIMED_TEXT_ERROR:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_UNSUPPORTED_SUBTITLE://不支持字幕
-                        Log.d(TAG, "MEDIA_INFO_UNSUPPORTED_SUBTITLE:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_SUBTITLE_TIMED_OUT://字幕超时
-                        Log.d(TAG, "MEDIA_INFO_SUBTITLE_TIMED_OUT:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED://
-                        Log.d(TAG, "MEDIA_INFO_VIDEO_ROTATION_CHANGED:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
-                        Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE://
-                        Log.d(TAG, "MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE:");
-                        break;
-//                    case IMediaPlayer.MEDIA_ERROR_UNKNOWN://
-//                        Log.d(TAG, "MEDIA_ERROR_UNKNOWN:");
+//                    case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
+//                        Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
 //                        break;
-                    case IMediaPlayer.MEDIA_INFO_UNKNOWN://未知信息
-                        Log.d(TAG, "MEDIA_INFO_UNKNOWN or MEDIA_ERROR_UNKNOWN:");
-                        break;
-                    case IMediaPlayer.MEDIA_ERROR_SERVER_DIED://服务挂掉
-                        Log.d(TAG, "MEDIA_ERROR_SERVER_DIED:");
-                        break;
-                    case IMediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK://数据错误没有有效的回收
-                        Log.d(TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:");
-                        break;
-                    case IMediaPlayer.MEDIA_ERROR_IO://IO 错误
-                        Log.d(TAG, "MEDIA_ERROR_IO :");
-                        break;
-                    case IMediaPlayer.MEDIA_ERROR_UNSUPPORTED://数据不支持
-                        Log.d(TAG, "MEDIA_ERROR_UNSUPPORTED :");
-                        break;
-                    case IMediaPlayer.MEDIA_ERROR_TIMED_OUT://数据超时
-                        Log.d(TAG, "MEDIA_ERROR_TIMED_OUT :");
-                        break;
+//                    case IMediaPlayer.MEDIA_INFO_BAD_INTERLEAVING://
+//                        Log.d(TAG, "MEDIA_INFO_BAD_INTERLEAVING:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
+//                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_METADATA_UPDATE://视频数据更新
+//                        Log.d(TAG, "MEDIA_INFO_METADATA_UPDATE: " + extra);
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_TIMED_TEXT_ERROR://
+//                        Log.d(TAG, "MEDIA_INFO_TIMED_TEXT_ERROR:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_UNSUPPORTED_SUBTITLE://不支持字幕
+//                        Log.d(TAG, "MEDIA_INFO_UNSUPPORTED_SUBTITLE:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_SUBTITLE_TIMED_OUT://字幕超时
+//                        Log.d(TAG, "MEDIA_INFO_SUBTITLE_TIMED_OUT:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED://
+//                        Log.d(TAG, "MEDIA_INFO_VIDEO_ROTATION_CHANGED:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
+//                        Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE://
+//                        Log.d(TAG, "MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE:");
+//                        break;
+////                    case IMediaPlayer.MEDIA_ERROR_UNKNOWN://
+////                        Log.d(TAG, "MEDIA_ERROR_UNKNOWN:");
+////                        break;
+//                    case IMediaPlayer.MEDIA_INFO_UNKNOWN://未知信息
+//                        Log.d(TAG, "MEDIA_INFO_UNKNOWN or MEDIA_ERROR_UNKNOWN:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_SERVER_DIED://服务挂掉
+//                        Log.d(TAG, "MEDIA_ERROR_SERVER_DIED:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK://数据错误没有有效的回收
+//                        Log.d(TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_IO://IO 错误
+//                        Log.d(TAG, "MEDIA_ERROR_IO :");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_UNSUPPORTED://数据不支持
+//                        Log.d(TAG, "MEDIA_ERROR_UNSUPPORTED :");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_TIMED_OUT://数据超时
+//                        Log.d(TAG, "MEDIA_ERROR_TIMED_OUT :");
+//                        break;
                 }
                 return true;
             }
@@ -475,8 +467,6 @@ public class VideoActivity extends AppCompatActivity {
                         int error = bundle.getInt("error", 404);
                         int http_code = bundle.getInt("http_code", 404);
                         if (error == -101) {//断网了
-                            int bufferPercentage = mVideoView.getBufferPercentage();
-                            Log.d(TAG, "onNativeInvoke: bufferPercentage=" + bufferPercentage + "%");
 //                            updatePlayBtnBg(true);
                         }
                         break;
@@ -496,6 +486,44 @@ public class VideoActivity extends AppCompatActivity {
                         break;
                 }
                 return false;
+            }
+        });
+
+        Button url1 = (Button) findViewById(R.id.btn_url1);
+        Button url2 = (Button) findViewById(R.id.btn_url2);
+        url1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mPlayerController != null) {
+                    mPlayerController.onDestroy();
+                }
+                if (mVideoView != null) {
+                    mVideoView.stopVideoInfo();
+                }
+                mVideoPath = "http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8";
+                mVideoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
+                if (mVideoPath != null) {
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
+            }
+        });
+        url2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (mPlayerController != null) {
+                    mPlayerController.onDestroy();
+                }
+                if (mVideoView != null) {
+                    mVideoView.stopVideoInfo();
+                }
+//                mVideoPath = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
+                mVideoPath = "https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv";
+                mVideoPath = "http://vod.mixiong.tv/merged/f7c14aee43b74749/1492607360693.flv";
+                if (mVideoPath != null) {
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
             }
         });
     }
@@ -532,6 +560,7 @@ public class VideoActivity extends AppCompatActivity {
 //                ll_video_info.addView(checkBox);
 //            }
 //        }
+
         TextView fps = (TextView) findViewById(R.id.fps);
         TextView v_cache = (TextView) findViewById(R.id.v_cache);
         TextView a_cache = (TextView) findViewById(R.id.a_cache);
@@ -539,7 +568,7 @@ public class VideoActivity extends AppCompatActivity {
         TextView tcp_speed = (TextView) findViewById(R.id.tcp_speed);
         TextView bit_rate = (TextView) findViewById(R.id.bit_rate);
 
-        if (mMediaPlayer instanceof IjkMediaPlayer) {
+        if (mMediaPlayer != null && mMediaPlayer instanceof IjkMediaPlayer) {
             IjkMediaPlayer mp = (IjkMediaPlayer) mMediaPlayer;
 
             float fpsOutput = mp.getVideoOutputFramesPerSecond();
@@ -556,23 +585,23 @@ public class VideoActivity extends AppCompatActivity {
             mPlayerController.setVideoInfo(v_cache, String.format(Locale.US, "%s, %s", formatedDurationMilli(videoCachedDuration), formatedSize(videoCachedBytes)));
             mPlayerController.setVideoInfo(a_cache, String.format(Locale.US, "%s, %s", formatedDurationMilli(audioCachedDuration), formatedSize(audioCachedBytes)));
             mPlayerController.setVideoInfo(seek_load_cost, String.format(Locale.US, "%d ms", seekLoadDuration));
-            mPlayerController.setVideoInfo(tcp_speed, String.format(Locale.US, "%s", formatedSpeed(tcpSpeed, 1000)));
+            mPlayerController.setVideoInfo(tcp_speed, String.format(Locale.US, "%s", formatedSpeed(tcpSpeed)));
             mPlayerController.setVideoInfo(bit_rate, String.format(Locale.US, "%.2f kbs", bitRate / 1000f));
 
             if (tcpSpeed == -1) {
                 return;
             }
             if (app_video_speed != null) {
-                String formatSize = formatedSpeed(tcpSpeed, 1000);
+                String formatSize = formatedSpeed(tcpSpeed);
                 app_video_speed.setText(formatSize);
             }
             if (videoCachedDuration == 0) {//没有缓存了，如果断网
-                if(NetworkUtils.isNetworkConnected(mContext)){
+                if (NetworkUtils.isNetworkConnected(mContext)) {
                     int currentPosition = mVideoView.getCurrentPosition();
                     mPlayerController.seekTo(currentPosition);
                     updatePlayBtnBg(false);
                     iv_paly.setEnabled(true);
-                }else {
+                } else {
                     updatePlayBtnBg(true);
                     iv_paly.setEnabled(false);
                 }

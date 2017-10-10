@@ -21,15 +21,12 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
-import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
-import java.math.BigDecimal;
 import java.util.Locale;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
@@ -66,8 +63,6 @@ public class PlayerController {
     private IjkVideoView videoView;
 
     private SeekBar videoController;
-
-    private RelativeLayout mPreviewLayout;
 
     /**
      * 当前播放位置
@@ -240,6 +235,7 @@ public class PlayerController {
      */
     private final SeekBar.OnSeekBarChangeListener mSeekListener = new SeekBar.OnSeekBarChangeListener() {
         private boolean isMaxTime;
+
         /**数值的改变*/
         @Override
         public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -258,21 +254,9 @@ public class PlayerController {
                     long pos = 1000L * maxPlaytime / duration;
                     seekBar.setProgress((int) pos);
                     mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
-                }else {
+                } else {
                     isMaxTime = false;
                 }
-
-                if(preViewListener != null) {
-                    preViewListener.updatePreView(videoUrl, newPosition);
-                }
-                int width = seekBar.getWidth();
-                int offset = (int) (width - (mContext.getResources().getDimension(R.dimen.seek_bar_image_w) / 2)) / 1000 * progress;
-                Log.d(TAG, "onProgressChanged: width= " + width + ", offset= " + offset);
-
-                RelativeLayout.LayoutParams layoutParams = (RelativeLayout.LayoutParams) mPreviewLayout.getLayoutParams();
-                layoutParams.leftMargin = offset;
-                //设置帧预览图的显示位置
-                mPreviewLayout.setLayoutParams(layoutParams);
             }
 
         }
@@ -284,9 +268,6 @@ public class PlayerController {
             mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.stop();
-            }
-            if(mPreviewLayout != null){
-                mPreviewLayout.setVisibility(View.VISIBLE);
             }
         }
 
@@ -308,24 +289,8 @@ public class PlayerController {
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.start(AutoControlPanelRunnable.AUTO_INTERVAL);
             }
-            if(mPreviewLayout != null){
-                mPreviewLayout.setVisibility(View.GONE);
-            }
         }
     };
-
-    public interface PreViewListener{
-        void updatePreView(String videoPath, long time);
-    }
-
-    private PreViewListener preViewListener;
-    private String videoUrl;
-
-    public PlayerController setPreViewListener(String url, PreViewListener listener) {
-        videoUrl = url;
-        preViewListener = listener;
-        return this;
-    }
 
     /**
      * 亮度进度条滑动监听
@@ -645,8 +610,8 @@ public class PlayerController {
         orientationEventListener.disable();
         mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
         if (videoView != null) {
-//            videoView.stopPlayback();
-            videoView.release(true);
+            videoView.stopPlayback();
+//            videoView.release(true);
         }
         if (playerSupport) {
             IjkMediaPlayer.native_profileEnd();
@@ -911,11 +876,6 @@ public class PlayerController {
         this.videoController = videoController;
         videoController.setMax(1000);
         videoController.setOnSeekBarChangeListener(mSeekListener);
-        return this;
-    }
-
-    public PlayerController setPreviewLayout(RelativeLayout previewLayout) {
-        mPreviewLayout = previewLayout;
         return this;
     }
 
@@ -1233,41 +1193,15 @@ public class PlayerController {
 
     /**
      * 下载速度格式化显示
+     * @param bytes 毫秒级
+     * @return
      */
-    public static String getFormatSize(long size) {
-        long fileSize = size;
-        String showSize = "";
-
-        int scale = 2;//设置位数
-        int roundingMode = BigDecimal.ROUND_HALF_UP;//表示四舍五入，可以选择其他舍值方式，例如去尾，等等.
-        BigDecimal bd = null;
-
-        if (fileSize >= 0 && fileSize < 1024) {
-            showSize = fileSize + "Kb/s";
-        } else if (fileSize >= 1024 && fileSize < (1024 * 1024)) {
-            float speed = fileSize * 1.0f / 1024;
-            bd = new BigDecimal((double) speed);
-            bd = bd.setScale(scale, roundingMode);
-            showSize = Float.toString(bd.floatValue()) + "KB/s";
-        } else if (fileSize >= (1024 * 1024) && fileSize < (1024 * 1024 * 1024)) {
-            float speed = fileSize * 1.0f / (1024 * 1024);
-            bd = new BigDecimal((double) speed);
-            bd = bd.setScale(scale, roundingMode);
-            showSize = Float.toString(bd.floatValue()) + "MB/s";
-        }
-        return showSize;
-    }
-
-    public static String formatedSpeed(long bytes, long elapsed_milli) {
-        if (elapsed_milli <= 0) {
-            return "0 B/s";
-        }
-
+    public static String formatedSpeed(long bytes) {
         if (bytes <= 0) {
             return "0 B/s";
         }
 
-        float bytes_per_sec = ((float) bytes) * 1000.f / elapsed_milli;
+        float bytes_per_sec = ((float) bytes) * 1000.f / 1000;
         if (bytes_per_sec >= 1000 * 1000) {
             return String.format(Locale.US, "%.2f MB/s", ((float) bytes_per_sec) / 1000 / 1000);
         } else if (bytes_per_sec >= 1000) {
