@@ -8,6 +8,7 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
@@ -24,13 +25,14 @@ import org.dync.ijkplayerlib.widget.media.AndroidMediaController;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
-import org.dync.ijkplayerlib.widget.util.Settings;
 
 import java.util.Locale;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
+import static org.dync.ijkplayer.VideoUrlFragment.URI_EXTRA;
+import static org.dync.ijkplayer.VideoUrlFragment.URI_LIST_EXTRA;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedDurationMilli;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSize;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSpeed;
@@ -67,6 +69,7 @@ public class VideoActivity extends AppCompatActivity {
     private LinearLayout app_video_replay;
     private ImageView app_video_replay_icon;
     private ImageView iv_preview;
+    private ImageView img_change_screen;
 
     public static Intent newIntent(Context context, String videoPath, String videoTitle) {
         Intent intent = new Intent(context, VideoActivity.class);
@@ -120,9 +123,17 @@ public class VideoActivity extends AppCompatActivity {
 
         initView();
         initPlayer();
+        initFragment();
+        initListener();
         initVideoListener();
 
         StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
+    }
+
+    @Override
+    public void onNewIntent(Intent intent) {
+        onDestroyVideo();
+        setIntent(intent);
     }
 
     private void initPlayer() {
@@ -145,7 +156,7 @@ public class VideoActivity extends AppCompatActivity {
                 .setVideoRatio(IRenderView.AR_16_9_FIT_PARENT)
                 .setPortrait(true)
                 .setKeepScreenOn(true)
-                .setAutoControlListener(iv_paly)
+                .setAutoControlListener(ll_bottom)//触摸以下控件可以取消自动隐藏布局的线程
                 .setPanelControl(new PlayerController.PanelControlListener() {
                     @Override
                     public void operatorPanel(boolean isShowControlPanel) {
@@ -210,8 +221,6 @@ public class VideoActivity extends AppCompatActivity {
                 });
 
         // prefer mVideoPath
-        Settings settings = new Settings(this);
-        settings.setPlayer(Settings.PV_PLAYER__AndroidMediaPlayer);
         if (mVideoPath != null)
             mVideoView.setVideoPath(mVideoPath);
         else if (mVideoUri != null)
@@ -255,13 +264,45 @@ public class VideoActivity extends AppCompatActivity {
         tv_current_time = (TextView) findViewById(R.id.tv_current_time);
         tv_total_time = (TextView) findViewById(R.id.tv_total_time);
         sbVdieo = (SeekBar) findViewById(R.id.seekbar);
+        img_change_screen = (ImageView) findViewById(R.id.img_change_screen);
         initVideoControl();
 
         //
         iv_preview = (ImageView) findViewById(R.id.iv_preview);
     }
 
-    public void initVideoListener() {
+    private void initFragment() {
+        VideoUrlFragment videoUrlFragment = new VideoUrlFragment();
+        FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
+        fragmentTransaction.add(R.id.fl_video_url, videoUrlFragment);
+        fragmentTransaction.commit();
+
+        videoUrlFragment.setVideoUrlListener(new VideoUrlFragment.OnVideoUrlListener() {
+            @Override
+            public void onClick(Intent intent) {
+                onDestroyVideo();
+                mVideoPath = intent.getStringExtra(URI_EXTRA);
+                if(mVideoPath == null) {
+                    String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
+                    if(uriStrings.length > 1){
+                        mVideoPath = uriStrings[1];
+                    }else {
+                        mVideoPath = uriStrings[0];
+                    }
+                }
+                Log.d(TAG, "onClick: mVideoPath: " + mVideoPath);
+                if (mVideoPath != null) {
+                    if (app_video_loading != null) {
+                        app_video_loading.setVisibility(View.VISIBLE);
+                    }
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
+            }
+        });
+    }
+
+    private void initListener() {
         iv_paly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -272,12 +313,94 @@ public class VideoActivity extends AppCompatActivity {
                 }
             }
         });
+        img_change_screen.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(mPlayerController != null) {
+                    if(mPlayerController.isPortrait()){
+                        updateFullScreenBg(true);
+                    }else {
+                        updateFullScreenBg(false);
+                    }
+                    mPlayerController.toggleScreenOrientation();
+                }
+            }
+        });
         app_video_replay_icon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 initPlayer();
             }
         });
+        Button url1 = (Button) findViewById(R.id.btn_url1);
+        Button url2 = (Button) findViewById(R.id.btn_url2);
+        Button url3 = (Button) findViewById(R.id.btn_url3);
+        Button url4 = (Button) findViewById(R.id.btn_url4);
+        url1.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onDestroyVideo();
+                mVideoPath = "http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8";
+                mVideoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
+                if (mVideoPath != null) {
+                    if (app_video_loading != null) {
+                        app_video_loading.setVisibility(View.VISIBLE);
+                    }
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
+            }
+        });
+        url2.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onDestroyVideo();
+//                mVideoPath = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
+                mVideoPath = "https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv";
+                mVideoPath = "http://vod.mixiong.tv/merged/f7c14aee43b74749/1492607360693.flv";
+                mVideoPath = "http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0";
+                mVideoPath = "http://118.180.8.123/res-share!execute.flv?path=eyJwYXRoIjoiTVA0LzQwMjgzN2U2NTE4ZTk2MzIwMTUxOGVhNWY3ZmEwMGI5L-aWueWQkemXrumimC5tcDQubXA0IiwiYXBwSWQiOiIyMDE0MDEwNDE0MjIxNyIsImFwcE5hbWUiOiJZWFQtYW5kcm9pZCJ9";
+                if (mVideoPath != null) {
+                    if (app_video_loading != null) {
+                        app_video_loading.setVisibility(View.VISIBLE);
+                    }
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
+            }
+        });
+        url3.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onDestroyVideo();
+                mVideoPath = "https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd";
+                mVideoPath = "https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears_hd.mpd";
+                if (mVideoPath != null) {
+                    if (app_video_loading != null) {
+                        app_video_loading.setVisibility(View.VISIBLE);
+                    }
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
+            }
+        });
+        url4.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                onDestroyVideo();
+                mVideoPath = "http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism";
+                if (mVideoPath != null) {
+                    if (app_video_loading != null) {
+                        app_video_loading.setVisibility(View.VISIBLE);
+                    }
+                    mVideoView.setVideoPath(mVideoPath);
+                    mVideoView.start();
+                }
+            }
+        });
+    }
+
+    public void initVideoListener() {
         mVideoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(IMediaPlayer iMediaPlayer) {
@@ -488,44 +611,6 @@ public class VideoActivity extends AppCompatActivity {
                 return false;
             }
         });
-
-        Button url1 = (Button) findViewById(R.id.btn_url1);
-        Button url2 = (Button) findViewById(R.id.btn_url2);
-        url1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mPlayerController != null) {
-                    mPlayerController.onDestroy();
-                }
-                if (mVideoView != null) {
-                    mVideoView.stopVideoInfo();
-                }
-                mVideoPath = "http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8";
-                mVideoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
-                if (mVideoPath != null) {
-                    mVideoView.setVideoPath(mVideoPath);
-                    mVideoView.start();
-                }
-            }
-        });
-        url2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if (mPlayerController != null) {
-                    mPlayerController.onDestroy();
-                }
-                if (mVideoView != null) {
-                    mVideoView.stopVideoInfo();
-                }
-//                mVideoPath = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
-                mVideoPath = "https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv";
-                mVideoPath = "http://vod.mixiong.tv/merged/f7c14aee43b74749/1492607360693.flv";
-                if (mVideoPath != null) {
-                    mVideoView.setVideoPath(mVideoPath);
-                    mVideoView.start();
-                }
-            }
-        });
     }
 
     private void initVideoControl() {
@@ -631,6 +716,26 @@ public class VideoActivity extends AppCompatActivity {
 
     }
 
+    /**
+     * 更新全屏按钮的背景图片
+     */
+    private void updateFullScreenBg(boolean isFullSrceen) {
+        try {
+            int resid;
+            if (isFullSrceen) {
+                // 全屏
+                resid = R.drawable.simple_player_icon_fullscreen_shrink;
+            } else {
+                // 非全屏
+                resid = R.drawable.simple_player_icon_fullscreen_stretch;
+            }
+            img_change_screen.setBackgroundResource(resid);
+        } catch (Exception e) {
+
+        }
+
+    }
+
     @Override
     public void onBackPressed() {
         mBackPressed = true;
@@ -655,6 +760,16 @@ public class VideoActivity extends AppCompatActivity {
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        onDestroyVideo();
+    }
+
+    private void onDestroyVideo() {
+        if(app_video_replay != null) {
+            app_video_replay.setVisibility(View.GONE);
+        }
+        if(app_video_replay_icon != null) {
+            app_video_replay_icon.setVisibility(View.GONE);
+        }
         if (mPlayerController != null) {
             mPlayerController.onDestroy();
         }

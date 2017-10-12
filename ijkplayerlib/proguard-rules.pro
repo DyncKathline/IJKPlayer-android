@@ -23,3 +23,8 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+#ijkplayer
+-dontwarn org.dync.ijkplayerlib.**
+-keep class org.dync.ijkplayerlib.**{*;}
+-dontwarn tv.danmaku.ijk.media.**
+-keep class tv.danmaku.ijk.media.**{*;}

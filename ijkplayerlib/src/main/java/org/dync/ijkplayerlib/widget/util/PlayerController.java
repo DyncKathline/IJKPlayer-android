@@ -610,8 +610,8 @@ public class PlayerController {
         orientationEventListener.disable();
         mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
         if (videoView != null) {
-            videoView.stopPlayback();
-//            videoView.release(true);
+//            videoView.stopPlayback();
+            videoView.release(true);
         }
         if (playerSupport) {
             IjkMediaPlayer.native_profileEnd();
@@ -727,7 +727,8 @@ public class PlayerController {
      * }
      */
     public boolean onBackPressed() {
-        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+//        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+        if (!isOnlyFullScreen && mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             return true;
         }
@@ -1007,7 +1008,7 @@ public class PlayerController {
                             endGesture();
                             break;
                     }
-                    return false;
+                    return true;
                 }
             });
         }
@@ -1325,7 +1326,7 @@ public class PlayerController {
                         endGesture();
                         break;
                 }
-                return false;
+                return true;
             }
         });
     }

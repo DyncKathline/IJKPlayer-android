@@ -11,4 +11,9 @@
     <string name="small_problem">出现了点小问题,稍后重试</string>
     <string name="invalid_video">无效的视频</string>
     <string name="error_button">确定</string>
+
+    <string name="sample_list_load_error">One or more sample lists failed to load</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>

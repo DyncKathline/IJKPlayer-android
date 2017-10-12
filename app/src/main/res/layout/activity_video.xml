@@ -208,18 +208,19 @@
                 android:id="@+id/img_change_screen"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:background="@drawable/simple_player_icon_fullscreen_stretch" />
+                android:background="@drawable/simple_player_icon_fullscreen_stretch"
+                android:padding="5dp" />
 
         </LinearLayout>
 
     </RelativeLayout>
 
     <LinearLayout
-        android:id="@+id/ll_video_info"
+        android:id="@+id/ll_video_url"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_below="@+id/rl_video_view_layout"
-        android:orientation="vertical" >
+        android:orientation="horizontal">
 
         <Button
             android:id="@+id/btn_url1"
@@ -235,12 +236,27 @@
             android:layout_weight="1"
             android:text="视频源2" />
 
+        <Button
+            android:id="@+id/btn_url3"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="视频源3" />
+
+        <Button
+            android:id="@+id/btn_url4"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="视频源4" />
+
     </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/ll_video_info"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/ll_video_info"
+        android:layout_below="@+id/ll_video_url"
         android:orientation="vertical">
 
         <LinearLayout
@@ -351,5 +367,11 @@
             android:layout_height="wrap_content" />
 
     </LinearLayout>
+
+    <FrameLayout
+        android:id="@+id/fl_video_url"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_below="@+id/ll_video_info" />
 
 </RelativeLayout>
