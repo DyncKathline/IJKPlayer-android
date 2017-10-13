@@ -68,7 +68,6 @@ public class SampleMediaListFragment extends Fragment {
 
         mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
         mAdapter.addItem("http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0", "flv");
-        mAdapter.addItem("hhttp://vod.mixiong.tv/merged/f7c14aee43b74749/1492607360693.flv", "flv");
         mAdapter.addItem("https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv", "flv");
         mAdapter.addItem("http://118.180.8.123/res-share!execute.flv?path=eyJwYXRoIjoiTVA0LzQwMjgzN2U2NTE4ZTk2MzIwMTUxOGVhNWY3ZmEwMGI5L-aWueWQkemXrumimC5tcDQubXA0IiwiYXBwSWQiOiIyMDE0MDEwNDE0MjIxNyIsImFwcE5hbWUiOiJZWFQtYW5kcm9pZCJ9", "flv");
         mAdapter.addItem("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd", "mpd");
@@ -77,7 +76,6 @@ public class SampleMediaListFragment extends Fragment {
         mAdapter.addItem("http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8", "m3u8");
         mAdapter.addItem("https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8", "m3u8");
         mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
-        mAdapter.addItem("http://www.biggar.cn//public//File//member_video//201709//18//59bf9d3220fd8.mp4", "mp4");
         mAdapter.addItem("http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism", "ism");
 
 
