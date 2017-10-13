@@ -3,6 +3,8 @@
 ## 效果图   
 ![image](https://raw.githubusercontent.com/DyncKathline/IJKPlayer-android/master/screenshot/GIF.gif)  
 ## [Demo下载](https://raw.githubusercontent.com/DyncKathline/IJKPlayer-android/master/screenshot/app-debug.apk)  
+如果点击下载不了可以从以下找到它  
+![image](https://raw.githubusercontent.com/DyncKathline/Blog/master/android/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20171013113817.png)  
 
 首先打开[/Bilibili/ijkplayer](https://github.com/Bilibili/ijkplayer)，利用git命令
 ```
