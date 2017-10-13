@@ -35,7 +35,7 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(mContext, SettingActivity.class));
                 break;
             case R.id.btn_ijkPlayer:
-                String videoPath = "http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8";
+                String videoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
 //                String videoPath = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
                 break;

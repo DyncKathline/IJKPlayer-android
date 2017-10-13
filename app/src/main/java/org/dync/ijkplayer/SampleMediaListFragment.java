@@ -15,26 +15,21 @@
  * limitations under the License.
  */
 
-package tv.danmaku.ijk.media.example.fragments;
+package org.dync.ijkplayer;
 
 import android.app.Activity;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v7.widget.LinearLayoutManager;
+import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.ListView;
-import android.widget.TextView;
-
-import tv.danmaku.ijk.media.example.R;
-import tv.danmaku.ijk.media.example.activities.VideoActivity;
 
 public class SampleMediaListFragment extends Fragment {
-    private ListView mFileListView;
+    private RecyclerView mRecyclerView;
     private SampleMediaAdapter mAdapter;
 
     public static SampleMediaListFragment newInstance() {
@@ -45,8 +40,8 @@ public class SampleMediaListFragment extends Fragment {
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        ViewGroup viewGroup = (ViewGroup) inflater.inflate(R.layout.fragment_file_list, container, false);
-        mFileListView = (ListView) viewGroup.findViewById(R.id.file_list_view);
+        ViewGroup viewGroup = (ViewGroup) inflater.inflate(R.layout.fragment_video_url, container, false);
+        mRecyclerView = (RecyclerView) viewGroup.findViewById(R.id.recyclerView);
         return viewGroup;
     }
 
@@ -57,21 +52,32 @@ public class SampleMediaListFragment extends Fragment {
         final Activity activity = getActivity();
 
         mAdapter = new SampleMediaAdapter(activity);
-        mFileListView.setAdapter(mAdapter);
-        mFileListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRecyclerView.setAdapter(mAdapter);
+
+        mAdapter.setOnItemClickListener(new SampleMediaAdapter.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, final int position, final long id) {
-                SampleMediaItem item = mAdapter.getItem(position);
+            public void OnItemClick(View view, SampleMediaAdapter.SampleMediaItem item, int position) {
                 String name = item.mName;
                 String url = item.mUrl;
-                VideoActivity.intentTo(activity, url, name);
+                if(onItemClickListener != null) {
+                    onItemClickListener.OnItemClick(activity, url, name);
+                }
             }
         });
+
         mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
         mAdapter.addItem("http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0", "flv");
         mAdapter.addItem("hhttp://vod.mixiong.tv/merged/f7c14aee43b74749/1492607360693.flv", "flv");
+        mAdapter.addItem("https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv", "flv");
         mAdapter.addItem("http://118.180.8.123/res-share!execute.flv?path=eyJwYXRoIjoiTVA0LzQwMjgzN2U2NTE4ZTk2MzIwMTUxOGVhNWY3ZmEwMGI5L-aWueWQkemXrumimC5tcDQubXA0IiwiYXBwSWQiOiIyMDE0MDEwNDE0MjIxNyIsImFwcE5hbWUiOiJZWFQtYW5kcm9pZCJ9", "flv");
         mAdapter.addItem("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd", "mpd");
+        mAdapter.addItem("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears_hd.mpd", "mpd");
+        mAdapter.addItem("http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism", "ism");
+        mAdapter.addItem("http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8", "m3u8");
+        mAdapter.addItem("https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8", "m3u8");
+        mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
+        mAdapter.addItem("http://www.biggar.cn//public//File//member_video//201709//18//59bf9d3220fd8.mp4", "mp4");
         mAdapter.addItem("http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism", "ism");
 
 
@@ -90,55 +96,13 @@ public class SampleMediaListFragment extends Fragment {
         mAdapter.addItem("http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_16x9/gear0/prog_index.m3u8", "bipbop advanced 22.050Hz stereo @ 40 kbps");
     }
 
-    final class SampleMediaItem {
-        String mUrl;
-        String mName;
-
-        public SampleMediaItem(String url, String name) {
-            mUrl = url;
-            mName = name;
-        }
+    interface OnItemClickListener {
+        void OnItemClick(Context context, String videoPath, String videoTitle);
     }
 
-    final class SampleMediaAdapter extends ArrayAdapter<SampleMediaItem> {
-        public SampleMediaAdapter(Context context) {
-            super(context, android.R.layout.simple_list_item_2);
-        }
+    OnItemClickListener onItemClickListener;
 
-        public void addItem(String url, String name) {
-            add(new SampleMediaItem(url, name));
-        }
-
-        @Override
-        public long getItemId(int position) {
-            return position;
-        }
-
-        @Override
-        public View getView(int position, View convertView, ViewGroup parent) {
-            View view = convertView;
-            if (view == null) {
-                LayoutInflater inflater = LayoutInflater.from(parent.getContext());
-                view = inflater.inflate(android.R.layout.simple_list_item_2, parent, false);
-            }
-
-            ViewHolder viewHolder = (ViewHolder) view.getTag();
-            if (viewHolder == null) {
-                viewHolder = new ViewHolder();
-                viewHolder.mNameTextView = (TextView) view.findViewById(android.R.id.text1);
-                viewHolder.mUrlTextView = (TextView) view.findViewById(android.R.id.text2);
-            }
-
-            SampleMediaItem item = getItem(position);
-            viewHolder.mNameTextView.setText(item.mName);
-            viewHolder.mUrlTextView.setText(item.mUrl);
-
-            return view;
-        }
-
-        final class ViewHolder {
-            public TextView mNameTextView;
-            public TextView mUrlTextView;
-        }
+    void setOnItemClickListener(OnItemClickListener listener) {
+        onItemClickListener = listener;
     }
 }

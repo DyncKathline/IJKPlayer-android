@@ -31,8 +31,6 @@ import java.util.Locale;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
-import static org.dync.ijkplayer.VideoUrlFragment.URI_EXTRA;
-import static org.dync.ijkplayer.VideoUrlFragment.URI_LIST_EXTRA;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedDurationMilli;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSize;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSpeed;
@@ -128,12 +126,6 @@ public class VideoActivity extends AppCompatActivity {
         initVideoListener();
 
         StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
-    }
-
-    @Override
-    public void onNewIntent(Intent intent) {
-        onDestroyVideo();
-        setIntent(intent);
     }
 
     private void initPlayer() {
@@ -272,25 +264,17 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void initFragment() {
-        VideoUrlFragment videoUrlFragment = new VideoUrlFragment();
+        SampleMediaListFragment videoUrlFragment = SampleMediaListFragment.newInstance();
         FragmentTransaction fragmentTransaction = getSupportFragmentManager().beginTransaction();
         fragmentTransaction.add(R.id.fl_video_url, videoUrlFragment);
         fragmentTransaction.commit();
 
-        videoUrlFragment.setVideoUrlListener(new VideoUrlFragment.OnVideoUrlListener() {
+        videoUrlFragment.setOnItemClickListener(new SampleMediaListFragment.OnItemClickListener() {
             @Override
-            public void onClick(Intent intent) {
+            public void OnItemClick(Context context, String videoPath, String videoTitle) {
                 onDestroyVideo();
-                mVideoPath = intent.getStringExtra(URI_EXTRA);
-                if(mVideoPath == null) {
-                    String[] uriStrings = intent.getStringArrayExtra(URI_LIST_EXTRA);
-                    if(uriStrings.length > 1){
-                        mVideoPath = uriStrings[1];
-                    }else {
-                        mVideoPath = uriStrings[0];
-                    }
-                }
-                Log.d(TAG, "onClick: mVideoPath: " + mVideoPath);
+                mVideoPath = videoPath;
+                Log.d(TAG, "OnItemClick: mVideoPath: " + mVideoPath);
                 if (mVideoPath != null) {
                     if (app_video_loading != null) {
                         app_video_loading.setVisibility(View.VISIBLE);
@@ -330,72 +314,6 @@ public class VideoActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 initPlayer();
-            }
-        });
-        Button url1 = (Button) findViewById(R.id.btn_url1);
-        Button url2 = (Button) findViewById(R.id.btn_url2);
-        Button url3 = (Button) findViewById(R.id.btn_url3);
-        Button url4 = (Button) findViewById(R.id.btn_url4);
-        url1.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onDestroyVideo();
-                mVideoPath = "http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8";
-                mVideoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
-                if (mVideoPath != null) {
-                    if (app_video_loading != null) {
-                        app_video_loading.setVisibility(View.VISIBLE);
-                    }
-                    mVideoView.setVideoPath(mVideoPath);
-                    mVideoView.start();
-                }
-            }
-        });
-        url2.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onDestroyVideo();
-//                mVideoPath = "https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8";
-                mVideoPath = "https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv";
-                mVideoPath = "http://vod.mixiong.tv/merged/f7c14aee43b74749/1492607360693.flv";
-                mVideoPath = "http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0";
-                mVideoPath = "http://118.180.8.123/res-share!execute.flv?path=eyJwYXRoIjoiTVA0LzQwMjgzN2U2NTE4ZTk2MzIwMTUxOGVhNWY3ZmEwMGI5L-aWueWQkemXrumimC5tcDQubXA0IiwiYXBwSWQiOiIyMDE0MDEwNDE0MjIxNyIsImFwcE5hbWUiOiJZWFQtYW5kcm9pZCJ9";
-                if (mVideoPath != null) {
-                    if (app_video_loading != null) {
-                        app_video_loading.setVisibility(View.VISIBLE);
-                    }
-                    mVideoView.setVideoPath(mVideoPath);
-                    mVideoView.start();
-                }
-            }
-        });
-        url3.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onDestroyVideo();
-                mVideoPath = "https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd";
-                mVideoPath = "https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears_hd.mpd";
-                if (mVideoPath != null) {
-                    if (app_video_loading != null) {
-                        app_video_loading.setVisibility(View.VISIBLE);
-                    }
-                    mVideoView.setVideoPath(mVideoPath);
-                    mVideoView.start();
-                }
-            }
-        });
-        url4.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                onDestroyVideo();
-                mVideoPath = "http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism";
-                if (mVideoPath != null) {
-                    if (app_video_loading != null) {
-                        app_video_loading.setVisibility(View.VISIBLE);
-                    }
-                    mVideoView.setVideoPath(mVideoPath);
-                    mVideoView.start();
-                }
             }
         });
     }
