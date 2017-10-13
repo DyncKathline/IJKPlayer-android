@@ -2,6 +2,7 @@
 > 优势： 对ijkplayer的抽取值删除了IjkVideoView.java类中几个无关紧要的变量和方法，其他与ijkplayer本身一摸一样。这样ijkplayer升级后，直接拷贝过来，无需任何改动。  
 ## 效果图   
 ![image](https://raw.githubusercontent.com/DyncKathline/IJKPlayer-android/master/screenshot/GIF.gif)  
+## [Demo下载](https://raw.githubusercontent.com/DyncKathline/IJKPlayer-android/master/screenshot/app-debug.apk)  
 
 首先打开[/Bilibili/ijkplayer](https://github.com/Bilibili/ijkplayer)，利用git命令
 ```
