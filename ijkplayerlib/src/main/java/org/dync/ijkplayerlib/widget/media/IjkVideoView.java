@@ -1223,7 +1223,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         if (mMediaPlayer instanceof IjkMediaPlayer) {
             ((IjkMediaPlayer) mMediaPlayer).setSpeed(speed);
         } else {
-            Log.d(TAG, "not support setSpeed: ");
+            Log.d(TAG, "not support setSpeed! ");
         }
     }
 
@@ -1235,6 +1235,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         /**
          * 这里一般可以获取{@link IjkMediaPlayer#getVideoCachedDuration()}、{@link IjkMediaPlayer#getAudioCachedDuration()}、{@link IjkMediaPlayer#getTcpSpeed()}</br>
          * 具体可看IjkMediaPlayer
+         *
          * @param mMediaPlayer
          */
         void updateVideoInfo(IMediaPlayer mMediaPlayer);
@@ -1246,6 +1247,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      * 设置该方法监听必须调用{@link #startVideoInfo()}方法才能启动监听，结束时调用{@link #stopVideoInfo()}结束监听<br>
      * 调用{@link #startVideoInfo()}方法可以在{@link #setOnPreparedListener(IMediaPlayer.OnPreparedListener)}中执行，
      * 调用{@link #stopVideoInfo()}方法可以在{@link Activity#onDestroy()}执行
+     *
      * @param listener
      */
     public void setVideoInfoListener(VideoInfoListener listener) {
@@ -1269,7 +1271,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                             mp = (IjkMediaPlayer) internal;
                     }
 
-                    if(videoInfoListener != null) {
+                    if (videoInfoListener != null) {
                         videoInfoListener.updateVideoInfo(mp);
                     }
                 }
@@ -1295,7 +1297,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     /**
      * 停止视频检测，建议在onDestroy()方法中调用
      */
-    public void stopVideoInfo(){
+    public void stopVideoInfo() {
         mHandler.removeCallbacks(runnable);
         mHandler.removeMessages(UPDATE_VIDEO_INFO);
     }
@@ -1310,6 +1312,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         boolean onNativeInvoke(IMediaPlayer mediaPlayer, int what, Bundle bundle);
     }
 
+    /**
+     * 需要实现 onnativeinvoke 并返回true，才能重试
+     */
     private IjkMediaPlayer.OnNativeInvokeListener mNativeInvokeListener = new IjkMediaPlayer.OnNativeInvokeListener() {
         @Override
         public boolean onNativeInvoke(int i, Bundle bundle) {

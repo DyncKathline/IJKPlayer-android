@@ -610,8 +610,9 @@ public class PlayerController {
         orientationEventListener.disable();
         mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
         if (videoView != null) {
-//            videoView.stopPlayback();
-            videoView.release(true);
+            videoView.stopPlayback();
+//            videoView.release(true);
+            videoView.stopBackgroundPlay();
         }
         if (playerSupport) {
             IjkMediaPlayer.native_profileEnd();
@@ -782,7 +783,7 @@ public class PlayerController {
     }
 
     private GestureListener mGestureListener;
-
+    private boolean progressEnable = true, volumeEnable = true, brightnessEnable = true;
     public interface GestureListener {
         /**
          * 设置快进快退
@@ -821,6 +822,21 @@ public class PlayerController {
      * @return
      */
     public PlayerController setGestureListener(GestureListener listener) {
+        setGestureListener(true, true, true, listener);
+        return this;
+    }
+
+    /**
+     * 设置基于内置的GestureDetector进行控制，内置类{@link PlayerGestureListener}，回调{@link GestureListener}，
+     * 该方法在{@link #setVideoParentLayout(View)}之后调用有效
+     *
+     * @param listener
+     * @return
+     */
+    public PlayerController setGestureListener(boolean progressEnable, boolean volumeEnable, boolean brightnessEnable, GestureListener listener) {
+        this.progressEnable = progressEnable;
+        this.volumeEnable = volumeEnable;
+        this.brightnessEnable = brightnessEnable;
         mGestureListener = listener;
         return this;
     }
@@ -1547,7 +1563,7 @@ public class PlayerController {
                 if (isLandscape) {
                     if (!isLive) {
                         /**进度设置*/
-                        if (videoView != null) {
+                        if (videoView != null && progressEnable) {
                             onProgressSlide(-deltaX / videoView.getWidth());
                         }
                     }
@@ -1555,11 +1571,15 @@ public class PlayerController {
                     if (videoView != null) {
                         float percent = deltaY / videoView.getHeight();
                         if (isVolume) {
-                            /**声音设置*/
-                            onVolumeSlide(percent);
+                            if(volumeEnable) {
+                                /**声音设置*/
+                                onVolumeSlide(percent);
+                            }
                         } else {
-                            /**亮度设置*/
-                            onBrightnessSlide(percent);
+                            if(brightnessEnable) {
+                                /**亮度设置*/
+                                onBrightnessSlide(percent);
+                            }
                         }
                     }
                 }

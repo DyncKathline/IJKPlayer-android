@@ -66,6 +66,8 @@ public class SampleMediaListFragment extends Fragment {
             }
         });
 
+        mAdapter.addItem("http://down.fodizi.com/05/d4267-11.flv", "flv");
+        mAdapter.addItem("rtmp://live.hkstv.hk.lxdns.com/live/hks", "rtmp");
         mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
         mAdapter.addItem("http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0", "flv");
         mAdapter.addItem("https://videopull.10jqka.com.cn:8188/diwukejibenmianxuangufangfa_1505989287.flv", "flv");

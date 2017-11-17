@@ -4,10 +4,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
@@ -26,6 +26,7 @@ import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 
+import java.io.File;
 import java.util.Locale;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
@@ -213,6 +214,8 @@ public class VideoActivity extends AppCompatActivity {
                 });
 
         // prefer mVideoPath
+//        Settings settings = new Settings(this);
+//        settings.setPlayer(Settings.PV_PLAYER__IjkMediaPlayer);
         if (mVideoPath != null)
             mVideoView.setVideoPath(mVideoPath);
         else if (mVideoUri != null)
@@ -287,6 +290,14 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void initListener() {
+        Button btnScreenShot = (Button) findViewById(R.id.btn_screen_shot);
+        btnScreenShot.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "screenShot");
+                mVideoView.screenShot(file.getAbsolutePath());
+            }
+        });
         iv_paly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -300,10 +311,10 @@ public class VideoActivity extends AppCompatActivity {
         img_change_screen.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(mPlayerController != null) {
-                    if(mPlayerController.isPortrait()){
+                if (mPlayerController != null) {
+                    if (mPlayerController.isPortrait()) {
                         updateFullScreenBg(true);
-                    }else {
+                    } else {
                         updateFullScreenBg(false);
                     }
                     mPlayerController.toggleScreenOrientation();
@@ -461,40 +472,41 @@ public class VideoActivity extends AppCompatActivity {
                             .setAutoControlPanel(false);
                 }
                 mVideoView.stopVideoInfo();
-                final int messageId;
-
-                if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
-                    messageId = R.string.invalid_video;
-                } else {
-                    messageId = R.string.small_problem;
-                }
-                CustomDialog.Builder builder = new CustomDialog.Builder(mContext);
-                builder.setCancelable(false)
-                        .show(new CustomDialog.Builder.onInitListener() {
-                            @Override
-                            public void init(final CustomDialog customDialog) {
-                                TextView tvTitle = customDialog.getView(R.id.tv_message);
-                                Button btnOk = customDialog.getView(R.id.btn_ok);
-                                if (tvTitle != null) {
-                                    tvTitle.setText(customDialog.getContext().getString(messageId));
-                                }
-                                if (btnOk != null) {
-                                    btnOk.setOnClickListener(new View.OnClickListener() {
-                                        @Override
-                                        public void onClick(View view) {
-                                            customDialog.dismiss();
-                                        }
-                                    });
-                                }
-                            }
-                        });
+//                final int messageId;
+//
+//                if (framework_err == MediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK) {
+//                    messageId = R.string.invalid_video;
+//                } else {
+//                    messageId = R.string.small_problem;
+//                }
+//                CustomDialog.Builder builder = new CustomDialog.Builder(mContext);
+//                builder.setCancelable(false)
+//                        .show(new CustomDialog.Builder.onInitListener() {
+//                            @Override
+//                            public void init(final CustomDialog customDialog) {
+//                                TextView tvTitle = customDialog.getView(R.id.tv_message);
+//                                Button btnOk = customDialog.getView(R.id.btn_ok);
+//                                if (tvTitle != null) {
+//                                    tvTitle.setText(customDialog.getContext().getString(messageId));
+//                                }
+//                                if (btnOk != null) {
+//                                    btnOk.setOnClickListener(new View.OnClickListener() {
+//                                        @Override
+//                                        public void onClick(View view) {
+//                                            customDialog.dismiss();
+//                                        }
+//                                    });
+//                                }
+//                            }
+//                        });
                 return true;
             }
         });
         mVideoView.setOnNativeInvokeListener(new IjkVideoView.OnNativeInvokeListener() {
             @Override
             public boolean onNativeInvoke(IMediaPlayer mediaPlayer, int what, Bundle bundle) {
-                Log.d(TAG, "onNativeInvoke: what= " + what + ", bundle= " + bundle);
+                Log.w(TAG, "onNativeInvoke: what= " + what + ", bundle= " + bundle);
+                int error, http_code;
                 switch (what) {
                     case IjkMediaPlayer.OnNativeInvokeListener.EVENT_WILL_HTTP_OPEN:
                         //what= 1, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000007.ts, error=0, http_code=0}]
@@ -505,10 +517,10 @@ public class VideoActivity extends AppCompatActivity {
                         //what= 2, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000007.ts, error=0, http_code=200}]
                         //what= 2, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000012.ts, error=-101, http_code=0}]
                         //what= 2, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, error=-5, http_code=0}]
-                        int error = bundle.getInt("error", 404);
-                        int http_code = bundle.getInt("http_code", 404);
+                        error = bundle.getInt("error");
+                        http_code = bundle.getInt("http_code");
                         if (error == -101) {//断网了
-//                            updatePlayBtnBg(true);
+
                         }
                         break;
                     case IjkMediaPlayer.OnNativeInvokeListener.CTRL_WILL_TCP_OPEN:
@@ -526,7 +538,7 @@ public class VideoActivity extends AppCompatActivity {
                         //what= 131075, bundle= Bundle[{segment_index=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, retry_counter=0}]
                         break;
                 }
-                return false;
+                return true;
             }
         });
     }
@@ -682,10 +694,10 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void onDestroyVideo() {
-        if(app_video_replay != null) {
+        if (app_video_replay != null) {
             app_video_replay.setVisibility(View.GONE);
         }
-        if(app_video_replay_icon != null) {
+        if (app_video_replay_icon != null) {
             app_video_replay_icon.setVisibility(View.GONE);
         }
         if (mPlayerController != null) {
