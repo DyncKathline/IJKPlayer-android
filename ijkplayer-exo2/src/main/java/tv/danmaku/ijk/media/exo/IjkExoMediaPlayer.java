@@ -21,6 +21,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
 
@@ -28,7 +29,6 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.ExoPlayer;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
@@ -61,7 +61,9 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.MediaInfo;
 import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
-public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.EventListener{
+public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.EventListener{
+    private static final String TAG = "IjkExoMediaPlayer";
+
     private Context mAppContext;
     private SimpleExoPlayer2 mInternalPlayer;
     private EventLogger mEventLogger;
@@ -76,7 +78,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
     private int lastReportedPlaybackState;
     private boolean lastReportedPlayWhenReady;
     private boolean mIsPrepareing = false;
-    private boolean mDidPrepare = false;
     private boolean mIsBuffering = false;
 
 
@@ -84,6 +85,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
         mAppContext = context.getApplicationContext();
         Looper eventLooper = Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper();
         mainHandler = new Handler(eventLooper);
+        lastReportedPlaybackState = Player.STATE_IDLE;
     }
 
     @Override
@@ -138,7 +140,15 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
         mTrackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
 
         mEventLogger = new EventLogger(mTrackSelector);
-        renderersFactory = new DefaultRenderersFactory(mAppContext);
+
+        boolean preferExtensionDecoders = true;
+        boolean useExtensionRenderers = true;//是否开启扩展
+        @DefaultRenderersFactory.ExtensionRendererMode int extensionRendererMode = useExtensionRenderers
+                        ? (preferExtensionDecoders ? DefaultRenderersFactory.EXTENSION_RENDERER_MODE_PREFER
+                        : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
+                        : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
+
+        renderersFactory = new DefaultRenderersFactory(mAppContext, null, extensionRendererMode);
         DefaultLoadControl loadControl = new DefaultLoadControl();
         mInternalPlayer = new SimpleExoPlayer2(renderersFactory, mTrackSelector, loadControl);
         mInternalPlayer.addListener(this);
@@ -313,7 +323,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
     public void release() {
         if (mInternalPlayer != null) {
             reset();
-
             mEventLogger = null;
         }
     }
@@ -327,7 +336,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
 
     private MediaSource getMediaSource(boolean preview) {
         Uri contentUri = Uri.parse(mDataSource);
-        String userAgent = Util.getUserAgent(mAppContext, "IjkExoMediaPlayer");
         int contentType = inferContentType(contentUri);
         switch (contentType) {
             case C.TYPE_SS:
@@ -357,7 +365,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
 
     private DataSource.Factory getHttpDataSourceFactory(boolean preview) {
         return new DefaultHttpDataSourceFactory(Util.getUserAgent(mAppContext,
-                "ExoPlayerDemo"), preview ? null : new DefaultBandwidthMeter());
+                TAG), preview ? null : new DefaultBandwidthMeter());
     }
     
     /**
@@ -388,6 +396,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        Log.e(TAG, "onPlayerStateChanged: playWhenReady = " + playWhenReady + ", playbackState = " + playbackState);
         if (lastReportedPlayWhenReady != playWhenReady || lastReportedPlaybackState != playbackState) {
             if (mIsBuffering) {
                 switch (playbackState) {
@@ -404,15 +413,14 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements ExoPlayer.
                     case Player.STATE_READY:
                         notifyOnPrepared();
                         mIsPrepareing = false;
-                        mDidPrepare = false;
                         break;
                 }
             }
 
             switch (playbackState) {
-                case Player.STATE_IDLE:
-                    notifyOnCompletion();
-                    break;
+//                case Player.STATE_IDLE:
+//                    notifyOnCompletion();
+//                    break;
                 case Player.STATE_BUFFERING:
                     notifyOnInfo(IMediaPlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
                     mIsBuffering = true;
