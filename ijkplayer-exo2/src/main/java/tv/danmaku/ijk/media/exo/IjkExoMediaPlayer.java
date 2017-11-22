@@ -159,7 +159,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             mInternalPlayer.setVideoSurface(mSurface);
 
         mInternalPlayer.prepare(mMediaSource);
-        mInternalPlayer.setPlayWhenReady(true);
+        mInternalPlayer.setPlayWhenReady(false);
     }
 
     @Override
