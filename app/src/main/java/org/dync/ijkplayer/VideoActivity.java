@@ -7,13 +7,11 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -26,7 +24,6 @@ import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 
-import java.io.File;
 import java.util.Locale;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
@@ -290,14 +287,6 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void initListener() {
-        Button btnScreenShot = (Button) findViewById(R.id.btn_screen_shot);
-        btnScreenShot.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                File file = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS), "screenShot");
-                mVideoView.screenShot(file.getAbsolutePath());
-            }
-        });
         iv_paly.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -335,7 +324,7 @@ public class VideoActivity extends AppCompatActivity {
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 sbVdieo.setEnabled(true);
                 iv_paly.setEnabled(true);
-                updatePlayBtnBg(false);
+                updatePlayBtnBg(!mVideoView.isPlaying());
                 app_video_replay.setVisibility(View.GONE);
                 app_video_replay_icon.setVisibility(View.GONE);
 
@@ -625,7 +614,7 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     /**
-     * 更新播放按钮的背景图片
+     * 更新播放按钮的背景图片，正在播放
      */
     private void updatePlayBtnBg(boolean isPlay) {
         try {

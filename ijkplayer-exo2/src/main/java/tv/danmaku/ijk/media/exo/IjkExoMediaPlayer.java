@@ -32,6 +32,7 @@ import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.ext.rtmp.RtmpDataSourceFactory;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -334,9 +335,33 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         return mInternalPlayer.getBufferedPercentage();
     }
 
+    public static final int TYPE_RTMP = 4;
+    /**
+     * Makes a best guess to infer the type from a file name.
+     *
+     * @param fileName Name of the file. It can include the path of the file.
+     * @return The content type.
+     */
+    @C.ContentType
+    private int inferContentType(String fileName) {
+        fileName = Util.toLowerInvariant(fileName);
+        if (fileName.endsWith(".mpd")) {
+            return C.TYPE_DASH;
+        } else if (fileName.endsWith(".m3u8")) {
+            return C.TYPE_HLS;
+        } else if (fileName.endsWith(".ism") || fileName.endsWith(".isml")
+                || fileName.endsWith(".ism/manifest") || fileName.endsWith(".isml/manifest")) {
+            return C.TYPE_SS;
+        } else if (fileName.startsWith("rtmp:")) {
+            return TYPE_RTMP;
+        }  else {
+            return C.TYPE_OTHER;
+        }
+    }
+
     private MediaSource getMediaSource(boolean preview) {
         Uri contentUri = Uri.parse(mDataSource);
-        int contentType = inferContentType(contentUri);
+        int contentType = inferContentType(mDataSource);
         switch (contentType) {
             case C.TYPE_SS:
                 return new SsMediaSource(contentUri, new DefaultDataSourceFactory(mAppContext, null,
@@ -351,6 +376,10 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                         mainHandler, null);
             case C.TYPE_HLS:
                 return new HlsMediaSource(contentUri, getDataSourceFactory(preview), mainHandler, null);
+            case TYPE_RTMP:
+                RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSourceFactory(null);
+                return new ExtractorMediaSource(contentUri, rtmpDataSourceFactory,
+                        new DefaultExtractorsFactory(), mainHandler, null);
             case C.TYPE_OTHER:
             default:
                 return new ExtractorMediaSource(contentUri, getDataSourceFactory(preview),
@@ -366,17 +395,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     private DataSource.Factory getHttpDataSourceFactory(boolean preview) {
         return new DefaultHttpDataSourceFactory(Util.getUserAgent(mAppContext,
                 TAG), preview ? null : new DefaultBandwidthMeter());
-    }
-    
-    /**
-     * Makes a best guess to infer the type from a media {@link Uri}
-     *
-     * @param uri The {@link Uri} of the media.
-     * @return The inferred type.
-     */
-    private static int inferContentType(Uri uri) {
-        String lastPathSegment = uri.getLastPathSegment();
-        return Util.inferContentType(lastPathSegment);
     }
 
     @Override

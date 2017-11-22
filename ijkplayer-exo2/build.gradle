@@ -4,14 +4,14 @@ android {
     compileSdkVersion rootProject.ext.compileSdkVersion
     buildToolsVersion rootProject.ext.buildToolsVersion
 
-
+    lintOptions {
+        abortOnError false
+    }
     defaultConfig {
         minSdkVersion 15
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
         versionName "1.0"
-
-        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
 
@@ -26,11 +26,9 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
-    compile 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
-    testCompile 'junit:junit:4.12'
-    androidTestCompile('com.android.support.test.espresso:espresso-core:3.0.1', {
-        exclude group: 'com.android.support', module: 'support-annotations'
-    })
+
     compile 'com.google.android.exoplayer:exoplayer:r2.5.4'
-    compile project(':ijkplayer-java')
+    compile 'com.google.android.exoplayer:extension-rtmp:r2.5.4'
+//    compile project(':ijkplayer-java')
+    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
 }
