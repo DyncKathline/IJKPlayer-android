@@ -1222,7 +1222,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     public void setSpeed(@FloatRange(from = 0.2, to = 2.0) float speed) {
         if (mMediaPlayer instanceof IjkMediaPlayer) {
             ((IjkMediaPlayer) mMediaPlayer).setSpeed(speed);
-        } else {
+        } else if (mMediaPlayer instanceof IjkExoMediaPlayer) {
+            ((IjkExoMediaPlayer) mMediaPlayer).setSpeed(speed, 1);
+        } else  {
             Log.d(TAG, "not support setSpeed! ");
         }
     }

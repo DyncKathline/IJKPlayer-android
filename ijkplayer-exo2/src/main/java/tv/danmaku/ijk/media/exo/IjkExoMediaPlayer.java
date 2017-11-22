@@ -21,6 +21,7 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
+import android.support.annotation.Size;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -29,9 +30,12 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.ext.rtmp.RtmpDataSourceFactory;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
@@ -51,6 +55,7 @@ import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.util.Util;
+import com.google.android.exoplayer2.video.VideoRendererEventListener;
 
 import java.io.FileDescriptor;
 import java.util.Map;
@@ -62,7 +67,9 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.MediaInfo;
 import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
-public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.EventListener{
+public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.EventListener,
+        VideoRendererEventListener,
+        AudioRendererEventListener {
     private static final String TAG = "IjkExoMediaPlayer";
 
     private Context mAppContext;
@@ -80,6 +87,8 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     private boolean lastReportedPlayWhenReady;
     private boolean mIsPrepareing = true;
     private boolean mIsBuffering = false;
+
+    private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
 
 
     public IjkExoMediaPlayer(Context context) {
@@ -284,14 +293,12 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void setVolume(float leftVolume, float rightVolume) {
-        // TODO: no support
+        mInternalPlayer.setVolume((leftVolume + rightVolume) / 2);
     }
-
 
     @Override
     public int getAudioSessionId() {
-        // TODO: no support
-        return 0;
+        return audioSessionId;
     }
 
     @Override
@@ -326,6 +333,21 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             reset();
             mEventLogger = null;
         }
+    }
+
+    public void stopPlayback() {
+        mInternalPlayer.stop();
+    }
+
+    /**
+     * 倍速播放
+     *
+     * @param speed 倍速播放，默认为1
+     * @param pitch 音量缩放，默认为1，修改会导致声音变调
+     */
+    public void setSpeed(@Size(min = 0) float speed, @Size(min = 0) float pitch) {
+        PlaybackParameters playbackParameters = new PlaybackParameters(speed, pitch);
+        mInternalPlayer.setPlaybackParameters(playbackParameters);
     }
 
     public int getBufferedPercentage() {
@@ -472,6 +494,73 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
+
+    }
+
+    /////////////////////////////////////AudioRendererEventListener/////////////////////////////////////////////
+    @Override
+    public void onAudioEnabled(DecoderCounters counters) {
+
+    }
+
+    @Override
+    public void onAudioSessionId(int audioSessionId) {
+        this.audioSessionId = audioSessionId;
+    }
+
+    @Override
+    public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+
+    }
+
+    @Override
+    public void onAudioInputFormatChanged(Format format) {
+
+    }
+
+    @Override
+    public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+
+    }
+
+    @Override
+    public void onAudioDisabled(DecoderCounters counters) {
+        audioSessionId = C.AUDIO_SESSION_ID_UNSET;
+    }
+
+    /////////////////////////////////////VideoRendererEventListener/////////////////////////////////////////////
+    @Override
+    public void onVideoEnabled(DecoderCounters counters) {
+
+    }
+
+    @Override
+    public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+
+    }
+
+    @Override
+    public void onVideoInputFormatChanged(Format format) {
+
+    }
+
+    @Override
+    public void onDroppedFrames(int count, long elapsedMs) {
+
+    }
+
+    @Override
+    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+
+    }
+
+    @Override
+    public void onRenderedFirstFrame(Surface surface) {
+
+    }
+
+    @Override
+    public void onVideoDisabled(DecoderCounters counters) {
 
     }
 }
