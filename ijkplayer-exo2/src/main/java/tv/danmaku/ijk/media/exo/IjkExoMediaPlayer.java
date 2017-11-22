@@ -78,7 +78,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     private Handler mainHandler;
     private int lastReportedPlaybackState;
     private boolean lastReportedPlayWhenReady;
-    private boolean mIsPrepareing = false;
+    private boolean mIsPrepareing = true;
     private boolean mIsBuffering = false;
 
 
@@ -414,6 +414,8 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void onPlayerStateChanged(boolean playWhenReady, int playbackState) {
+        //重新播放状态顺序为：STATE_IDLE -》STATE_BUFFERING -》STATE_READY
+        //缓冲时顺序为：STATE_BUFFERING -》STATE_READY
         Log.e(TAG, "onPlayerStateChanged: playWhenReady = " + playWhenReady + ", playbackState = " + playbackState);
         if (lastReportedPlayWhenReady != playWhenReady || lastReportedPlaybackState != playbackState) {
             if (mIsBuffering) {
@@ -436,9 +438,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             }
 
             switch (playbackState) {
-//                case Player.STATE_IDLE:
-//                    notifyOnCompletion();
-//                    break;
                 case Player.STATE_BUFFERING:
                     notifyOnInfo(IMediaPlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
                     mIsBuffering = true;
