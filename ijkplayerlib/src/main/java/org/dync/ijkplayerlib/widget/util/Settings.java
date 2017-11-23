@@ -34,11 +34,17 @@ public class Settings {
     public static final int PV_PLAYER__IjkExoMediaPlayer = 3;
 
     public static final String Auto_Select = "";
-    public static final String RGB_565 = "RGB 565";
-    public static final String RGB_888 = "RGB 888";
-    public static final String RGBX_8888 = "RGBX 8888";
-    public static final String YV12 = "YV12";
-    public static final String OpenGL_ES2 = "OpenGL ES2";
+//    public static final String RGB_565 = "RGB 565";
+//    public static final String RGB_888 = "RGB 888";
+//    public static final String RGBX_8888 = "RGBX 8888";
+//    public static final String YV12 = "YV12";
+//    public static final String OpenGL_ES2 = "OpenGL ES2";
+
+    public static final String YV12 = "fcc-rv12";
+    public static final String RGB_565 = "fcc-rv16";
+    public static final String RGB_888 = "fcc-rv24";
+    public static final String RGBX_8888 = "fcc-rv32";
+    public static final String OpenGL_ES2 = "fcc-es2";
 
     public Settings(Context context) {
         mAppContext = context.getApplicationContext();
