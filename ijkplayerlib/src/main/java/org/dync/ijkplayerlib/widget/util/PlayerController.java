@@ -392,23 +392,39 @@ public class PlayerController {
         return this;
     }
 
+    public final int ROTATION_0 = 0;
+    public final int ROTATION_90 = 90;
+    public final int ROTATION_180 = 180;
+    public final int ROTATION_270 = 270;
+    public final int[] rotations = {
+            ROTATION_0,
+            ROTATION_90,
+            ROTATION_180,
+            ROTATION_270};
+    private int mCurrentRotationIndex = 0;
+    private int mCurrentRotation = rotations[0];
+
+    public PlayerController toogleVideoRotation() {
+        mCurrentRotationIndex++;
+        mCurrentRotationIndex %= rotations.length;
+
+        mCurrentRotation = rotations[mCurrentRotationIndex];
+        setPlayerRotation(mCurrentRotation);
+        return this;
+    }
     /**
      * 旋转指定角度
      *
-     * @param rotation 参数可以设置 0,90,270
+     * @param rotation 参数可以设置 {@link #rotations}里面的值
      * @return
      */
     public PlayerController setPlayerRotation(int rotation) {
-        if (rotation == 0 || rotation < 90) {
-            rotation = 90;
-        } else if (rotation == 90 || rotation < 270) {
-            rotation = 270;
-        } else if (rotation == 270 || rotation > 270) {
-            rotation = 0;
-        }
+
         if (videoView != null) {
+            if (videoView.getRender() != IjkVideoView.RENDER_TEXTURE_VIEW) {
+                videoView.setRender(IjkVideoView.RENDER_TEXTURE_VIEW);
+            }
             videoView.setPlayerRotation(rotation);
-            videoView.setAspectRatio(currentShowType);
         }
         return this;
     }

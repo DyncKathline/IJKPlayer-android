@@ -12,6 +12,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -261,6 +262,15 @@ public class VideoActivity extends AppCompatActivity {
 
         //
         iv_preview = (ImageView) findViewById(R.id.iv_preview);
+        Button rotation = (Button) findViewById(R.id.btn_rotation);
+        rotation.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                mPlayerController.toogleVideoRotation();
+//                mVideoView.setRender(IjkVideoView.RENDER_TEXTURE_VIEW);
+//                mVideoView.setPlayerRotation(90);
+            }
+        });
     }
 
     private void initFragment() {

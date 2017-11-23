@@ -1051,7 +1051,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
                     String pixelFormat = mSettings.getPixelFormat();
                     if (TextUtils.isEmpty(pixelFormat)) {
-                        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
+                        ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_YV12);
                     } else {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", pixelFormat);
                     }
@@ -1204,12 +1204,34 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         }
     }
 
+    public int getRender() {
+        return mCurrentRender;
+    }
+
+    //可供选择的选择角度
+    public final int ROTATION_0 = 0;
+    public final int ROTATION_90 = 90;
+    public final int ROTATION_180 = 180;
+    public final int ROTATION_270 = 270;
+
     /**
-     * 设置旋转角度
+     * 设置旋转角度{@link #ROTATION_0}、{@link #ROTATION_90}、{@link #ROTATION_180}、{@link #ROTATION_270}
      */
     public void setPlayerRotation(int rotation) {
+        switch (rotation) {
+            case ROTATION_0:
+            case ROTATION_90:
+            case ROTATION_180:
+            case ROTATION_270:
+                break;
+                default:
+                    return;
+        }
         mVideoRotationDegree = rotation;
         if (mRenderView != null) {
+            if(mCurrentRender != IjkVideoView.RENDER_TEXTURE_VIEW) {
+                setRender(IjkVideoView.RENDER_TEXTURE_VIEW);
+            }
             mRenderView.setVideoRotation(mVideoRotationDegree);
         }
     }

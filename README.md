@@ -19,9 +19,18 @@ git clone https://github.com/Bilibili/ijkplayer.git
 ![image](https://raw.githubusercontent.com/DyncKathline/Blog/master/android/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20170920160745.png)    
 不要忘了在module的build.gradle中依赖所需的依赖  
 ```
-compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.3'
-compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.3'
-compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.3'
+compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
+compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:0.8.4'
+compile 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.4'
+```
+如果想支持EXOplayer r2.x.x版本依赖
+```
+compile 'org.dync.kathline:ijkplayer-exo2:0.8.4'
+//有冲突可以使用下面的去除重复
+compile ('org.dync.kathline:ijkplayer-exo2:0.8.4'){
+   exclude group: 'tv.danmaku.ijk.media',
+          module: 'ijkplayer-java'
+}
 ```
 ![image](https://raw.githubusercontent.com/DyncKathline/Blog/master/android/%E6%90%9C%E7%8B%97%E6%88%AA%E5%9B%BE20170920162026.png)  
 做完之后，IjkVideoView.java文件会出错，但是我们只要删除这些报错的变量和方法就好了，做到这步之后，我们开始播放了。  

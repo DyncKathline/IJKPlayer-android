@@ -222,6 +222,12 @@
         android:layout_below="@+id/rl_video_view_layout"
         android:orientation="horizontal">
 
+        <Button
+            android:id="@+id/btn_rotation"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="选转角度"/>
+
     </LinearLayout>
 
     <LinearLayout
