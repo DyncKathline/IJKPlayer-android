@@ -54,7 +54,7 @@ ext {
     siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
     gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
 
-    libraryVersion = '0.8.4' //依赖时的VERSION
+    libraryVersion = '0.8.4.1' //依赖时的VERSION
 
     developerId = 'dync'
     developerName = 'DyncKathline'
@@ -64,5 +64,6 @@ ext {
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
     allLicenses = ["Apache-2.0"]
 }
-apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
-apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
+apply from: 'bintray.gradle'
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
+//apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'
