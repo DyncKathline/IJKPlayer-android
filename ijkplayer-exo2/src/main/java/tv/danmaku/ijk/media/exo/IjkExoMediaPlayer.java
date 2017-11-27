@@ -162,7 +162,9 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         DefaultLoadControl loadControl = new DefaultLoadControl();
         mInternalPlayer = new SimpleExoPlayer2(renderersFactory, mTrackSelector, loadControl);
         mInternalPlayer.addListener(this);
-
+        mInternalPlayer.setVideoDebugListener(this);
+        mInternalPlayer.setAudioDebugListener(this);
+        mInternalPlayer.addListener(mEventLogger);
 
         if (mSurface != null)
             mInternalPlayer.setVideoSurface(mSurface);
@@ -551,7 +553,11 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
-
+        mVideoWidth = width;
+        mVideoHeight = height;
+        notifyOnVideoSizeChanged(width, height, 1, 1);
+        if (unappliedRotationDegrees > 0)
+            notifyOnInfo(IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED, unappliedRotationDegrees);
     }
 
     @Override
