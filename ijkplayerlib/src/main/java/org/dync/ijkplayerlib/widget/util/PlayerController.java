@@ -283,37 +283,6 @@ public class PlayerController {
         }
     };
 
-
-    /**
-     * 声音进度条滑动监听
-     */
-    private final SeekBar.OnSeekBarChangeListener onVolumeControllerChangeListener = new SeekBar.OnSeekBarChangeListener() {
-
-        /**数值的改变*/
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-
-            int index = (int) (mMaxVolume * progress * 0.01);
-            if (index > mMaxVolume) {
-                index = mMaxVolume;
-            } else if (index < 0) {
-                index = 0;
-            }
-            // 变更声音
-            if (audioManager != null) {
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, index, 0);
-            }
-        }
-
-        /**开始拖动*/
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-
-        /**停止拖动*/
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            volume = -1;
-        }
-    };
-
     /**
      * 百分比显示切换
      */
@@ -817,6 +786,7 @@ public class PlayerController {
      */
     public PlayerController setVolumeController() {
         audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
+        volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
         mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         return this;
     }
@@ -1307,6 +1277,9 @@ public class PlayerController {
      */
     private void endGesture() {
         brightness = mActivity.getWindow().getAttributes().screenBrightness;
+        if(audioManager != null) {
+            volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+        }
         if (newPosition >= 0) {
             mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
             mHandler.sendEmptyMessage(MESSAGE_SEEK_NEW_POSITION);
@@ -1361,11 +1334,6 @@ public class PlayerController {
      */
     private void onVolumeSlide(float percent) {
         if (audioManager != null) {
-            if (volume == -1) {
-                volume = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
-                if (volume < 0)
-                    volume = 0;
-            }
             int index = (int) (percent * mMaxVolume) + volume;
             if (index > mMaxVolume)
                 index = mMaxVolume;
@@ -1380,6 +1348,29 @@ public class PlayerController {
             if (mGestureListener != null) {
                 mGestureListener.onVolumeSlide(i);
             }
+        }
+    }
+
+    /**
+     * 亮度滑动改变亮度
+     *
+     * @param percent
+     */
+    private void onBrightnessSlide(float percent) {
+        if (brightness < 0.05f) {
+            brightness = 0.05f;
+        }
+        Log.d(this.getClass().getSimpleName(), "brightness:" + brightness + ",percent:" + percent);
+        WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
+        lp.screenBrightness = brightness + percent;
+        if (lp.screenBrightness > 1.0f) {
+            lp.screenBrightness = 1.0f;
+        } else if (lp.screenBrightness < 0.05f) {
+            lp.screenBrightness = 0.05f;
+        }
+        mActivity.getWindow().setAttributes(lp);
+        if (mGestureListener != null) {
+            mGestureListener.onBrightnessSlide(lp.screenBrightness);
         }
     }
 
@@ -1406,29 +1397,6 @@ public class PlayerController {
         int showDelta = (int) delta / 1000;
         if (mGestureListener != null) {
             mGestureListener.onProgressSlide(newPosition, duration, showDelta);
-        }
-    }
-
-    /**
-     * 亮度滑动改变亮度
-     *
-     * @param percent
-     */
-    private void onBrightnessSlide(float percent) {
-        if (brightness < 0.05f) {
-            brightness = 0.05f;
-        }
-        Log.d(this.getClass().getSimpleName(), "brightness:" + brightness + ",percent:" + percent);
-        WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
-        lp.screenBrightness = brightness + percent;
-        if (lp.screenBrightness > 1.0f) {
-            lp.screenBrightness = 1.0f;
-        } else if (lp.screenBrightness < 0.05f) {
-            lp.screenBrightness = 0.05f;
-        }
-        mActivity.getWindow().setAttributes(lp);
-        if (mGestureListener != null) {
-            mGestureListener.onBrightnessSlide(lp.screenBrightness);
         }
     }
 
