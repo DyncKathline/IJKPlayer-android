@@ -840,7 +840,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             mMediaPlayer.seekTo(msec);
             mSeekWhenPrepared = 0;
         } else {
-            mSeekWhenPrepared = msec;
+//            mSeekWhenPrepared = msec;
         }
     }
 
@@ -1204,10 +1204,6 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         }
     }
 
-    public int getRender() {
-        return mCurrentRender;
-    }
-
     //可供选择的选择角度
     public final int ROTATION_0 = 0;
     public final int ROTATION_90 = 90;
@@ -1249,6 +1245,34 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         } else  {
             Log.d(TAG, "not support setSpeed! ");
         }
+    }
+
+    public float getSpeed() {
+        if (mMediaPlayer instanceof IjkMediaPlayer) {
+            ((IjkMediaPlayer) mMediaPlayer).getSpeed(0);
+        } else if (mMediaPlayer instanceof IjkExoMediaPlayer) {
+            ((IjkExoMediaPlayer) mMediaPlayer).getSpeed();
+        }
+        Log.d(TAG, "not support setSpeed! ");
+        return 0;
+    }
+
+    /**
+     * 切换播放器，Settings.PV_PLAYER__IjkMediaPlayer、
+     * Settings.PV_PLAYER__IjkExoMediaPlayer、
+     * Settings.PV_PLAYER__AndroidMediaPlayer
+     * @param playerType
+     */
+    public void switchPlayer(int playerType) {
+        switchPlayer(playerType, true);
+    }
+
+    public void switchPlayer(int playerType, boolean seekTo) {
+        mSettings.setPlayer(playerType);
+        if(seekTo) {
+            mSeekWhenPrepared = getCurrentPosition();
+        }
+        openVideo();
     }
 
     private Runnable runnable;
