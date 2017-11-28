@@ -352,6 +352,10 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         mInternalPlayer.setPlaybackParameters(playbackParameters);
     }
 
+    public float getSpeed() {
+        return mInternalPlayer.getPlaybackParameters().speed;
+    }
+
     public int getBufferedPercentage() {
         if (mInternalPlayer == null)
             return 0;

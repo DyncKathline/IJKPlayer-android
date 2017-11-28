@@ -12,10 +12,12 @@ import android.support.v7.app.AppCompatActivity;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.widget.Button;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import org.dync.ijkplayer.utils.NetworkUtils;
@@ -24,6 +26,7 @@ import org.dync.ijkplayerlib.widget.media.AndroidMediaController;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
+import org.dync.ijkplayerlib.widget.util.Settings;
 
 import java.util.Locale;
 
@@ -223,7 +226,6 @@ public class VideoActivity extends AppCompatActivity {
             finish();
             return;
         }
-        mVideoView.start();
     }
 
     private void initView() {
@@ -262,15 +264,6 @@ public class VideoActivity extends AppCompatActivity {
 
         //
         iv_preview = (ImageView) findViewById(R.id.iv_preview);
-        Button rotation = (Button) findViewById(R.id.btn_rotation);
-        rotation.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                mPlayerController.toogleVideoRotation();
-//                mVideoView.setRender(IjkVideoView.RENDER_TEXTURE_VIEW);
-//                mVideoView.setPlayerRotation(90);
-            }
-        });
     }
 
     private void initFragment() {
@@ -326,6 +319,47 @@ public class VideoActivity extends AppCompatActivity {
                 initPlayer();
             }
         });
+        Spinner sp_speed = (Spinner) findViewById(R.id.sp_speed);
+        final String[] speeds = {"倍速播放", "0.5", "0.75", "1", "1.25", "1.75", "2"};
+        ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, speeds);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        sp_speed.setAdapter(adapter);
+        sp_speed.setSelection(0, true);
+        sp_speed.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                try {
+                    float parseFloat = Float.parseFloat(speeds[pos]);
+                    mVideoView.setSpeed(parseFloat);
+                } catch (NumberFormatException e) {
+                    e.printStackTrace();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+            }
+        });
+    }
+
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_ijk_player:
+                mPlayerController.switchPlayer(Settings.PV_PLAYER__IjkMediaPlayer);
+                break;
+            case R.id.btn_exo_player:
+                mPlayerController.switchPlayer(Settings.PV_PLAYER__IjkExoMediaPlayer);
+                break;
+            case R.id.btn_rotation:
+                mPlayerController.toogleVideoRotation();
+//                mPlayerController.setPlayerRotation(90);
+                break;
+            case R.id.btn_ratio:
+                mPlayerController.toggleAspectRatio();
+                break;
+        }
     }
 
     public void initVideoListener() {
@@ -334,6 +368,7 @@ public class VideoActivity extends AppCompatActivity {
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 sbVdieo.setEnabled(true);
                 iv_paly.setEnabled(true);
+                mVideoView.start();
                 updatePlayBtnBg(!mVideoView.isPlaying());
                 app_video_replay.setVisibility(View.GONE);
                 app_video_replay_icon.setVisibility(View.GONE);

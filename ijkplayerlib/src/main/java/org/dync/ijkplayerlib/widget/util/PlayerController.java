@@ -284,6 +284,16 @@ public class PlayerController {
     };
 
     /**
+     * 切换播放器
+     * @param playerType
+     * @return
+     */
+    public PlayerController switchPlayer(int playerType) {
+        videoView.switchPlayer(playerType);
+        return this;
+    }
+
+    /**
      * 百分比显示切换
      */
     public PlayerController toggleAspectRatio() {

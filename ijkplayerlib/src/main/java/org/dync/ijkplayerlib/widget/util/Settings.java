@@ -81,9 +81,13 @@ public class Settings {
         mSharedPreferences.edit().putInt(key, value).apply();
     }
 
+    /**
+     * 默认硬解码，使用软解码会未播放前切换视频源会卡顿
+     * @return
+     */
     public boolean getUsingMediaCodec() {
         String key = mAppContext.getString(R.string.pref_key_using_media_codec);
-        return mSharedPreferences.getBoolean(key, false);
+        return mSharedPreferences.getBoolean(key, true);
     }
 
     public void setUsingMediaCodec(boolean value) {
