@@ -8,7 +8,6 @@ import android.media.AudioManager;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
-import android.provider.Settings;
 import android.support.annotation.FloatRange;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
@@ -92,14 +91,6 @@ public class PlayerController {
      * 设备最大音量
      */
     private int mMaxVolume;
-    /**
-     * 获取当前设备的宽度
-     */
-    private int screenWidthPixels;
-    /**
-     * 记录播放器竖屏时的高度
-     */
-    private int initHeight;
     /**
      * 当前亮度大小
      */
@@ -292,50 +283,6 @@ public class PlayerController {
         }
     };
 
-    /**
-     * 亮度进度条滑动监听
-     */
-    private final SeekBar.OnSeekBarChangeListener onBrightnessControllerChangeListener = new SeekBar.OnSeekBarChangeListener() {
-        /**数值的改变*/
-        public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-            setBrightness(progress);
-        }
-
-        /**开始拖动*/
-        public void onStartTrackingTouch(SeekBar seekBar) {
-        }
-
-        /**停止拖动*/
-        public void onStopTrackingTouch(SeekBar seekBar) {
-            brightness = -1;
-        }
-    };
-
-    public void setBrightness(int value) {
-        android.view.WindowManager.LayoutParams layout = this.mActivity.getWindow().getAttributes();
-        if (brightness < 0) {
-            brightness = mActivity.getWindow().getAttributes().screenBrightness;
-            if (brightness <= 0.00f) {
-                brightness = 0.50f;
-            } else if (brightness < 0.01f) {
-                brightness = 0.01f;
-            }
-        }
-        if (value < 1) {
-            value = 1;
-        }
-        if (value > 100) {
-            value = 100;
-        }
-        layout.screenBrightness = 1.0F * (float) value / 100.0F;
-        if (layout.screenBrightness > 1.0f) {
-            layout.screenBrightness = 1.0f;
-        } else if (layout.screenBrightness < 0.01f) {
-            layout.screenBrightness = 0.01f;
-        }
-        this.mActivity.getWindow().setAttributes(layout);
-    }
-
 
     /**
      * 声音进度条滑动监听
@@ -421,9 +368,6 @@ public class PlayerController {
     public PlayerController setPlayerRotation(int rotation) {
 
         if (videoView != null) {
-            if (videoView.getRender() != IjkVideoView.RENDER_TEXTURE_VIEW) {
-                videoView.setRender(IjkVideoView.RENDER_TEXTURE_VIEW);
-            }
             videoView.setPlayerRotation(rotation);
         }
         return this;
@@ -449,7 +393,6 @@ public class PlayerController {
      * @return
      */
     public PlayerController setPortrait(boolean isPortrait) {
-        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         if (isPortrait) {
             onConfigurationPortrait();
         } else {
@@ -645,7 +588,6 @@ public class PlayerController {
      * }
      */
     public PlayerController onConfigurationChanged(final Configuration newConfig) {
-        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         isPortrait = newConfig.orientation == Configuration.ORIENTATION_PORTRAIT;
         doOnConfigurationChanged(isPortrait);
         return this;
@@ -660,7 +602,6 @@ public class PlayerController {
      * }
      */
     public PlayerController onConfigurationChanged() {
-        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             Log.e(TAG, "onConfigurationChanged: " + "横屏");
             mActivity.getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);//全屏
@@ -875,7 +816,6 @@ public class PlayerController {
      * @return
      */
     public PlayerController setVolumeController() {
-        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         audioManager = (AudioManager) mContext.getSystemService(Context.AUDIO_SERVICE);
         mMaxVolume = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
         return this;
@@ -888,12 +828,13 @@ public class PlayerController {
      */
     public PlayerController setBrightnessController() {
         try {
-            int e = Settings.System.getInt(this.mContext.getContentResolver(), Settings.System.SCREEN_BRIGHTNESS);
+            int e = android.provider.Settings.System.getInt(this.mContext.getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS);
             float progress = 1.0F * (float) e / 255.0F;
             android.view.WindowManager.LayoutParams layout = this.mActivity.getWindow().getAttributes();
             layout.screenBrightness = progress;
             mActivity.getWindow().setAttributes(layout);
-        } catch (Settings.SettingNotFoundException var7) {
+            brightness = progress;
+        } catch (android.provider.Settings.SettingNotFoundException var7) {
             var7.printStackTrace();
         }
         return this;
@@ -944,7 +885,6 @@ public class PlayerController {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-        initHeight = rootLayout.getLayoutParams().height;
 
         return this;
     }
@@ -1111,7 +1051,6 @@ public class PlayerController {
      * 横竖屏切换
      */
     public PlayerController toggleScreenOrientation() {
-        screenWidthPixels = mContext.getResources().getDisplayMetrics().widthPixels;
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);// 竖屏
         } else if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
@@ -1367,8 +1306,7 @@ public class PlayerController {
      * 手势结束
      */
     private void endGesture() {
-        volume = -1;
-        brightness = -1f;
+        brightness = mActivity.getWindow().getAttributes().screenBrightness;
         if (newPosition >= 0) {
             mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
             mHandler.sendEmptyMessage(MESSAGE_SEEK_NEW_POSITION);
@@ -1477,25 +1415,20 @@ public class PlayerController {
      * @param percent
      */
     private void onBrightnessSlide(float percent) {
-        if (brightness < 0) {
-            brightness = mActivity.getWindow().getAttributes().screenBrightness;
-            if (brightness <= 0.00f) {
-                brightness = 0.50f;
-            } else if (brightness < 0.01f) {
-                brightness = 0.01f;
-            }
+        if (brightness < 0.05f) {
+            brightness = 0.05f;
         }
         Log.d(this.getClass().getSimpleName(), "brightness:" + brightness + ",percent:" + percent);
-        WindowManager.LayoutParams lpa = mActivity.getWindow().getAttributes();
-        lpa.screenBrightness = brightness + percent;
-        if (lpa.screenBrightness > 1.0f) {
-            lpa.screenBrightness = 1.0f;
-        } else if (lpa.screenBrightness < 0.01f) {
-            lpa.screenBrightness = 0.01f;
+        WindowManager.LayoutParams lp = mActivity.getWindow().getAttributes();
+        lp.screenBrightness = brightness + percent;
+        if (lp.screenBrightness > 1.0f) {
+            lp.screenBrightness = 1.0f;
+        } else if (lp.screenBrightness < 0.05f) {
+            lp.screenBrightness = 0.05f;
         }
-        mActivity.getWindow().setAttributes(lpa);
+        mActivity.getWindow().setAttributes(lp);
         if (mGestureListener != null) {
-            mGestureListener.onBrightnessSlide(lpa.screenBrightness);
+            mGestureListener.onBrightnessSlide(lp.screenBrightness);
         }
     }
 
@@ -1525,7 +1458,6 @@ public class PlayerController {
      * 播放器的手势监听
      */
     private class PlayerGestureListener extends GestureDetector.SimpleOnGestureListener {
-        private boolean FLAG_TRANSLUCENT_STATUS;
         /**
          * 是否是按下的标识，默认为其他动作，true为按下标识，false为其他动作
          */
@@ -1567,35 +1499,47 @@ public class PlayerController {
         @Override
         public boolean onScroll(MotionEvent e1, MotionEvent e2, float distanceX, float distanceY) {
             if (!isForbidTouch) {
+                if(videoView == null) {
+                    return false;
+                }
+                int width = videoView.getWidth();
+                int top = videoView.getTop();
+                int left = videoView.getLeft();
+                int bottom = videoView.getBottom();
+
+                if (e2.getY() <= top || e2.getY() >= bottom) {
+                    return false;
+                }
+
                 float mOldX = e1.getX(), mOldY = e1.getY();
                 float deltaY = mOldY - e2.getY();
                 float deltaX = mOldX - e2.getX();
                 if (isDownTouch) {
                     isLandscape = Math.abs(distanceX) >= Math.abs(distanceY);
-                    isVolume = mOldX > screenWidthPixels * 0.5f;
+                    isVolume = mOldX > left + width / 2;
                     isDownTouch = false;
+                    brightness = mActivity.getWindow().getAttributes().screenBrightness;
+                    Log.d(TAG, "onScroll: brightness: " + brightness);
                 }
 
                 if (isLandscape) {
                     if (!isLive) {
                         /**进度设置*/
-                        if (videoView != null && progressEnable) {
+                        if (progressEnable) {
                             onProgressSlide(-deltaX / videoView.getWidth());
                         }
                     }
                 } else {
-                    if (videoView != null) {
-                        float percent = deltaY / videoView.getHeight();
-                        if (isVolume) {
-                            if(volumeEnable) {
-                                /**声音设置*/
-                                onVolumeSlide(percent);
-                            }
-                        } else {
-                            if(brightnessEnable) {
-                                /**亮度设置*/
-                                onBrightnessSlide(percent);
-                            }
+                    float percent = deltaY / videoView.getHeight();
+                    if (isVolume) {
+                        if(volumeEnable) {
+                            /**声音设置*/
+                            onVolumeSlide(percent);
+                        }
+                    } else {
+                        if(brightnessEnable) {
+                            /**亮度设置*/
+                            onBrightnessSlide(percent);
                         }
                     }
                 }
