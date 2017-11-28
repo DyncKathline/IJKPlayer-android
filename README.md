@@ -1,3 +1,4 @@
+QQ交流群：611902811，有兴趣的可以交流
 # IJKPlayer-android
 > 优势： 对ijkplayer的抽取值删除了IjkVideoView.java类中几个无关紧要的变量和方法，其他与ijkplayer本身一摸一样。这样ijkplayer升级后，直接拷贝过来，无需任何改动。
   对ijkplayer中的EXOplayer模块一直处于r1.x.x版本升级到r.2.x.x版本。同时ijkplayer-exo2中的IjkExoMediaPlayer.java我增加了RTMP的支持，播放速率，其他的暂时还没有，如果还想增加，请对照EXOplayer进行增加即可。
