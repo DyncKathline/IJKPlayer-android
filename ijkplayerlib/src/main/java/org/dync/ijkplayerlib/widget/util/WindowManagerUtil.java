@@ -3,9 +3,16 @@ package org.dync.ijkplayerlib.widget.util;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Gravity;
+import android.view.MotionEvent;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
+
+import java.lang.reflect.Field;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 
@@ -44,27 +51,100 @@ public class WindowManagerUtil {
         WindowManager windowManager = getWindowManager(context);
         int screenWidth = windowManager.getDefaultDisplay().getWidth();
         int screenHeight = windowManager.getDefaultDisplay().getHeight();
-        if (smallWindow == null) {
-            if (smallWindowParams == null) {
-                smallWindowParams = new LayoutParams();
-                smallWindowParams.type = LayoutParams.TYPE_PHONE;
-                smallWindowParams.format = PixelFormat.RGBA_8888;
-                smallWindowParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
-                        | LayoutParams.FLAG_NOT_FOCUSABLE;
-                smallWindowParams.gravity = Gravity.LEFT | Gravity.TOP;
-                //小窗口摆放的位置，手机屏幕中央
-                smallWindowParams.x = screenWidth / 2 - 350 / 2;
-                smallWindowParams.y = screenHeight / 2 - 280 / 2;
-                smallWindowParams.width = 250;
-                smallWindowParams.height = 200;
-            }
-            smallWindow = new IjkWindowVideoView(context);
-            if(mediaPlayer != null) {
-                smallWindow.setMediaPlayer(mediaPlayer);
-            }
-            smallWindow.setLayoutParams(smallWindowParams);
-            windowManager.addView(smallWindow, smallWindowParams);
+        if (smallWindowParams == null) {
+            smallWindowParams = new LayoutParams();
+            smallWindowParams.type = LayoutParams.TYPE_PHONE;
+            smallWindowParams.format = PixelFormat.RGBA_8888;
+            smallWindowParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
+                    | LayoutParams.FLAG_NOT_FOCUSABLE;
+            smallWindowParams.gravity = Gravity.LEFT | Gravity.TOP;
+            //小窗口摆放的位置，手机屏幕中央
+            smallWindowParams.x = screenWidth / 2 - 350 / 2;
+            smallWindowParams.y = screenHeight / 2 - 280 / 2;
+            smallWindowParams.width = 250;
+            smallWindowParams.height = 200;
         }
+        smallWindow = new IjkWindowVideoView(context);
+        if(mediaPlayer != null) {
+            smallWindow.setMediaPlayer(mediaPlayer);
+        }
+        smallWindow.setLayoutParams(smallWindowParams);
+        windowManager.addView(smallWindow, smallWindowParams);
+    }
+
+    private static int statusBarHeight;
+    private static int screenWidth;
+    private static int screenHeight;
+    private static int lastX;
+    private static int lastY;
+
+    public static void createSmallWindow(ViewGroup view, IMediaPlayer mediaPlayer) {
+        Context context = view.getContext();
+        DisplayMetrics dm = context.getResources().getDisplayMetrics();
+        screenWidth = dm.widthPixels;
+        screenHeight = dm.heightPixels - getStatusBarHeight(context);
+        smallWindow = new IjkWindowVideoView(context);
+        smallWindow.setFocusableInTouchMode(false);
+        if(mediaPlayer != null) {
+            smallWindow.setMediaPlayer(mediaPlayer);
+        }
+        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
+        layoutParams.width = 250;
+        layoutParams.height = 200;
+        view.addView(smallWindow);
+        view.setClickable(true);
+        view.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                int action=event.getAction();
+                Log.i("TAG", "Touch:"+action);
+                switch(action){
+                    case MotionEvent.ACTION_DOWN:
+                        lastX = (int) event.getRawX();
+                        lastY = (int) event.getRawY();
+                        break;
+                    /**
+                     * layout(l,t,r,b)
+                     * l  Left position, relative to parent
+                     t  Top position, relative to parent
+                     r  Right position, relative to parent
+                     b  Bottom position, relative to parent
+                     * */
+                    case MotionEvent.ACTION_MOVE:
+                        int dx =(int)event.getRawX() - lastX;
+                        int dy =(int)event.getRawY() - lastY;
+
+                        int left = v.getLeft() + dx;
+                        int top = v.getTop() + dy;
+                        int right = v.getRight() + dx;
+                        int bottom = v.getBottom() + dy;
+                        if(left < 0){
+                            left = 0;
+                            right = left + v.getWidth();
+                        }
+                        if(right > screenWidth){
+                            right = screenWidth;
+                            left = right - v.getWidth();
+                        }
+                        if(top < 0){
+                            top = 0;
+                            bottom = top + v.getHeight();
+                        }
+                        if(bottom > screenHeight){
+                            bottom = screenHeight;
+                            top = bottom - v.getHeight();
+                        }
+                        v.layout(left, top, right, bottom);
+                        Log.i("TAG", "position: " + left +", " + top + ", " + right + ", " + bottom);
+                        lastX = (int) event.getRawX();
+                        lastY = (int) event.getRawY();
+                        break;
+                    case MotionEvent.ACTION_UP:
+                        break;
+                }
+                return false;
+            }
+        });
     }
 
     /**
@@ -165,5 +245,25 @@ public class WindowManagerUtil {
 //		getActivityManager(mAppContext).getMemoryInfo(mi);
 //		return mi.availMem;
 //	}
+
+    /**
+     * 用于获取状态栏的高度。
+     *
+     * @return 返回状态栏高度的像素值。
+     */
+    private static int getStatusBarHeight(Context context) {
+        if (statusBarHeight == 0) {
+            try {
+                Class<?> c = Class.forName("com.android.internal.R$dimen");
+                Object o = c.newInstance();
+                Field field = c.getField("status_bar_height");
+                int x = (Integer) field.get(o);
+                statusBarHeight = context.getResources().getDimensionPixelSize(x);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        return statusBarHeight;
+    }
 
 }

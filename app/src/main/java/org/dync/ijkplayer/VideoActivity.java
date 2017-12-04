@@ -368,7 +368,7 @@ public class VideoActivity extends AppCompatActivity {
                 WindowManagerUtil.createSmallWindow(mContext, mVideoView.getMediaPlayer());
                 break;
             case R.id.btn_app_player:
-
+                WindowManagerUtil.createSmallWindow(fl_app_window, mVideoView.getMediaPlayer());
                 break;
         }
     }

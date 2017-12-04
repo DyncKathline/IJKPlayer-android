@@ -821,7 +821,7 @@ public class IjkWindowVideoView extends FrameLayout implements MediaController.M
             default:
                 break;
         }
-        return true;
+        return false;
     }
 
     @Override
@@ -895,9 +895,11 @@ public class IjkWindowVideoView extends FrameLayout implements MediaController.M
      * 更新小悬浮窗在屏幕中的位置。
      */
     private void updateViewPosition() {
-        mParams.x = (int) (xInScreen - xInView);
-        mParams.y = (int) (yInScreen - yInView);
-        windowManager.updateViewLayout(this, mParams);
+        if(mParams != null) {
+            mParams.x = (int) (xInScreen - xInView);
+            mParams.y = (int) (yInScreen - yInView);
+            windowManager.updateViewLayout(this, mParams);
+        }
     }
 
     /**
