@@ -14,6 +14,7 @@ import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
@@ -27,6 +28,7 @@ import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
+import org.dync.ijkplayerlib.widget.util.WindowManagerUtil;
 
 import java.util.Locale;
 
@@ -70,6 +72,7 @@ public class VideoActivity extends AppCompatActivity {
     private ImageView app_video_replay_icon;
     private ImageView iv_preview;
     private ImageView img_change_screen;
+    private FrameLayout fl_app_window;
 
     public static Intent newIntent(Context context, String videoPath, String videoTitle) {
         Intent intent = new Intent(context, VideoActivity.class);
@@ -226,6 +229,7 @@ public class VideoActivity extends AppCompatActivity {
             finish();
             return;
         }
+        mVideoView.start();
     }
 
     private void initView() {
@@ -264,6 +268,7 @@ public class VideoActivity extends AppCompatActivity {
 
         //
         iv_preview = (ImageView) findViewById(R.id.iv_preview);
+        fl_app_window = (FrameLayout) findViewById(R.id.fl_app_window);
     }
 
     private void initFragment() {
@@ -320,7 +325,7 @@ public class VideoActivity extends AppCompatActivity {
             }
         });
         Spinner sp_speed = (Spinner) findViewById(R.id.sp_speed);
-        final String[] speeds = {"倍速播放", "0.5", "0.75", "1", "1.25", "1.75", "2"};
+        final String[] speeds = {"倍速播放", "0.25", "0.5", "0.75", "1", "1.25", "1.5", "1.75", "2"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, speeds);
         adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 
@@ -359,6 +364,12 @@ public class VideoActivity extends AppCompatActivity {
             case R.id.btn_ratio:
                 mPlayerController.toggleAspectRatio();
                 break;
+            case R.id.btn_window_player:
+                WindowManagerUtil.createSmallWindow(mContext, mVideoView.getMediaPlayer());
+                break;
+            case R.id.btn_app_player:
+
+                break;
         }
     }
 
@@ -368,7 +379,6 @@ public class VideoActivity extends AppCompatActivity {
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 sbVdieo.setEnabled(true);
                 iv_paly.setEnabled(true);
-                mVideoView.start();
                 updatePlayBtnBg(!mVideoView.isPlaying());
                 app_video_replay.setVisibility(View.GONE);
                 app_video_replay_icon.setVisibility(View.GONE);
