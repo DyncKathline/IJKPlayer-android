@@ -209,15 +209,37 @@ public class VideoActivity extends BaseActivity {
         StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
     }
 
+    public void onClick(View view) {
+        switch (view.getId()) {
+            case R.id.btn_ijk_player:
+                mPlayerController.switchPlayer(Settings.PV_PLAYER__IjkMediaPlayer);
+                break;
+            case R.id.btn_exo_player:
+                mPlayerController.switchPlayer(Settings.PV_PLAYER__IjkExoMediaPlayer);
+                break;
+            case R.id.btn_rotation:
+                mPlayerController.toogleVideoRotation();
+//                mPlayerController.setPlayerRotation(90);
+                break;
+            case R.id.btn_ratio:
+                mPlayerController.toggleAspectRatio();
+                break;
+            case R.id.btn_window_player:
+                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
+                break;
+            case R.id.btn_app_player:
+                WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
+                break;
+        }
+    }
+
     private void initPlayer() {
         //        ActionBar actionBar = getSupportActionBar();
 //        mMediaController = new AndroidMediaController(this, false);
 //        mMediaController.setSupportActionBar(actionBar);
 //        mVideoView.setMediaController(mMediaController);
 
-        if (appVideoLoading != null) {
-            appVideoLoading.setVisibility(View.VISIBLE);
-        }
+        showVideoLoading();
         mPlayerController = null;
 
         mPlayerController = new PlayerController(this, videoView)
@@ -319,9 +341,7 @@ public class VideoActivity extends BaseActivity {
                 mVideoPath = videoPath;
                 Log.d(TAG, "OnItemClick: mVideoPath: " + mVideoPath);
                 if (mVideoPath != null) {
-                    if (appVideoLoading != null) {
-                        appVideoLoading.setVisibility(View.VISIBLE);
-                    }
+                    showVideoLoading();
                     videoView.setVideoPath(mVideoPath);
                     videoView.start();
                 }
@@ -384,30 +404,6 @@ public class VideoActivity extends BaseActivity {
         });
     }
 
-    public void onClick(View view) {
-        switch (view.getId()) {
-            case R.id.btn_ijk_player:
-                mPlayerController.switchPlayer(Settings.PV_PLAYER__IjkMediaPlayer);
-                break;
-            case R.id.btn_exo_player:
-                mPlayerController.switchPlayer(Settings.PV_PLAYER__IjkExoMediaPlayer);
-                break;
-            case R.id.btn_rotation:
-                mPlayerController.toogleVideoRotation();
-//                mPlayerController.setPlayerRotation(90);
-                break;
-            case R.id.btn_ratio:
-                mPlayerController.toggleAspectRatio();
-                break;
-            case R.id.btn_window_player:
-                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
-                break;
-            case R.id.btn_app_player:
-                WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
-                break;
-        }
-    }
-
     private void initVideoListener() {
         videoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
             @Override
@@ -441,11 +437,15 @@ public class VideoActivity extends BaseActivity {
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始整备中
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
-                        if (appVideoLoading != null) {
-                            appVideoLoading.setVisibility(View.GONE);
-                            appVideoSpeed.setVisibility(View.GONE);
-                            appVideoSpeed.setText("");
-                        }
+                        hideVideoLoading();
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
+                        Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
+                        hideVideoLoading();
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START:
+                        Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
+                        hideVideoLoading();
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
                         Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -455,19 +455,7 @@ public class VideoActivity extends BaseActivity {
                         if (!NetworkUtils.isNetworkConnected(mContext)) {
                             updatePlayBtnBg(true);
                         }
-                        if (appVideoLoading != null) {
-                            appVideoLoading.setVisibility(View.VISIBLE);
-                            appVideoSpeed.setVisibility(View.VISIBLE);
-                            appVideoSpeed.setText("");
-                        }
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
-                        Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
-                        if (appVideoLoading != null) {
-                            appVideoLoading.setVisibility(View.GONE);
-                            appVideoSpeed.setVisibility(View.GONE);
-                            appVideoSpeed.setText("");
-                        }
+                        showVideoLoading();
                         break;
 //                    case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
 //                        Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
@@ -521,39 +509,93 @@ public class VideoActivity extends BaseActivity {
 //                        Log.d(TAG, "MEDIA_ERROR_TIMED_OUT :");
 //                        break;
                 }
+                return false;
+            }
+        });
+        videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(IMediaPlayer iMediaPlayer) {
+                updatePlayBtnBg(true);
+                videoView.release(false);
+                videoView.stopVideoInfo();
+                initVideoControl();
+            }
+        });
+        videoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(IMediaPlayer iMediaPlayer, int framework_err, int impl_err) {
+                hideVideoLoading();
+
+                appVideoReplay.setVisibility(View.VISIBLE);
+                appVideoReplayIcon.setVisibility(View.VISIBLE);
+
+                if (mPlayerController != null) {
+                    mPlayerController
+                            .setGestureEnabled(false)
+                            .setAutoControlPanel(false);
+                }
+                videoView.stopVideoInfo();
                 return true;
             }
         });
-//        videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+//        videoView.setOnNativeInvokeListener(new IjkVideoView.OnNativeInvokeListener() {
 //            @Override
-//            public void onCompletion(IMediaPlayer iMediaPlayer) {
-//                updatePlayBtnBg(true);
-//                videoView.release(false);
-//                videoView.stopVideoInfo();
-//                initVideoControl();
-//            }
-//        });
-//        videoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
-//            @Override
-//            public boolean onError(IMediaPlayer iMediaPlayer, int framework_err, int impl_err) {
-//                if (appVideoLoading != null) {
-//                    appVideoLoading.setVisibility(View.GONE);
-//                    appVideoSpeed.setVisibility(View.GONE);
-//                    appVideoSpeed.setText("");
-//                }
+//            public boolean onNativeInvoke(IMediaPlayer mediaPlayer, int what, Bundle bundle) {
+//                Log.w(TAG, "onNativeInvoke: what= " + what + ", bundle= " + bundle);
+//                int error, http_code;
+//                switch (what) {
+//                    case IjkMediaPlayer.OnNativeInvokeListener.EVENT_WILL_HTTP_OPEN:
+//                        //what= 1, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000007.ts, error=0, http_code=0}]
+//                        //what= 1, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000012.ts, error=0, http_code=0}]
+//                        //what= 1, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, error=0, http_code=0}]
+//                        break;
+//                    case IjkMediaPlayer.OnNativeInvokeListener.EVENT_DID_HTTP_OPEN:
+//                        //what= 2, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000007.ts, error=0, http_code=200}]
+//                        //what= 2, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000012.ts, error=-101, http_code=0}]
+//                        //what= 2, bundle= Bundle[{offset=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, error=-5, http_code=0}]
+//                        error = bundle.getInt("error");
+//                        http_code = bundle.getInt("http_code");
+//                        if (error == -101) {//断网了
 //
-//                appVideoReplay.setVisibility(View.VISIBLE);
-//                appVideoReplayIcon.setVisibility(View.VISIBLE);
-//
-//                if (mPlayerController != null) {
-//                    mPlayerController
-//                            .setGestureEnabled(false)
-//                            .setAutoControlPanel(false);
+//                        }
+//                        if(http_code == 200) {
+//                            hideVideoLoading();
+//                        }
+//                        break;
+//                    case IjkMediaPlayer.OnNativeInvokeListener.CTRL_WILL_TCP_OPEN:
+//                        //what= 131073, bundle= Bundle[{family=0, fd=0, ip=, port=0, error=0}]
+//                        //what= 131073, bundle= Bundle[{family=0, fd=0, ip=, port=0, error=0}]
+//                        break;
+//                    case IjkMediaPlayer.OnNativeInvokeListener.CTRL_DID_TCP_OPEN:
+//                        //what= 131074, bundle= Bundle[{family=2, fd=64, ip=118.178.143.146, port=20480, error=0}]
+//                        break;
+//                    case IjkMediaPlayer.OnNativeInvokeListener.CTRL_WILL_HTTP_OPEN:
+//                        //what= 131075, bundle= Bundle[{segment_index=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000007.ts, retry_counter=0}]
+//                        //what= 131075, bundle= Bundle[{segment_index=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000012.ts, retry_counter=1}]
+//                        //what= 131075, bundle= Bundle[{segment_index=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, retry_counter=0}]
+//                        //what= 131075, bundle= Bundle[{segment_index=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, retry_counter=1}]
+//                        //what= 131075, bundle= Bundle[{segment_index=0, url=http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/000013.ts, retry_counter=0}]
+//                        break;
 //                }
-//                videoView.stopVideoInfo();
 //                return true;
 //            }
 //        });
+    }
+
+    private void showVideoLoading() {
+        if (appVideoLoading != null) {
+            appVideoLoading.setVisibility(View.VISIBLE);
+            appVideoSpeed.setVisibility(View.VISIBLE);
+            appVideoSpeed.setText("");
+        }
+    }
+
+    private void hideVideoLoading() {
+        if (appVideoLoading != null) {
+            appVideoLoading.setVisibility(View.GONE);
+            appVideoSpeed.setVisibility(View.GONE);
+            appVideoSpeed.setText("");
+        }
     }
 
     private void initVideoControl() {

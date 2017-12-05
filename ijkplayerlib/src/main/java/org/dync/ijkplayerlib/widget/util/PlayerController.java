@@ -234,6 +234,12 @@ public class PlayerController {
                 /**不是用户拖动的，自动播放滑动的情况*/
                 return;
             } else {
+                if(getDuration() == 0) {
+                    videoController.setEnabled(false);
+                    return;
+                }else {
+                    videoController.setEnabled(true);
+                }
                 long duration = getDuration();
                 int position = (int) ((duration * progress * 1.0) / 1000);
                 newPosition = position;
@@ -255,6 +261,9 @@ public class PlayerController {
         /**开始拖动*/
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
+            if(getDuration() == 0) {
+                return;
+            }
             isDragging = true;
             mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
             if (mAutoControlPanelRunnable != null) {
@@ -265,6 +274,9 @@ public class PlayerController {
         /**停止拖动*/
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
+            if(getDuration() == 0) {
+                return;
+            }
             if (videoView != null) {
                 long duration = getDuration();
                 newPosition = (long) ((duration * seekBar.getProgress() * 1.0) / 1000);
@@ -1505,7 +1517,7 @@ public class PlayerController {
                 if (isLandscape) {
                     if (!isLive) {
                         /**进度设置*/
-                        if (progressEnable) {
+                        if (progressEnable && getDuration() > 0) {
                             onProgressSlide(-deltaX / videoView.getWidth());
                         }
                     }
