@@ -23,6 +23,15 @@ public class SettingActivity extends AppCompatActivity {
 
         final Settings settings = new Settings(this);
 
+        CheckBox cb_background_play = (CheckBox) findViewById(R.id.cb_background_play);
+        boolean backgroundPlay = settings.getEnableBackgroundPlay();
+        cb_background_play.setChecked(backgroundPlay);
+        cb_background_play.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                settings.setEnableBackgroundPlay(isChecked);
+            }
+        });
         CheckBox cb_media_codec = (CheckBox) findViewById(R.id.cb_media_codec);
         boolean usingMediaCodec = settings.getUsingMediaCodec();
         cb_media_codec.setChecked(usingMediaCodec);

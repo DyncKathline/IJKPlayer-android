@@ -225,7 +225,7 @@ public class VideoActivity extends BaseActivity {
                 mPlayerController.toggleAspectRatio();
                 break;
             case R.id.btn_window_player:
-                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
+                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer(), null);
                 break;
             case R.id.btn_app_player:
                 WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
@@ -716,6 +716,14 @@ public class VideoActivity extends BaseActivity {
         mBackPressed = true;
 
         super.onBackPressed();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(!videoView.isBackgroundPlayEnabled()) {
+            updatePlayBtnBg(false);
+        }
     }
 
     @Override
