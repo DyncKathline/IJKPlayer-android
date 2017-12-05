@@ -439,16 +439,9 @@ public class VideoActivity extends BaseActivity {
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
                         hideVideoLoading();
                         break;
-                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
-                        Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
-                        hideVideoLoading();
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START:
+                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
                         hideVideoLoading();
-                        break;
-                    case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
-                        Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
@@ -456,6 +449,13 @@ public class VideoActivity extends BaseActivity {
                             updatePlayBtnBg(true);
                         }
                         showVideoLoading();
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
+                        Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
+                        hideVideoLoading();
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
+                        Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
                         break;
 //                    case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
 //                        Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
@@ -480,9 +480,6 @@ public class VideoActivity extends BaseActivity {
 //                        break;
 //                    case IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED://
 //                        Log.d(TAG, "MEDIA_INFO_VIDEO_ROTATION_CHANGED:");
-//                        break;
-//                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
-//                        Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
 //                        break;
 //                    case IMediaPlayer.MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE://
 //                        Log.d(TAG, "MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE:");
@@ -509,7 +506,7 @@ public class VideoActivity extends BaseActivity {
 //                        Log.d(TAG, "MEDIA_ERROR_TIMED_OUT :");
 //                        break;
                 }
-                return false;
+                return true;
             }
         });
         videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
