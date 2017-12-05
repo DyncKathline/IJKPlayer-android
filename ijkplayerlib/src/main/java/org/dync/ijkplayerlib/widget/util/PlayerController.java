@@ -452,7 +452,9 @@ public class PlayerController {
      */
     public PlayerController seekTo(int playtime) {
         if (videoView != null) {
-            videoView.seekTo(playtime);
+            if(getDuration() > 0) {
+                videoView.seekTo(playtime);
+            }
         }
         return this;
     }

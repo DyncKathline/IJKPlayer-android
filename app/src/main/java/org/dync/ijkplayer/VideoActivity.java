@@ -233,6 +233,10 @@ public class VideoActivity extends AppCompatActivity {
     }
 
     private void initView() {
+        // init player
+        IjkMediaPlayer.loadLibrariesOnce(null);
+        IjkMediaPlayer.native_profileBegin("libijkplayer.so");
+
         mVideoView = (IjkVideoView) findViewById(R.id.video_view);
         tv_speed = (TextView) findViewById(R.id.app_video_speed);
 
@@ -735,6 +739,7 @@ public class VideoActivity extends AppCompatActivity {
     protected void onDestroy() {
         super.onDestroy();
         onDestroyVideo();
+        WindowManagerUtil.removeSmallWindow(mContext);
     }
 
     private void onDestroyVideo() {

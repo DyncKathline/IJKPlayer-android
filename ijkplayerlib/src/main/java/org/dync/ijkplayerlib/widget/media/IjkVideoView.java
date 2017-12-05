@@ -18,7 +18,6 @@
 package org.dync.ijkplayerlib.widget.media;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -332,7 +331,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     (TextUtils.isEmpty(scheme) || scheme.equalsIgnoreCase("file"))) {
                 IMediaDataSource dataSource = new FileMediaDataSource(new File(mUri.toString()));
                 mMediaPlayer.setDataSource(dataSource);
-            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            }  else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                 mMediaPlayer.setDataSource(mAppContext, mUri, mHeaders);
             } else {
                 mMediaPlayer.setDataSource(mUri.toString());
@@ -1107,6 +1106,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     //-------------------------
     // Extend: Background
     //-------------------------
+
     private String buildResolution(int width, int height, int sarNum, int sarDen) {
         StringBuilder sb = new StringBuilder();
         sb.append(width);
@@ -1185,7 +1185,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         return MediaPlayerCompat.getSelectedTrack(mMediaPlayer, trackType);
     }
 
-    ///////////////////////////////额外增加的方法//////////////////////////////////
+///////////////////////////////额外增加的方法//////////////////////////////////
 
     public int getVideoWidth() {
         return mVideoWidth;
@@ -1236,8 +1236,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             case ROTATION_180:
             case ROTATION_270:
                 break;
-                default:
-                    return;
+            default:
+                return;
         }
         mVideoRotationDegree = rotation;
         if (mRenderView != null) {
