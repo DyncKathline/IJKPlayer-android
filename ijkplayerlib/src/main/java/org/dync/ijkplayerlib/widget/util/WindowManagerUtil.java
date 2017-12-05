@@ -3,7 +3,6 @@ package org.dync.ijkplayerlib.widget.util;
 import android.app.ActivityManager;
 import android.content.Context;
 import android.graphics.PixelFormat;
-import android.text.TextUtils;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -45,17 +44,13 @@ public class WindowManagerUtil {
      * @param context 必须为应用程序的Context.
      */
     public static void createSmallWindow(Context context) {
-        createSmallWindow(context, null, "");
+        createSmallWindow(context, null);
     }
 
-    public static void createSmallWindow(Context context, String videoPath) {
-        createSmallWindow(context, null, videoPath);
-    }
-
-    public static void createSmallWindow(Context context, IMediaPlayer mediaPlayer, String videoPath) {
-        WindowManager windowManager = getWindowManager(context);
-        int screenWidth = windowManager.getDefaultDisplay().getWidth();
-        int screenHeight = windowManager.getDefaultDisplay().getHeight();
+    public static void createSmallWindow(final Context context, IMediaPlayer mediaPlayer) {
+        mWindowManager = getWindowManager(context);
+        int screenWidth = mWindowManager.getDefaultDisplay().getWidth();
+        int screenHeight = mWindowManager.getDefaultDisplay().getHeight();
         if (smallWindowParams == null) {
             smallWindowParams = new LayoutParams();
             smallWindowParams.type = LayoutParams.TYPE_PHONE;
@@ -72,11 +67,9 @@ public class WindowManagerUtil {
         smallWindow = new IjkWindowVideoView(context);
         if(mediaPlayer != null) {
             smallWindow.setMediaPlayer(mediaPlayer);
-        }else if(!TextUtils.isEmpty(videoPath)) {
-            smallWindow.setVideoPath(videoPath);
         }
         smallWindow.setLayoutParams(smallWindowParams);
-        windowManager.addView(smallWindow, smallWindowParams);
+        mWindowManager.addView(smallWindow, smallWindowParams);
     }
 
     private static int statusBarHeight;
@@ -149,7 +142,7 @@ public class WindowManagerUtil {
                     case MotionEvent.ACTION_UP:
                         break;
                 }
-                return false;
+                return true;
             }
         });
     }

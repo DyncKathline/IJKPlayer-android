@@ -225,10 +225,10 @@ public class VideoActivity extends BaseActivity {
                 mPlayerController.toggleAspectRatio();
                 break;
             case R.id.btn_window_player:
-                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer(), null);
+                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
                 break;
             case R.id.btn_app_player:
-                WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
+//                WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
                 break;
         }
     }
