@@ -1,6 +1,10 @@
 package org.dync.ijkplayer;
 
+import android.app.Activity;
+import android.content.Context;
+import android.os.Bundle;
 import android.os.SystemClock;
+import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 
@@ -9,11 +13,19 @@ import android.view.View;
  */
 
 public class BaseActivity extends AppCompatActivity implements View.OnClickListener {
-
+    protected Context mContext;
+    protected Activity mActivity;
     private View clickView;
     private int oldId = -1;
     private long lastClickTime = 0;
     private final int MIN_CLICK_DELAY_TIME = 500;
+
+    @Override
+    protected void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        mActivity = this;
+        mContext = this;
+    }
 
     @Override
     public void onClick(View v) {
