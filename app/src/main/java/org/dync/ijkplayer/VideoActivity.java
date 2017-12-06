@@ -23,8 +23,10 @@ import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
 
+import org.dync.ijkplayer.utils.GlideUtil;
 import org.dync.ijkplayer.utils.NetworkUtils;
 import org.dync.ijkplayer.utils.StatusBarUtil;
+import org.dync.ijkplayer.utils.ThreadUtil;
 import org.dync.ijkplayerlib.widget.media.AndroidMediaController;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
@@ -32,6 +34,7 @@ import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
 import org.dync.ijkplayerlib.widget.util.WindowManagerUtil;
 
+import java.util.ArrayList;
 import java.util.Locale;
 
 import butterknife.BindView;
@@ -52,10 +55,13 @@ public class VideoActivity extends BaseActivity {
     private PlayerController mPlayerController;
 
     private boolean mBackPressed;
+    private String mVideoCoverUrl;
 
 
     @BindView(R.id.video_view)
     IjkVideoView videoView;
+    @BindView(R.id.video_cover)
+    ImageView videoCover;
     @BindView(R.id.app_video_status_text)
     TextView appVideoStatusText;
     @BindView(R.id.app_video_replay_icon)
@@ -170,6 +176,7 @@ public class VideoActivity extends BaseActivity {
 
         // handle arguments
         mVideoPath = getIntent().getStringExtra("videoPath");
+        mVideoCoverUrl = "https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=491343424,3697954862&fm=27&gp=0.jpg";
 
         Intent intent = getIntent();
         String intentAction = intent.getAction();
@@ -316,16 +323,22 @@ public class VideoActivity extends BaseActivity {
         // prefer mVideoPath
 //        Settings settings = new Settings(this);
 //        settings.setPlayer(Settings.PV_PLAYER__IjkMediaPlayer);
-        if (mVideoPath != null)
+//        if (mVideoPath != null)
+//            videoView.setVideoPath(mVideoPath);
+//        else if (mVideoUri != null)
+//            videoView.setVideoURI(mVideoUri);
+//        else {
+//            Log.e(TAG, "Null Data Source\n");
+//            finish();
+//            return;
+//        }
+//        videoView.start();
+        onDestroyVideo();
+        if (mVideoPath != null) {
+            showVideoLoading();
             videoView.setVideoPath(mVideoPath);
-        else if (mVideoUri != null)
-            videoView.setVideoURI(mVideoUri);
-        else {
-            Log.e(TAG, "Null Data Source\n");
-            finish();
-            return;
+            videoView.start();
         }
-        videoView.start();
     }
 
     private void initFragment() {
@@ -408,9 +421,6 @@ public class VideoActivity extends BaseActivity {
         videoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(IMediaPlayer iMediaPlayer) {
-                seekbar.setEnabled(true);
-                playIcon.setEnabled(true);
-                updatePlayBtnBg(!videoView.isPlaying());
                 appVideoReplay.setVisibility(View.GONE);
                 appVideoReplayIcon.setVisibility(View.GONE);
 
@@ -428,9 +438,25 @@ public class VideoActivity extends BaseActivity {
                 showVideoInfo(mMediaPlayer);
             }
         });
+        final ArrayList<Integer> audios = new ArrayList<>();
+        //音频软解成功通知
+        audios.add(IMediaPlayer.MEDIA_INFO_OPEN_INPUT);
+        audios.add(IMediaPlayer.MEDIA_INFO_FIND_STREAM_INFO);
+        audios.add(IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN);
+        audios.add(IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED);
+        audios.add(IMediaPlayer.MEDIA_INFO_AUDIO_DECODED_START);
+        audios.add(IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START);
+        final ArrayList<Integer> temp_audios = new ArrayList<>();
         videoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
+                Log.d(TAG, "onInfo: what= " + what + ", extra= " + extra);
+                if(what == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
+                    temp_audios.clear();
+                    temp_audios.add(what);
+                }else if(temp_audios.size() < 6) {
+                    temp_audios.add(what);
+                }
                 switch (what) {
                     case IMediaPlayer.MEDIA_INFO_STARTED_AS_NEXT://播放下一条
                         Log.d(TAG, "MEDIA_INFO_STARTED_AS_NEXT:");
@@ -438,10 +464,27 @@ public class VideoActivity extends BaseActivity {
                     case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始整备中
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
                         hideVideoLoading();
+                        seekbar.setEnabled(true);
+                        playIcon.setEnabled(true);
+                        updatePlayBtnBg(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
                         hideVideoLoading();
+                        seekbar.setEnabled(true);
+                        playIcon.setEnabled(true);
+                        updatePlayBtnBg(false);
+                        if (!temp_audios.contains(IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)) {
+                            if (!TextUtils.isEmpty(mVideoCoverUrl)) {
+                                GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
+                            }
+                        }
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN:
+                        hideVideoLoading();
+                        seekbar.setEnabled(true);
+                        playIcon.setEnabled(true);
+                        updatePlayBtnBg(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
@@ -449,10 +492,30 @@ public class VideoActivity extends BaseActivity {
                             updatePlayBtnBg(true);
                         }
                         showVideoLoading();
+                        ThreadUtil.runInThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                if(temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
+                                    for (int i = 0; i < temp_audios.size(); i++) {
+                                        if(!audios.get(i).equals(temp_audios.get(i))) {
+                                            onDestroyVideo();
+                                            if (mVideoPath != null) {
+                                                videoView.setVideoPath(mVideoPath);
+                                                videoView.start();
+                                            }
+                                            return;
+                                        }
+                                    }
+                                }
+                            }
+                        });
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
                         hideVideoLoading();
+                        seekbar.setEnabled(true);
+                        playIcon.setEnabled(true);
+                        updatePlayBtnBg(!videoView.isPlaying());
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
                         Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -758,6 +821,9 @@ public class VideoActivity extends BaseActivity {
             mPlayerController.onDestroy();
         }
         if (videoView != null) {
+            videoView.stopPlayback();
+            videoView.release(true);
+            videoView.stopBackgroundPlay();
             videoView.stopVideoInfo();
         }
     }
