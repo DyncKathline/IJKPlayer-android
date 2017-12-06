@@ -655,17 +655,17 @@ public class VideoActivity extends BaseActivity {
                 String formatSize = formatedSpeed(tcpSpeeds);
                 appVideoSpeed.setText(formatSize);
             }
-            if (videoCachedDuration == 0) {//没有缓存了，如果断网
-                if (NetworkUtils.isNetworkConnected(mContext)) {
-                    int currentPosition = videoView.getCurrentPosition();
-                    mPlayerController.seekTo(currentPosition);
-                    updatePlayBtnBg(false);
-                    playIcon.setEnabled(true);
-                } else {
-                    updatePlayBtnBg(true);
-                    playIcon.setEnabled(false);
-                }
-            }
+//            if (videoCachedDuration == 0) {//没有缓存了，如果断网
+//                if (NetworkUtils.isNetworkConnected(mContext)) {
+//                    int currentPosition = videoView.getCurrentPosition();
+//                    mPlayerController.seekTo(currentPosition);
+//                    updatePlayBtnBg(false);
+//                    playIcon.setEnabled(true);
+//                } else {
+//                    updatePlayBtnBg(true);
+//                    playIcon.setEnabled(false);
+//                }
+//            }
         }
     }
 
