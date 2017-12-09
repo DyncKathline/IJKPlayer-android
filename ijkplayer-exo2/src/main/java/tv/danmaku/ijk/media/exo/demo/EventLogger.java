@@ -18,7 +18,6 @@ package tv.danmaku.ijk.media.exo.demo;
 import android.os.SystemClock;
 import android.util.Log;
 import android.view.Surface;
-
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
@@ -30,7 +29,7 @@ import com.google.android.exoplayer2.audio.AudioRendererEventListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.drm.DefaultDrmSessionManager;
 import com.google.android.exoplayer2.metadata.Metadata;
-import com.google.android.exoplayer2.metadata.MetadataRenderer;
+import com.google.android.exoplayer2.metadata.MetadataOutput;
 import com.google.android.exoplayer2.metadata.emsg.EventMessage;
 import com.google.android.exoplayer2.metadata.id3.ApicFrame;
 import com.google.android.exoplayer2.metadata.id3.CommentFrame;
@@ -49,7 +48,6 @@ import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.video.VideoRendererEventListener;
-
 import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
@@ -57,10 +55,9 @@ import java.util.Locale;
 /**
  * Logs player events using {@link Log}.
  */
-/* package */ public final class EventLogger implements Player.EventListener, AudioRendererEventListener,
-        VideoRendererEventListener, AdaptiveMediaSourceEventListener,
-    ExtractorMediaSource.EventListener, DefaultDrmSessionManager.EventListener,
-    MetadataRenderer.Output {
+/* package */ public final class EventLogger implements Player.EventListener, MetadataOutput,
+        AudioRendererEventListener, VideoRendererEventListener, AdaptiveMediaSourceEventListener,
+        ExtractorMediaSource.EventListener, DefaultDrmSessionManager.EventListener {
 
   private static final String TAG = "EventLogger";
   private static final int MAX_TIMELINE_ITEM_LINES = 3;
@@ -94,7 +91,7 @@ import java.util.Locale;
   @Override
   public void onPlayerStateChanged(boolean playWhenReady, int state) {
     Log.d(TAG, "state [" + getSessionTimeString() + ", " + playWhenReady + ", "
-        + getStateString(state) + "]");
+            + getStateString(state) + "]");
   }
 
   @Override
@@ -103,14 +100,19 @@ import java.util.Locale;
   }
 
   @Override
-  public void onPositionDiscontinuity() {
-    Log.d(TAG, "positionDiscontinuity");
+  public void onShuffleModeEnabledChanged(boolean shuffleModeEnabled) {
+    Log.d(TAG, "shuffleModeEnabled [" + shuffleModeEnabled + "]");
+  }
+
+  @Override
+  public void onPositionDiscontinuity(@Player.DiscontinuityReason int reason) {
+    Log.d(TAG, "positionDiscontinuity [" + getDiscontinuityReasonString(reason) + "]");
   }
 
   @Override
   public void onPlaybackParametersChanged(PlaybackParameters playbackParameters) {
     Log.d(TAG, "playbackParameters " + String.format(
-        "[speed=%.2f, pitch=%.2f]", playbackParameters.speed, playbackParameters.pitch));
+            "[speed=%.2f, pitch=%.2f]", playbackParameters.speed, playbackParameters.pitch));
   }
 
   @Override
@@ -128,7 +130,7 @@ import java.util.Locale;
     for (int i = 0; i < Math.min(windowCount, MAX_TIMELINE_ITEM_LINES); i++) {
       timeline.getWindow(i, window);
       Log.d(TAG, "  " +  "window [" + getTimeString(window.getDurationMs()) + ", "
-          + window.isSeekable + ", " + window.isDynamic + "]");
+              + window.isSeekable + ", " + window.isDynamic + "]");
     }
     if (windowCount > MAX_TIMELINE_ITEM_LINES) {
       Log.d(TAG, "  ...");
@@ -158,15 +160,15 @@ import java.util.Locale;
         for (int groupIndex = 0; groupIndex < rendererTrackGroups.length; groupIndex++) {
           TrackGroup trackGroup = rendererTrackGroups.get(groupIndex);
           String adaptiveSupport = getAdaptiveSupportString(trackGroup.length,
-              mappedTrackInfo.getAdaptiveSupport(rendererIndex, groupIndex, false));
+                  mappedTrackInfo.getAdaptiveSupport(rendererIndex, groupIndex, false));
           Log.d(TAG, "    Group:" + groupIndex + ", adaptive_supported=" + adaptiveSupport + " [");
           for (int trackIndex = 0; trackIndex < trackGroup.length; trackIndex++) {
             String status = getTrackStatusString(trackSelection, trackGroup, trackIndex);
             String formatSupport = getFormatSupportString(
-                mappedTrackInfo.getTrackFormatSupport(rendererIndex, groupIndex, trackIndex));
+                    mappedTrackInfo.getTrackFormatSupport(rendererIndex, groupIndex, trackIndex));
             Log.d(TAG, "      " + status + " Track:" + trackIndex + ", "
-                + Format.toLogString(trackGroup.getFormat(trackIndex))
-                + ", supported=" + formatSupport);
+                    + Format.toLogString(trackGroup.getFormat(trackIndex))
+                    + ", supported=" + formatSupport);
           }
           Log.d(TAG, "    ]");
         }
@@ -195,10 +197,10 @@ import java.util.Locale;
         for (int trackIndex = 0; trackIndex < trackGroup.length; trackIndex++) {
           String status = getTrackStatusString(false);
           String formatSupport = getFormatSupportString(
-              RendererCapabilities.FORMAT_UNSUPPORTED_TYPE);
+                  RendererCapabilities.FORMAT_UNSUPPORTED_TYPE);
           Log.d(TAG, "      " + status + " Track:" + trackIndex + ", "
-              + Format.toLogString(trackGroup.getFormat(trackIndex))
-              + ", supported=" + formatSupport);
+                  + Format.toLogString(trackGroup.getFormat(trackIndex))
+                  + ", supported=" + formatSupport);
         }
         Log.d(TAG, "    ]");
       }
@@ -207,7 +209,12 @@ import java.util.Locale;
     Log.d(TAG, "]");
   }
 
-  // MetadataRenderer.Output
+  @Override
+  public void onSeekProcessed() {
+    Log.d(TAG, "seekProcessed");
+  }
+
+  // MetadataOutput
 
   @Override
   public void onMetadata(Metadata metadata) {
@@ -230,14 +237,14 @@ import java.util.Locale;
 
   @Override
   public void onAudioDecoderInitialized(String decoderName, long elapsedRealtimeMs,
-      long initializationDurationMs) {
+                                        long initializationDurationMs) {
     Log.d(TAG, "audioDecoderInitialized [" + getSessionTimeString() + ", " + decoderName + "]");
   }
 
   @Override
   public void onAudioInputFormatChanged(Format format) {
     Log.d(TAG, "audioFormatChanged [" + getSessionTimeString() + ", " + Format.toLogString(format)
-        + "]");
+            + "]");
   }
 
   @Override
@@ -246,9 +253,9 @@ import java.util.Locale;
   }
 
   @Override
-  public void onAudioTrackUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
+  public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
     printInternalError("audioTrackUnderrun [" + bufferSize + ", " + bufferSizeMs + ", "
-        + elapsedSinceLastFeedMs + "]", null);
+            + elapsedSinceLastFeedMs + "]", null);
   }
 
   // VideoRendererEventListener
@@ -260,14 +267,14 @@ import java.util.Locale;
 
   @Override
   public void onVideoDecoderInitialized(String decoderName, long elapsedRealtimeMs,
-      long initializationDurationMs) {
+                                        long initializationDurationMs) {
     Log.d(TAG, "videoDecoderInitialized [" + getSessionTimeString() + ", " + decoderName + "]");
   }
 
   @Override
   public void onVideoInputFormatChanged(Format format) {
     Log.d(TAG, "videoFormatChanged [" + getSessionTimeString() + ", " + Format.toLogString(format)
-        + "]");
+            + "]");
   }
 
   @Override
@@ -282,7 +289,7 @@ import java.util.Locale;
 
   @Override
   public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees,
-      float pixelWidthHeightRatio) {
+                                 float pixelWidthHeightRatio) {
     Log.d(TAG, "videoSizeChanged [" + width + ", " + height + "]");
   }
 
@@ -374,7 +381,7 @@ import java.util.Locale;
       if (entry instanceof TextInformationFrame) {
         TextInformationFrame textInformationFrame = (TextInformationFrame) entry;
         Log.d(TAG, prefix + String.format("%s: value=%s", textInformationFrame.id,
-            textInformationFrame.value));
+                textInformationFrame.value));
       } else if (entry instanceof UrlLinkFrame) {
         UrlLinkFrame urlLinkFrame = (UrlLinkFrame) entry;
         Log.d(TAG, prefix + String.format("%s: url=%s", urlLinkFrame.id, urlLinkFrame.url));
@@ -384,22 +391,22 @@ import java.util.Locale;
       } else if (entry instanceof GeobFrame) {
         GeobFrame geobFrame = (GeobFrame) entry;
         Log.d(TAG, prefix + String.format("%s: mimeType=%s, filename=%s, description=%s",
-            geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
+                geobFrame.id, geobFrame.mimeType, geobFrame.filename, geobFrame.description));
       } else if (entry instanceof ApicFrame) {
         ApicFrame apicFrame = (ApicFrame) entry;
         Log.d(TAG, prefix + String.format("%s: mimeType=%s, description=%s",
-            apicFrame.id, apicFrame.mimeType, apicFrame.description));
+                apicFrame.id, apicFrame.mimeType, apicFrame.description));
       } else if (entry instanceof CommentFrame) {
         CommentFrame commentFrame = (CommentFrame) entry;
         Log.d(TAG, prefix + String.format("%s: language=%s, description=%s", commentFrame.id,
-            commentFrame.language, commentFrame.description));
+                commentFrame.language, commentFrame.description));
       } else if (entry instanceof Id3Frame) {
         Id3Frame id3Frame = (Id3Frame) entry;
         Log.d(TAG, prefix + String.format("%s", id3Frame.id));
       } else if (entry instanceof EventMessage) {
         EventMessage eventMessage = (EventMessage) entry;
         Log.d(TAG, prefix + String.format("EMSG: scheme=%s, id=%d, value=%s",
-            eventMessage.schemeIdUri, eventMessage.id, eventMessage.value));
+                eventMessage.schemeIdUri, eventMessage.id, eventMessage.value));
       }
     }
   }
@@ -463,7 +470,7 @@ import java.util.Locale;
   private static String getTrackStatusString(TrackSelection selection, TrackGroup group,
                                              int trackIndex) {
     return getTrackStatusString(selection != null && selection.getTrackGroup() == group
-        && selection.indexOf(trackIndex) != C.INDEX_UNSET);
+            && selection.indexOf(trackIndex) != C.INDEX_UNSET);
   }
 
   private static String getTrackStatusString(boolean enabled) {
@@ -478,6 +485,21 @@ import java.util.Locale;
         return "ONE";
       case Player.REPEAT_MODE_ALL:
         return "ALL";
+      default:
+        return "?";
+    }
+  }
+
+  private static String getDiscontinuityReasonString(@Player.DiscontinuityReason int reason) {
+    switch (reason) {
+      case Player.DISCONTINUITY_REASON_PERIOD_TRANSITION:
+        return "PERIOD_TRANSITION";
+      case Player.DISCONTINUITY_REASON_SEEK:
+        return "SEEK";
+      case Player.DISCONTINUITY_REASON_SEEK_ADJUSTMENT:
+        return "SEEK_ADJUSTMENT";
+      case Player.DISCONTINUITY_REASON_INTERNAL:
+        return "INTERNAL";
       default:
         return "?";
     }

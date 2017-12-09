@@ -27,8 +27,8 @@ android {
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.google.android.exoplayer:exoplayer:r2.5.4'
-    compile 'com.google.android.exoplayer:extension-rtmp:r2.5.4'
+    compile 'com.google.android.exoplayer:exoplayer:2.6.0'
+    compile 'com.google.android.exoplayer:extension-rtmp:2.6.0'
 //    compile project(':ijkplayer-java')
     compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
 }
@@ -54,7 +54,7 @@ ext {
     siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
     gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
 
-    libraryVersion = '0.8.4.1' //依赖时的VERSION
+    libraryVersion = '0.8.4.2' //依赖时的VERSION
 
     developerId = 'dync'
     developerName = 'DyncKathline'
