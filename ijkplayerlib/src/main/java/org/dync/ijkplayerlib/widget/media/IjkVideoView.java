@@ -839,7 +839,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             mMediaPlayer.seekTo(msec);
             mSeekWhenPrepared = 0;
         } else {
-//            mSeekWhenPrepared = msec;
+            if(msec > 1000) {//大于1秒赋值
+                mSeekWhenPrepared = msec;
+            }
         }
     }
 

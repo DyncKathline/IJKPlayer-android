@@ -3,7 +3,6 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:layout_alignParentBottom="true"
-    android:background="@android:color/transparent"
     android:orientation="horizontal">
 
     <LinearLayout
@@ -32,6 +31,7 @@
 
         <TextView
             android:id="@+id/tv_current_time"
+            style="@style/SmallTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginLeft="@dimen/normal_margin"
@@ -43,10 +43,13 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            android:secondaryProgress="80"
+            android:progressDrawable="@drawable/progress_drawable" />
 
         <TextView
             android:id="@+id/tv_total_time"
+            style="@style/SmallTextStyle"
             android:layout_width="wrap_content"
             android:layout_height="match_parent"
             android:layout_marginRight="@dimen/normal_margin"
