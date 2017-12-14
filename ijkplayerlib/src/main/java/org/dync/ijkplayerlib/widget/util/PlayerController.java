@@ -28,9 +28,6 @@ import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
 import java.util.Locale;
 
-import tv.danmaku.ijk.media.player.IMediaPlayer;
-import tv.danmaku.ijk.media.player.IjkMediaPlayer;
-
 /**
  * Created by KathLine on 2017/8/22.
  */
@@ -96,6 +93,10 @@ public class PlayerController {
      */
     private float brightness;
     /**
+     * seekBar的最大值
+     */
+    private int seekBarMaxProgress = 100;
+    /**
      * 当前播放地址
      */
     private String currentUrl;
@@ -135,6 +136,10 @@ public class PlayerController {
      * 是否在拖动进度条中，默认为停止拖动，true为在拖动中，false为停止拖动
      */
     private boolean isDragging;
+    /**
+     * 控制面板隐藏时是否更新进度，true更新，false不更新
+     */
+    private boolean isUpdateHide = true;
     /**
      * 播放的时候是否需要网络提示，默认显示网络提示，true为显示网络提示，false不显示网络提示
      */
@@ -201,7 +206,7 @@ public class PlayerController {
                 /**滑动中，同步播放进度*/
                 case MESSAGE_SHOW_PROGRESS:
                     long pos = syncProgress();
-                    if (!isDragging && isShowControlPanel) {
+                    if (!isDragging && isUpdateHide) {
                         msg = obtainMessage(MESSAGE_SHOW_PROGRESS);
                         sendMessageDelayed(msg, 1000 - (pos % 1000));
                     }
@@ -215,7 +220,7 @@ public class PlayerController {
     /**
      * 控制面板收起或者显示的轮询监听
      */
-    private AutoControlPanelRunnable mAutoControlPanelRunnable = new AutoControlPanelRunnable();
+    private AutoControlPanelRunnable mAutoControlPanelRunnable;
     /**
      * Activity界面方向监听
      */
@@ -248,7 +253,7 @@ public class PlayerController {
                 if (maxPlaytime != -1 && maxPlaytime + 1000 < position) {
                     Log.d(TAG, "onProgressChanged: -------------");
                     isMaxTime = true;
-                    long pos = 1000L * maxPlaytime / duration;
+                    long pos = seekBarMaxProgress * maxPlaytime / duration;
                     seekBar.setProgress((int) pos);
                     mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
                 } else {
@@ -279,7 +284,7 @@ public class PlayerController {
             }
             if (videoView != null) {
                 long duration = getDuration();
-                newPosition = (long) ((duration * seekBar.getProgress() * 1.0) / 1000);
+                newPosition = (long) ((duration * seekBar.getProgress() * 1.0) / seekBarMaxProgress);
 //                videoView.seekTo((int) ((duration * seekBar.getProgress() * 1.0) / 1000));
 //                mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
             }
@@ -566,9 +571,6 @@ public class PlayerController {
 //            videoView.release(true);
             videoView.stopBackgroundPlay();
         }
-        if (playerSupport) {
-            IjkMediaPlayer.native_profileEnd();
-        }
         return this;
     }
 
@@ -705,13 +707,6 @@ public class PlayerController {
         this.mActivity = activity;
         this.mContext = activity;
         this.videoView = videoView;
-        try {
-            IjkMediaPlayer.loadLibrariesOnce(null);
-            IjkMediaPlayer.native_profileBegin("libijkplayer.so");
-            playerSupport = true;
-        } catch (Throwable e) {
-            Log.e(TAG, "loadLibraries error", e);
-        }
     }
 
     /**
@@ -722,13 +717,6 @@ public class PlayerController {
      */
     public PlayerController setIjkVideoView(IjkVideoView videoView) {
         this.videoView = videoView;
-        try {
-            IjkMediaPlayer.loadLibrariesOnce(null);
-            IjkMediaPlayer.native_profileBegin("libijkplayer.so");
-            playerSupport = true;
-        } catch (Throwable e) {
-            Log.e(TAG, "loadLibraries error", e);
-        }
         return this;
     }
 
@@ -824,7 +812,7 @@ public class PlayerController {
         try {
             int e = android.provider.Settings.System.getInt(this.mContext.getContentResolver(), android.provider.Settings.System.SCREEN_BRIGHTNESS);
             float progress = 1.0F * (float) e / 255.0F;
-            android.view.WindowManager.LayoutParams layout = this.mActivity.getWindow().getAttributes();
+            WindowManager.LayoutParams layout = this.mActivity.getWindow().getAttributes();
             layout.screenBrightness = progress;
             mActivity.getWindow().setAttributes(layout);
             brightness = progress;
@@ -841,8 +829,14 @@ public class PlayerController {
      * @return
      */
     public PlayerController setVideoController(SeekBar videoController) {
+        if(videoController == null) {
+            return this;
+        }
+
         this.videoController = videoController;
-        videoController.setMax(1000);
+        videoController.setMax(seekBarMaxProgress);
+        videoController.setProgress(0);
+        videoController.setSecondaryProgress(0);
         videoController.setOnSeekBarChangeListener(mSeekListener);
         return this;
     }
@@ -984,7 +978,7 @@ public class PlayerController {
     /**
      * 显示或隐藏操作面板
      */
-    private PlayerController operatorPanel() {
+    public PlayerController operatorPanel() {
         isShowControlPanel = !isShowControlPanel;
         if (isShowControlPanel) {
             mHandler.sendEmptyMessage(MESSAGE_SHOW_PROGRESS);
@@ -992,7 +986,7 @@ public class PlayerController {
                 mAutoControlPanelRunnable.start(AutoControlPanelRunnable.AUTO_INTERVAL);
             }
         } else {
-            mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
+//            mHandler.removeMessages(MESSAGE_SHOW_PROGRESS);
             if (mAutoControlPanelRunnable != null) {
                 mAutoControlPanelRunnable.stop();
             }
@@ -1144,6 +1138,25 @@ public class PlayerController {
         }
 
         return orientation;
+    }
+
+    public void updateProgress(long position, long duration) {
+        if (duration > 0) {
+            long pos = seekBarMaxProgress * position / duration;
+            videoController.setProgress((int) pos);
+            int percent = videoView.getBufferPercentage();
+            videoController.setSecondaryProgress(percent);
+//            Log.d(TAG, "syncProgress: progress= " + pos + ", SecondaryProgress= " + percent);
+        }else{
+            videoController.setProgress(0);
+            videoController.setEnabled(false);
+        }
+    }
+
+    public void sendAutoHideBarsMsg(long delayMillis) {
+        if(mAutoControlPanelRunnable != null) {
+            mAutoControlPanelRunnable.start(delayMillis);
+        }
     }
 
     /**
@@ -1331,12 +1344,7 @@ public class PlayerController {
         long position = videoView.getCurrentPosition();
         long duration = videoView.getDuration();
         if (videoController != null) {
-            if (duration > 0) {
-                long pos = 1000L * position / duration;
-                videoController.setProgress((int) pos);
-            }
-            int percent = videoView.getBufferPercentage();
-            videoController.setSecondaryProgress(percent * 10);
+            updateProgress(position, duration);
         }
 
         if (maxPlaytime != -1 && maxPlaytime + 1000 < getCurrentPosition()) {

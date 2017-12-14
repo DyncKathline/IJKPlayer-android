@@ -211,7 +211,7 @@ public class VideoActivity extends BaseActivity {
         initPlayer();
         initFragment();
         initListener();
-        initVideoListener();
+//        initVideoListener();
 
         StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
     }
