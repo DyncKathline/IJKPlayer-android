@@ -67,7 +67,7 @@ public class MainActivity extends AppCompatActivity {
 //                String videoPath = "http://hot.vrs.sohu.com/ipad3969651_4718009227337_6170972.m3u8?plat=3&uid=e8192000-5281-4dac-9d6d-f4db0f8c7efa&pt=3&prod=mdk&pg=1&qd=130015&cv=1.5";
 //                String videoPath = "http://daai.waaarp.wscdns.com/live-transcode/_definst_/smil:daai/tv01.smil/playlist.m3u8";
 //                String videoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
-                String videoPath = "http://daaiguangbo.qmai.cc/cj/dagb.m3u8";
+                String videoPath = "http://www.jingsi.org/icloud/project/50-years/050.mp3";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
                 break;
         }

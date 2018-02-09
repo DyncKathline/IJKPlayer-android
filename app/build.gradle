@@ -11,7 +11,7 @@ android {
         versionName rootProject.ext.versionName
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
         ndk {
-            abiFilter "armeabi-v7a" //, "armeabi", "arm64-v8a", "x86", "x86_64" 按需设置
+            abiFilters "armeabi-v7a" //, "armeabi", "arm64-v8a", "x86", "x86_64" 按需设置
         }
     }
     buildTypes {

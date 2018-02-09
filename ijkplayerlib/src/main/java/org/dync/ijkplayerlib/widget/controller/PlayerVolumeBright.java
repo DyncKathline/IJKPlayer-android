@@ -64,6 +64,7 @@ public class PlayerVolumeBright extends FrameLayout {
 
         mLlVideoVolume = findViewById(R.id.ll_video_volume);
         mIvVideoVolume = findViewById(R.id.iv_video_volume);
+        mTvVideoVolume = findViewById(R.id.tv_video_volume);
 
         mLlVideoBrightness = findViewById(R.id.ll_video_brightness);
         mIvVideoBrightness = findViewById(R.id.iv_video_brightness);

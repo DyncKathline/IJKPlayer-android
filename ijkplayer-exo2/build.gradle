@@ -29,8 +29,8 @@ dependencies {
 
     compile 'com.google.android.exoplayer:exoplayer:2.6.0'
     compile 'com.google.android.exoplayer:extension-rtmp:2.6.0'
-//    compile project(':ijkplayer-java')
-    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
+    compile project(':ijkplayer-java')
+//    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
 }
 
 //解决 gradlew 构建错误: 编码 GBK的不可映射字符
@@ -41,6 +41,7 @@ tasks.withType(Javadoc) {
 }
 
 ext {
+    //显示的目录bintray.user/bintrayRepo/bintrayName
     bintrayRepo = 'IJKPlayer-android' //这个应该是传到maven的仓库的，即在Open Source Repository界面
     bintrayName = 'ijkplayer-exo2'  //发布的项目名字，即在Create New Package界面
 
@@ -54,7 +55,7 @@ ext {
     siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
     gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
 
-    libraryVersion = '0.8.4.2' //依赖时的VERSION
+    libraryVersion = '0.8.4.3' //依赖时的VERSION
 
     developerId = 'dync'
     developerName = 'DyncKathline'

@@ -44,8 +44,8 @@ dependencies {
 //                module: 'ijkplayer-java'
 //    }
     //第二种
-//    compile 'org.dync.kathline:ijkplayer-exo2:0.8.4.1'
-    compile (project(':ijkplayer-exo2'))
+    compile 'org.dync.kathline:ijkplayer-exo2:0.8.4.2'
+//    compile (project(':ijkplayer-exo2'))
 //    compile ('org.dync.kathline:ijkplayer-exo2:0.8.4.1'){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'

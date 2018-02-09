@@ -4,6 +4,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.drawable.ColorDrawable;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -22,6 +23,7 @@ import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import org.dync.ijkplayer.utils.GlideUtil;
 import org.dync.ijkplayer.utils.NetworkUtils;
@@ -211,8 +213,8 @@ public class VideoActivity extends BaseActivity {
         initPlayer();
         initFragment();
         initListener();
-//        initVideoListener();
-
+        initVideoListener();
+//
         StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
     }
 
@@ -423,7 +425,7 @@ public class VideoActivity extends BaseActivity {
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 appVideoReplay.setVisibility(View.GONE);
                 appVideoReplayIcon.setVisibility(View.GONE);
-
+                videoCover.setImageDrawable(new ColorDrawable(0));
                 videoView.startVideoInfo();
 
                 mPlayerController
@@ -467,6 +469,7 @@ public class VideoActivity extends BaseActivity {
                         seekbar.setEnabled(true);
                         playIcon.setEnabled(true);
                         updatePlayBtnBg(false);
+                        videoCover.setImageDrawable(new ColorDrawable(0));
                         break;
                     case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
@@ -499,10 +502,15 @@ public class VideoActivity extends BaseActivity {
                                     for (int i = 0; i < temp_audios.size(); i++) {
                                         if(!audios.get(i).equals(temp_audios.get(i))) {
                                             onDestroyVideo();
-                                            if (mVideoPath != null) {
-                                                videoView.setVideoPath(mVideoPath);
-                                                videoView.start();
-                                            }
+                                            ThreadUtil.runOnUiThread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    if (mVideoPath != null) {
+                                                        videoView.setVideoPath(mVideoPath);
+                                                        videoView.start();
+                                                    }
+                                                }
+                                            });
                                             return;
                                         }
                                     }
@@ -585,7 +593,7 @@ public class VideoActivity extends BaseActivity {
             @Override
             public boolean onError(IMediaPlayer iMediaPlayer, int framework_err, int impl_err) {
                 hideVideoLoading();
-
+                Toast.makeText(mContext, "播放出错", Toast.LENGTH_SHORT).show();
                 appVideoReplay.setVisibility(View.VISIBLE);
                 appVideoReplayIcon.setVisibility(View.VISIBLE);
 
