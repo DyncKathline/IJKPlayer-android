@@ -2,7 +2,7 @@ apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion rootProject.ext.compileSdkVersion
-    buildToolsVersion rootProject.ext.buildToolsVersion
+//    buildToolsVersion rootProject.ext.buildToolsVersion
 
     lintOptions {
         abortOnError false
@@ -25,12 +25,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api fileTree(include: ['*.jar'], dir: 'libs')
 
-    compile 'com.google.android.exoplayer:exoplayer:2.6.0'
-    compile 'com.google.android.exoplayer:extension-rtmp:2.6.0'
-    compile project(':ijkplayer-java')
-//    compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
+    api 'com.google.android.exoplayer:exoplayer:2.8.1'
+    api 'com.google.android.exoplayer:extension-rtmp:2.8.1'
+//    implementation project(':ijkplayer-java')
+    api 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
 }
 
 //解决 gradlew 构建错误: 编码 GBK的不可映射字符
@@ -65,6 +65,6 @@ ext {
     licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
     allLicenses = ["Apache-2.0"]
 }
-apply from: 'bintray.gradle'
+apply from: '../bintray.gradle'
 //apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/installv1.gradle'
 //apply from: 'https://raw.githubusercontent.com/nuuneoi/JCenter/master/bintrayv1.gradle'

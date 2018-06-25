@@ -440,6 +440,7 @@ public class VideoActivity extends BaseActivity {
                 showVideoInfo(mMediaPlayer);
             }
         });
+        final Settings mSettings = new Settings(mContext);
         final ArrayList<Integer> audios = new ArrayList<>();
         //音频软解成功通知
         audios.add(IMediaPlayer.MEDIA_INFO_OPEN_INPUT);
@@ -453,10 +454,10 @@ public class VideoActivity extends BaseActivity {
             @Override
             public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
                 Log.d(TAG, "onInfo: what= " + what + ", extra= " + extra);
-                if(what == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
+                if (what == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
                     temp_audios.clear();
                     temp_audios.add(what);
-                }else if(temp_audios.size() < 6) {
+                } else if (temp_audios.size() < 6) {
                     temp_audios.add(what);
                 }
                 switch (what) {
@@ -495,28 +496,30 @@ public class VideoActivity extends BaseActivity {
                             updatePlayBtnBg(true);
                         }
                         showVideoLoading();
-                        ThreadUtil.runInThread(new Runnable() {
-                            @Override
-                            public void run() {
-                                if(temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
-                                    for (int i = 0; i < temp_audios.size(); i++) {
-                                        if(!audios.get(i).equals(temp_audios.get(i))) {
-                                            onDestroyVideo();
-                                            ThreadUtil.runOnUiThread(new Runnable() {
-                                                @Override
-                                                public void run() {
-                                                    if (mVideoPath != null) {
-                                                        videoView.setVideoPath(mVideoPath);
-                                                        videoView.start();
+                        if (!mSettings.getUsingMediaCodec()) {
+                            ThreadUtil.runInThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
+                                        for (int i = 0; i < temp_audios.size(); i++) {
+                                            if (!audios.get(i).equals(temp_audios.get(i))) {
+                                                onDestroyVideo();
+                                                ThreadUtil.runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        if (mVideoPath != null) {
+                                                            videoView.setVideoPath(mVideoPath);
+                                                            videoView.start();
+                                                        }
                                                     }
-                                                }
-                                            });
-                                            return;
+                                                });
+                                                return;
+                                            }
                                         }
                                     }
                                 }
-                            }
-                        });
+                            });
+                        }
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
@@ -792,7 +795,7 @@ public class VideoActivity extends BaseActivity {
     @Override
     protected void onStart() {
         super.onStart();
-        if(!videoView.isBackgroundPlayEnabled()) {
+        if (!videoView.isBackgroundPlayEnabled()) {
             updatePlayBtnBg(false);
         }
     }

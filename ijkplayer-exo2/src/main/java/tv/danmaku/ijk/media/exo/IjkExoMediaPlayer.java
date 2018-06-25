@@ -18,9 +18,9 @@
 package tv.danmaku.ijk.media.exo;
 
 import android.content.Context;
+import android.net.NetworkInfo;
 import android.net.Uri;
-import android.os.Handler;
-import android.os.Looper;
+import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.util.Log;
 import android.view.Surface;
@@ -30,50 +30,42 @@ import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
+import com.google.android.exoplayer2.ExoPlayerFactory;
 import com.google.android.exoplayer2.Format;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
+import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.audio.AudioRendererEventListener;
+import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
-import com.google.android.exoplayer2.ext.rtmp.RtmpDataSourceFactory;
-import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
+import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.TrackGroupArray;
-import com.google.android.exoplayer2.source.dash.DashMediaSource;
-import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
-import com.google.android.exoplayer2.source.hls.HlsMediaSource;
-import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
-import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
-import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
-import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
-import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
-import com.google.android.exoplayer2.util.Util;
-import com.google.android.exoplayer2.video.VideoRendererEventListener;
+import com.google.android.exoplayer2.util.EventLogger;
 
+import java.io.File;
 import java.io.FileDescriptor;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.Map;
 
-import tv.danmaku.ijk.media.exo.demo.EventLogger;
-import tv.danmaku.ijk.media.exo.demo.player.SimpleExoPlayer2;
 import tv.danmaku.ijk.media.player.AbstractMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.MediaInfo;
 import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
 public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.EventListener,
-        VideoRendererEventListener,
-        AudioRendererEventListener {
+        AnalyticsListener {
     private static final String TAG = "IjkExoMediaPlayer";
 
     private Context mAppContext;
-    private SimpleExoPlayer2 mInternalPlayer;
+    private SimpleExoPlayer mInternalPlayer;
     private EventLogger mEventLogger;
     private DefaultRenderersFactory renderersFactory;
     private MediaSource mMediaSource;
@@ -82,20 +74,35 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     private int mVideoWidth;
     private int mVideoHeight;
     private Surface mSurface;
-    private Handler mainHandler;
+    private Map<String, String> mHeaders = new HashMap<>();
     private int lastReportedPlaybackState;
     private boolean lastReportedPlayWhenReady;
-    private boolean mIsPrepareing = true;
-    private boolean mIsBuffering = false;
+    private boolean isPrepareing = true;
+    private boolean isBuffering = false;
+    private boolean isLooping = false;
+    /**
+     * 是否带上header
+     */
+    private boolean isPreview = false;
+    /**
+     * 是否开启缓存
+     */
+    private boolean isCache = false;
+    /**
+     * dataSource等的帮组类
+     */
+    private ExoSourceManager mExoHelper;
+    /**
+     * 缓存目录，可以为空
+     */
+    private File mCacheDir;
 
     private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
 
-
     public IjkExoMediaPlayer(Context context) {
         mAppContext = context.getApplicationContext();
-        Looper eventLooper = Looper.myLooper() != null ? Looper.myLooper() : Looper.getMainLooper();
-        mainHandler = new Handler(eventLooper);
         lastReportedPlaybackState = Player.STATE_IDLE;
+        mExoHelper = ExoSourceManager.newInstance(context, mHeaders);
     }
 
     @Override
@@ -116,7 +123,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     @Override
     public void setDataSource(Context context, Uri uri) {
         mDataSource = uri.toString();
-        mMediaSource = getMediaSource(false);
+        mMediaSource = mExoHelper.getMediaSource(mDataSource, isPreview, isCache, isLooping, mCacheDir);
     }
 
     @Override
@@ -148,6 +155,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         TrackSelection.Factory videoTrackSelectionFactory =
                 new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
         mTrackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
+        mTrackSelector.setParameters(new DefaultTrackSelector.ParametersBuilder().build());
 
         mEventLogger = new EventLogger(mTrackSelector);
 
@@ -158,13 +166,12 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
 
-        renderersFactory = new DefaultRenderersFactory(mAppContext, null, extensionRendererMode);
+        renderersFactory = new DefaultRenderersFactory(mAppContext, extensionRendererMode);
         DefaultLoadControl loadControl = new DefaultLoadControl();
-        mInternalPlayer = new SimpleExoPlayer2(renderersFactory, mTrackSelector, loadControl);
+        mInternalPlayer = ExoPlayerFactory.newSimpleInstance(renderersFactory, mTrackSelector, loadControl, null);
         mInternalPlayer.addListener(this);
-        mInternalPlayer.setVideoDebugListener(this);
-        mInternalPlayer.setAudioDebugListener(this);
-        mInternalPlayer.addListener(mEventLogger);
+        mInternalPlayer.addAnalyticsListener(this);
+        mInternalPlayer.addAnalyticsListener(mEventLogger);
 
         if (mSurface != null)
             mInternalPlayer.setVideoSurface(mSurface);
@@ -271,7 +278,9 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     public void reset() {
         if (mInternalPlayer != null) {
             mInternalPlayer.release();
-//            mInternalPlayer.removeListener(this);
+            mInternalPlayer.removeListener(this);
+            mInternalPlayer.removeAnalyticsListener(this);
+            mInternalPlayer.removeAnalyticsListener(mEventLogger);
             mInternalPlayer = null;
         }
 
@@ -283,14 +292,12 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void setLooping(boolean looping) {
-        // TODO: no support
-        throw new UnsupportedOperationException("no support");
+        isLooping = looping;
     }
 
     @Override
     public boolean isLooping() {
-        // TODO: no support
-        return false;
+        return isLooping;
     }
 
     @Override
@@ -342,6 +349,60 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     }
 
     /**
+     * 是否需要带上header
+     * setDataSource之前生效
+     *
+     * @param preview
+     */
+    public void setPreview(boolean preview) {
+        isPreview = preview;
+    }
+
+    public boolean isPreview() {
+        return isPreview;
+    }
+
+    public boolean isCache() {
+        return isCache;
+    }
+
+    /**
+     * 是否开启cache
+     * setDataSource之前生效
+     *
+     * @param cache
+     */
+    public void setCache(boolean cache) {
+        isCache = cache;
+    }
+
+    public File getCacheDir() {
+        return mCacheDir;
+    }
+
+    /**
+     * cache文件的目录
+     * setDataSource之前生效
+     *
+     * @param cacheDir
+     */
+    public void setCacheDir(File cacheDir) {
+        this.mCacheDir = cacheDir;
+    }
+
+    public MediaSource getMediaSource() {
+        return mMediaSource;
+    }
+
+    public void setMediaSource(MediaSource mediaSource) {
+        this.mMediaSource = mediaSource;
+    }
+
+    public ExoSourceManager getExoHelper() {
+        return mExoHelper;
+    }
+
+    /**
      * 倍速播放
      *
      * @param speed 倍速播放，默认为1
@@ -363,70 +424,8 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         return mInternalPlayer.getBufferedPercentage();
     }
 
-    public static final int TYPE_RTMP = 4;
-    /**
-     * Makes a best guess to infer the type from a file name.
-     *
-     * @param fileName Name of the file. It can include the path of the file.
-     * @return The content type.
-     */
-    @C.ContentType
-    private int inferContentType(String fileName) {
-        fileName = Util.toLowerInvariant(fileName);
-        if (fileName.endsWith(".mpd")) {
-            return C.TYPE_DASH;
-        } else if (fileName.endsWith(".m3u8")) {
-            return C.TYPE_HLS;
-        } else if (fileName.endsWith(".ism") || fileName.endsWith(".isml")
-                || fileName.endsWith(".ism/manifest") || fileName.endsWith(".isml/manifest")) {
-            return C.TYPE_SS;
-        } else if (fileName.startsWith("rtmp:")) {
-            return TYPE_RTMP;
-        }  else {
-            return C.TYPE_OTHER;
-        }
-    }
-
-    private MediaSource getMediaSource(boolean preview) {
-        Uri contentUri = Uri.parse(mDataSource);
-        int contentType = inferContentType(mDataSource);
-        switch (contentType) {
-            case C.TYPE_SS:
-                return new SsMediaSource(contentUri, new DefaultDataSourceFactory(mAppContext, null,
-                        getHttpDataSourceFactory(preview)),
-                        new DefaultSsChunkSource.Factory(getDataSourceFactory(preview)),
-                        mainHandler, null);
-            case C.TYPE_DASH:
-                return new DashMediaSource(contentUri,
-                        new DefaultDataSourceFactory(mAppContext, null,
-                                getHttpDataSourceFactory(preview)),
-                        new DefaultDashChunkSource.Factory(getDataSourceFactory(preview)),
-                        mainHandler, null);
-            case C.TYPE_HLS:
-                return new HlsMediaSource(contentUri, getDataSourceFactory(preview), mainHandler, null);
-            case TYPE_RTMP:
-                RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSourceFactory(null);
-                return new ExtractorMediaSource(contentUri, rtmpDataSourceFactory,
-                        new DefaultExtractorsFactory(), mainHandler, null);
-            case C.TYPE_OTHER:
-            default:
-                return new ExtractorMediaSource(contentUri, getDataSourceFactory(preview),
-                        new DefaultExtractorsFactory(), mainHandler, null);
-        }
-    }
-
-    private DataSource.Factory getDataSourceFactory(boolean preview) {
-        return new DefaultDataSourceFactory(mAppContext, preview ? null : new DefaultBandwidthMeter(),
-                getHttpDataSourceFactory(preview));
-    }
-
-    private DataSource.Factory getHttpDataSourceFactory(boolean preview) {
-        return new DefaultHttpDataSourceFactory(Util.getUserAgent(mAppContext,
-                TAG), preview ? null : new DefaultBandwidthMeter());
-    }
-
     @Override
-    public void onTimelineChanged(Timeline timeline, Object manifest) {
+    public void onTimelineChanged(Timeline timeline, Object manifest, int reason) {
 
     }
 
@@ -446,29 +445,32 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         //缓冲时顺序为：STATE_BUFFERING -》STATE_READY
         Log.e(TAG, "onPlayerStateChanged: playWhenReady = " + playWhenReady + ", playbackState = " + playbackState);
         if (lastReportedPlayWhenReady != playWhenReady || lastReportedPlaybackState != playbackState) {
-            if (mIsBuffering) {
+            if (isBuffering) {
                 switch (playbackState) {
                     case Player.STATE_ENDED:
                     case Player.STATE_READY:
                         notifyOnInfo(IMediaPlayer.MEDIA_INFO_BUFFERING_END, mInternalPlayer.getBufferedPercentage());
-                        mIsBuffering = false;
+                        isBuffering = false;
                         break;
                 }
             }
 
-            if (mIsPrepareing) {
+            if (isPrepareing) {
                 switch (playbackState) {
                     case Player.STATE_READY:
                         notifyOnPrepared();
-                        mIsPrepareing = false;
+                        isPrepareing = false;
                         break;
                 }
             }
 
             switch (playbackState) {
+                case Player.STATE_IDLE:
+                    notifyOnCompletion();
+                    break;
                 case Player.STATE_BUFFERING:
                     notifyOnInfo(IMediaPlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
-                    mIsBuffering = true;
+                    isBuffering = true;
                     break;
                 case Player.STATE_READY:
                     break;
@@ -513,60 +515,165 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     }
 
-    /////////////////////////////////////AudioRendererEventListener/////////////////////////////////////////////
+    /////////////////////////////////////VideoRendererEventListener/////////////////////////////////////////////
+
     @Override
-    public void onAudioEnabled(DecoderCounters counters) {
+    public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
 
     }
 
     @Override
-    public void onAudioSessionId(int audioSessionId) {
+    public void onTimelineChanged(EventTime eventTime, int reason) {
+
+    }
+
+    @Override
+    public void onPositionDiscontinuity(EventTime eventTime, int reason) {
+
+    }
+
+    @Override
+    public void onSeekStarted(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onSeekProcessed(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
+
+    }
+
+    @Override
+    public void onRepeatModeChanged(EventTime eventTime, int repeatMode) {
+
+    }
+
+    @Override
+    public void onShuffleModeChanged(EventTime eventTime, boolean shuffleModeEnabled) {
+
+    }
+
+    @Override
+    public void onLoadingChanged(EventTime eventTime, boolean isLoading) {
+
+    }
+
+    @Override
+    public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
+
+    }
+
+    @Override
+    public void onTracksChanged(EventTime eventTime, TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
+
+    }
+
+    @Override
+    public void onLoadStarted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
+
+    }
+
+    @Override
+    public void onLoadCompleted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
+
+    }
+
+    @Override
+    public void onLoadCanceled(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
+
+    }
+
+    @Override
+    public void onLoadError(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
+
+    }
+
+    @Override
+    public void onDownstreamFormatChanged(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
+
+    }
+
+    @Override
+    public void onUpstreamDiscarded(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
+
+    }
+
+    @Override
+    public void onMediaPeriodCreated(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onMediaPeriodReleased(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onReadingStarted(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
+
+    }
+
+    @Override
+    public void onViewportSizeChange(EventTime eventTime, int width, int height) {
+
+    }
+
+    @Override
+    public void onNetworkTypeChanged(EventTime eventTime, @Nullable NetworkInfo networkInfo) {
+
+    }
+
+    @Override
+    public void onMetadata(EventTime eventTime, Metadata metadata) {
+
+    }
+
+    @Override
+    public void onDecoderEnabled(EventTime eventTime, int trackType, DecoderCounters decoderCounters) {
+
+    }
+
+    @Override
+    public void onDecoderInitialized(EventTime eventTime, int trackType, String decoderName, long initializationDurationMs) {
+
+    }
+
+    @Override
+    public void onDecoderInputFormatChanged(EventTime eventTime, int trackType, Format format) {
+
+    }
+
+    @Override
+    public void onDecoderDisabled(EventTime eventTime, int trackType, DecoderCounters decoderCounters) {
+
+    }
+
+    @Override
+    public void onAudioSessionId(EventTime eventTime, int audioSessionId) {
         this.audioSessionId = audioSessionId;
     }
 
     @Override
-    public void onAudioDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
+    public void onAudioUnderrun(EventTime eventTime, int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
 
     }
 
     @Override
-    public void onAudioInputFormatChanged(Format format) {
+    public void onDroppedVideoFrames(EventTime eventTime, int droppedFrames, long elapsedMs) {
 
     }
 
     @Override
-    public void onAudioSinkUnderrun(int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
-
-    }
-
-    @Override
-    public void onAudioDisabled(DecoderCounters counters) {
-        audioSessionId = C.AUDIO_SESSION_ID_UNSET;
-    }
-
-    /////////////////////////////////////VideoRendererEventListener/////////////////////////////////////////////
-    @Override
-    public void onVideoEnabled(DecoderCounters counters) {
-
-    }
-
-    @Override
-    public void onVideoDecoderInitialized(String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-
-    }
-
-    @Override
-    public void onVideoInputFormatChanged(Format format) {
-
-    }
-
-    @Override
-    public void onDroppedFrames(int count, long elapsedMs) {
-
-    }
-
-    @Override
-    public void onVideoSizeChanged(int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
+    public void onVideoSizeChanged(EventTime eventTime, int width, int height, int unappliedRotationDegrees, float pixelWidthHeightRatio) {
         mVideoWidth = width;
         mVideoHeight = height;
         notifyOnVideoSizeChanged(width, height, 1, 1);
@@ -575,12 +682,27 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     }
 
     @Override
-    public void onRenderedFirstFrame(Surface surface) {
+    public void onRenderedFirstFrame(EventTime eventTime, Surface surface) {
 
     }
 
     @Override
-    public void onVideoDisabled(DecoderCounters counters) {
+    public void onDrmKeysLoaded(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onDrmSessionManagerError(EventTime eventTime, Exception error) {
+
+    }
+
+    @Override
+    public void onDrmKeysRestored(EventTime eventTime) {
+
+    }
+
+    @Override
+    public void onDrmKeysRemoved(EventTime eventTime) {
 
     }
 }

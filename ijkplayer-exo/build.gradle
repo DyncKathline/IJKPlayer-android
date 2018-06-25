@@ -5,7 +5,6 @@ android {
     //noinspection GroovyAssignabilityCheck
     compileSdkVersion rootProject.ext.compileSdkVersion
     //noinspection GroovyAssignabilityCheck
-    buildToolsVersion rootProject.ext.buildToolsVersion
 
     lintOptions {
         abortOnError false
@@ -20,15 +19,16 @@ android {
             proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
         }
     }
+    buildToolsVersion '27.0.3'
 }
 
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
+    api fileTree(dir: 'libs', include: ['*.jar'])
 
-    compile 'com.google.android.exoplayer:exoplayer:r1.5.16'
+    api 'com.google.android.exoplayer:exoplayer:r1.5.16'
 
-    compile project(':ijkplayer-java')
-    // compile 'tv.danmaku.ijk.media:ijkplayer-java:0.8.4'
+//    api project(':ijkplayer-java')
+    api 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
 }
 
 //gradle.startParameter.taskNames.each { task ->
