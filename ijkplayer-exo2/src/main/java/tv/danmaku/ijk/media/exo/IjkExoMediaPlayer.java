@@ -44,6 +44,7 @@ import com.google.android.exoplayer2.source.MediaSourceEventListener;
 import com.google.android.exoplayer2.source.TrackGroupArray;
 import com.google.android.exoplayer2.trackselection.AdaptiveTrackSelection;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
+import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
@@ -52,6 +53,7 @@ import com.google.android.exoplayer2.util.EventLogger;
 import java.io.File;
 import java.io.FileDescriptor;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -422,6 +424,39 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             return 0;
 
         return mInternalPlayer.getBufferedPercentage();
+    }
+
+    /**
+     * 获取视频包含视频轨道、音频轨道、文字轨道
+     * @return
+     */
+    public ArrayList<Integer> getTrackGroup() {
+        ArrayList<Integer> trackInfos = new ArrayList<Integer>();
+        MappingTrackSelector.MappedTrackInfo mappedTrackInfo = mTrackSelector.getCurrentMappedTrackInfo();
+        if (mappedTrackInfo == null) {
+            return trackInfos;
+        }
+        for (int i = 0; i < mappedTrackInfo.getRendererCount(); i++) {
+            TrackGroupArray trackGroups = mappedTrackInfo.getTrackGroups(i);
+            if (trackGroups.length != 0) {
+                int trackType;
+                switch (mInternalPlayer.getRendererType(i)) {
+                    case C.TRACK_TYPE_AUDIO:
+                        trackType = C.TRACK_TYPE_AUDIO;
+                        break;
+                    case C.TRACK_TYPE_VIDEO:
+                        trackType = C.TRACK_TYPE_VIDEO;
+                        break;
+                    case C.TRACK_TYPE_TEXT:
+                        trackType = C.TRACK_TYPE_TEXT;
+                        break;
+                    default:
+                        continue;
+                }
+                trackInfos.add(trackType);
+            }
+        }
+        return trackInfos;
     }
 
     @Override

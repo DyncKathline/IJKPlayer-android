@@ -25,6 +25,8 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.google.android.exoplayer2.C;
+
 import org.dync.ijkplayer.utils.GlideUtil;
 import org.dync.ijkplayer.utils.NetworkUtils;
 import org.dync.ijkplayer.utils.StatusBarUtil;
@@ -41,6 +43,7 @@ import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
+import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.IjkMediaPlayer;
 
@@ -178,7 +181,8 @@ public class VideoActivity extends BaseActivity {
 
         // handle arguments
         mVideoPath = getIntent().getStringExtra("videoPath");
-        mVideoCoverUrl = "https://ss0.bdstatic.com/70cFvHSh_Q1YnxGkpoWK1HF6hhy/it/u=491343424,3697954862&fm=27&gp=0.jpg";
+        mVideoCoverUrl = "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3120404212,3339906847&fm=27&gp=0.jpg";
+        mVideoCoverUrl = "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2973320425,1464020144&fm=27&gp=0.jpg";
 
         Intent intent = getIntent();
         String intentAction = intent.getAction();
@@ -427,6 +431,14 @@ public class VideoActivity extends BaseActivity {
                 appVideoReplayIcon.setVisibility(View.GONE);
                 videoCover.setImageDrawable(new ColorDrawable(0));
                 videoView.startVideoInfo();
+                if(videoView.getMediaPlayer() instanceof IjkExoMediaPlayer) {
+                    ArrayList<Integer> trackGroup = ((IjkExoMediaPlayer) videoView.getMediaPlayer()).getTrackGroup();
+                    if(!trackGroup.contains(C.TRACK_TYPE_VIDEO)) {
+                        if (!TextUtils.isEmpty(mVideoCoverUrl)) {
+                            GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
+                        }
+                    }
+                }
 
                 mPlayerController
                         .setGestureEnabled(true)
@@ -496,7 +508,7 @@ public class VideoActivity extends BaseActivity {
                             updatePlayBtnBg(true);
                         }
                         showVideoLoading();
-                        if (!mSettings.getUsingMediaCodec()) {
+                        if (mSettings.getPlayer() == Settings.PV_PLAYER__IjkMediaPlayer) {
                             ThreadUtil.runInThread(new Runnable() {
                                 @Override
                                 public void run() {
