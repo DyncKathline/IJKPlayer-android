@@ -752,6 +752,14 @@ public class VideoActivity extends BaseActivity {
 //                    playIcon.setEnabled(false);
 //                }
 //            }
+        }else if(mMediaPlayer != null && mMediaPlayer instanceof IjkExoMediaPlayer) {
+            IjkExoMediaPlayer mp = (IjkExoMediaPlayer) mMediaPlayer;
+
+            long tcpSpeeds = mp.getTotalRxBytes(mActivity);
+            if (appVideoSpeed != null) {
+                String formatSize = formatedSpeed(tcpSpeeds);
+                appVideoSpeed.setText(formatSize);
+            }
         }
     }
 

@@ -69,7 +69,8 @@ public class SampleMediaListFragment extends Fragment {
         mAdapter.addItem("http://down.fodizi.com/05/d4267-11.flv", "flv");
         mAdapter.addItem("http://vod-ali.qmai.cc/860287c2cab641d3815fdf271e70188a/ecae4c35afb541b4812b585b917f56c6-0e19caff3a68710e7adec8335f2dd85b-fd.mp4", "mp4");
         mAdapter.addItem("rtmp://live.hkstv.hk.lxdns.com/live/hks", "rtmp");
-        mAdapter.addItem("http://mp3.haoduogeq.com/s/2017-11-26/1511698110.mp3", "mp3");
+        mAdapter.addItem(" rtsp://184.72.239.149/vod/mp4:BigBuckBunny_115k.mov", "rtsp");
+        mAdapter.addItem("rtsp://218.204.223.237:554/live/1/0547424F573B085C/gsfp90ef4k0a6iap.sdp", "rtsp");
         mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
         mAdapter.addItem("http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4", "mp4");
         mAdapter.addItem("http://vod.leasewebcdn.com/bbb.flv?ri=1024&rs=150&start=0", "flv");
@@ -82,6 +83,12 @@ public class SampleMediaListFragment extends Fragment {
         mAdapter.addItem("https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8", "m3u8");
         mAdapter.addItem("http://daaiguangbo.qmai.cc/cj/dagb.m3u8", "m3u8");
         mAdapter.addItem("http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism", "ism");
+        mAdapter.addItem("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd", "WV: Clear SD & HD (WebM,VP9)");
+        mAdapter.addItem("http://demos.webmproject.org/dash/201410/vp9_glass/manifest_vp9_opus.mpd", "Google Glass DASH - VP9 and Opus");
+        mAdapter.addItem("http://demos.webmproject.org/exoplayer/glass_vp9_vorbis.webm", "Google Glass (WebM Video with Vorbis Audio)");
+        mAdapter.addItem("https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear0/fileSequence0.aac", "Apple AAC 10s");
+        mAdapter.addItem("https://devstreaming-cdn.apple.com/videos/streaming/examples/bipbop_4x3/gear1/fileSequence0.ts", "Apple TS 10s");
+        mAdapter.addItem("https://storage.googleapis.com/exoplayer-test-media-1/mkv/android-screens-lavf-56.36.100-aac-avc-main-1280x720.mkv", "Android screens (Matroska)");
 
 
         mAdapter.addItem("http://devimages.apple.com.edgekey.net/streaming/examples/bipbop_4x3/bipbop_4x3_variant.m3u8", "bipbop basic master playlist");

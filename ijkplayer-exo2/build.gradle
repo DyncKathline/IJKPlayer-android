@@ -27,10 +27,10 @@ android {
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
 
-    api 'com.google.android.exoplayer:exoplayer:2.8.1'
-    api 'com.google.android.exoplayer:extension-rtmp:2.8.1'
-//    implementation project(':ijkplayer-java')
-    api 'tv.danmaku.ijk.media:ijkplayer-java:0.8.8'
+    api 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
+    api 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
+    api 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
+//    api (project(':ffmpeg'))
 }
 
 //解决 gradlew 构建错误: 编码 GBK的不可映射字符

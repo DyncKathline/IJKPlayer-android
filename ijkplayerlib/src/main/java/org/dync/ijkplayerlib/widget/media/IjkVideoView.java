@@ -1325,16 +1325,18 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         public boolean handleMessage(Message message) {
             switch (message.what) {
                 case UPDATE_VIDEO_INFO: {
-                    IjkMediaPlayer mp = null;
+                    IMediaPlayer mp = null;
                     if (mMediaPlayer == null)
                         break;
                     if (mMediaPlayer instanceof IjkMediaPlayer) {
-                        mp = (IjkMediaPlayer) mMediaPlayer;
+                        mp = mMediaPlayer;
                     } else if (mMediaPlayer instanceof MediaPlayerProxy) {
                         MediaPlayerProxy proxy = (MediaPlayerProxy) mMediaPlayer;
                         IMediaPlayer internal = proxy.getInternalMediaPlayer();
                         if (internal != null && internal instanceof IjkMediaPlayer)
-                            mp = (IjkMediaPlayer) internal;
+                            mp = internal;
+                    } else if(mMediaPlayer instanceof IjkExoMediaPlayer) {
+                        mp = mMediaPlayer;
                     }
 
                     if (videoInfoListener != null) {

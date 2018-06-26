@@ -26,6 +26,8 @@ import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.google.android.exoplayer2.C;
+
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.controller.impl.AnimationImpl;
 import org.dync.ijkplayerlib.widget.controller.impl.IPlayerBottomImpl;
@@ -36,9 +38,11 @@ import org.dync.ijkplayerlib.widget.controller.util.NetworkUtil;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
+import org.dync.ijkplayerlib.widget.util.Settings;
 
 import java.util.ArrayList;
 
+import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 /**
@@ -207,11 +211,22 @@ public class VideoView extends RelativeLayout {
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 hideVideoLoading();
                 updatePlayState(true);
+
+                if(mVideoView.getMediaPlayer() instanceof IjkExoMediaPlayer) {
+                    ArrayList<Integer> trackGroup = ((IjkExoMediaPlayer) mVideoView.getMediaPlayer()).getTrackGroup();
+                    if(!trackGroup.contains(C.TRACK_TYPE_VIDEO)) {
+                        if (!TextUtils.isEmpty(mVideoCoverUrl)) {
+//                            GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
+                        }
+                    }
+                }
+
                 mPlayerController
                         .setGestureEnabled(true)
                         .setAutoControlPanel(true);//视频加载后才自动隐藏操作面板
             }
         });
+        final Settings mSettings = new Settings(mContext);
         final ArrayList<Integer> audios = new ArrayList<>();
         //音频软解成功通知
         audios.add(IMediaPlayer.MEDIA_INFO_OPEN_INPUT);
@@ -251,13 +266,7 @@ public class VideoView extends RelativeLayout {
                         updatePlayState(true);
                         if (!temp_audios.contains(IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)) {
                             if (!TextUtils.isEmpty(mVideoCoverUrl)) {
-//                                Glide.with(mContext)
-//                                        .load(mVideoCoverUrl)
-//                                        .fitCenter()
-//                                        .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                                        .placeholder(R.drawable.default_image)
-//                                        .error(R.drawable.default_image)
-//                                        .into(video_cover);
+//                                GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
                             }
                         }
                         break;
@@ -267,15 +276,22 @@ public class VideoView extends RelativeLayout {
                         mHandler.post(new Runnable() {
                             @Override
                             public void run() {
-                                if (temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
-                                    for (int i = 0; i < temp_audios.size(); i++) {
-                                        if (!audios.get(i).equals(temp_audios.get(i))) {
-                                            onDestroyVideo();
-                                            if (mVideoUri != null) {
-                                                mVideoView.setVideoPath(mVideoUri.getPath());
-                                                mVideoView.start();
+                                if (mSettings.getPlayer() == Settings.PV_PLAYER__IjkMediaPlayer) {
+                                    if (temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
+                                        for (int i = 0; i < temp_audios.size(); i++) {
+                                            if (!audios.get(i).equals(temp_audios.get(i))) {
+                                                onDestroyVideo();
+                                                mActivity.runOnUiThread(new Runnable() {
+                                                    @Override
+                                                    public void run() {
+                                                        if (mVideoUri != null) {
+                                                            mVideoView.setVideoPath(mVideoUri.getPath());
+                                                            mVideoView.start();
+                                                        }
+                                                    }
+                                                });
+                                                return;
                                             }
-                                            return;
                                         }
                                     }
                                 }

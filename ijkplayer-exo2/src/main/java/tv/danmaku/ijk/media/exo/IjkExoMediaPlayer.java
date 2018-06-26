@@ -17,9 +17,12 @@
 
 package tv.danmaku.ijk.media.exo;
 
+import android.app.Activity;
 import android.content.Context;
 import android.net.NetworkInfo;
+import android.net.TrafficStats;
 import android.net.Uri;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.annotation.Size;
 import android.util.Log;
@@ -93,7 +96,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     /**
      * dataSource等的帮组类
      */
-    private ExoSourceManager mExoHelper;
+    private ExoSourceManager mExoSourceManager;
     /**
      * 缓存目录，可以为空
      */
@@ -104,7 +107,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     public IjkExoMediaPlayer(Context context) {
         mAppContext = context.getApplicationContext();
         lastReportedPlaybackState = Player.STATE_IDLE;
-        mExoHelper = ExoSourceManager.newInstance(context, mHeaders);
+        mExoSourceManager = ExoSourceManager.newInstance(context, mHeaders);
     }
 
     @Override
@@ -125,7 +128,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     @Override
     public void setDataSource(Context context, Uri uri) {
         mDataSource = uri.toString();
-        mMediaSource = mExoHelper.getMediaSource(mDataSource, isPreview, isCache, isLooping, mCacheDir);
+        mMediaSource = mExoSourceManager.getMediaSource(mDataSource, isPreview, isCache, isLooping, mCacheDir);
     }
 
     @Override
@@ -400,8 +403,8 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         this.mMediaSource = mediaSource;
     }
 
-    public ExoSourceManager getExoHelper() {
-        return mExoHelper;
+    public ExoSourceManager getExoSourceManager() {
+        return mExoSourceManager;
     }
 
     /**
@@ -457,6 +460,16 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             }
         }
         return trackInfos;
+    }
+
+    /***
+     * 获取地当前网速
+     *
+     * @param activity 活动对象
+     * @return long total rx bytes
+     */
+    public long getTotalRxBytes(@NonNull Activity activity) {
+        return TrafficStats.getUidRxBytes(activity.getApplicationInfo().uid) == TrafficStats.UNSUPPORTED ? 0 : (TrafficStats.getTotalRxBytes() / 1024);//转为KB
     }
 
     @Override
