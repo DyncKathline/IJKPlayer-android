@@ -33,10 +33,6 @@ import java.io.File;
 import java.util.Map;
 import java.util.NavigableSet;
 
-/**
- * Created by guoshuyu on 2018/5/18.
- */
-
 public class ExoSourceManager {
 
     private static final String TAG = "ExoSourceManager";

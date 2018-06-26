@@ -37,7 +37,7 @@ dependencies {
 //                module: 'ijkplayer-java'
 //    }
     //第二种
-//    api 'org.dync.kathline:ijkplayer-exo2:0.8.4.2'
+//    api 'org.dync.kathline:ijkplayer-exo2:0.8.8'
     api (project(':ijkplayer-exo2'))
 //    api ('org.dync.kathline:ijkplayer-exo2:0.8.4.1'){
 //        exclude group: 'tv.danmaku.ijk.media',
@@ -45,7 +45,7 @@ dependencies {
 //    }
 
     api 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
-    //    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.4'
+    //    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
 
     api 'tv.danmaku.ijk.media:ijkplayer-armv7a:' + rootProject.ijkplayer
     //    // Other ABIs: optional
