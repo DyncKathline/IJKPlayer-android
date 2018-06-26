@@ -1,1 +1,1 @@
-include ':app', ':ijkplayerlib', ':ijkplayer-exo', ':ijkplayer-exo2', ':nowithijkplayerlib', ':ffmpeg'
+include ':app', ':ijkplayerlib', ':ijkplayer-exo2', ':nowithijkplayerlib', ':ffmpeg'
