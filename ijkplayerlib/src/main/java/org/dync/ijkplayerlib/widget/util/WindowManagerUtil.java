@@ -160,6 +160,10 @@ public class WindowManagerUtil {
         }
     }
 
+    public static void setCallBack(IjkWindowVideoView.CallBack callBack) {
+        smallWindow.setCallBack(callBack);
+    }
+
     /**
      * 更新小悬浮窗的TextView上的数据，显示内存使用的百分比。
      *

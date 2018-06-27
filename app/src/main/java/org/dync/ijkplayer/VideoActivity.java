@@ -34,6 +34,7 @@ import org.dync.ijkplayer.utils.ThreadUtil;
 import org.dync.ijkplayerlib.widget.media.AndroidMediaController;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
+import org.dync.ijkplayerlib.widget.util.IjkWindowVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
 import org.dync.ijkplayerlib.widget.util.WindowManagerUtil;
@@ -239,6 +240,35 @@ public class VideoActivity extends BaseActivity {
                 break;
             case R.id.btn_window_player:
                 WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
+                videoView.setRenderView(null);
+                WindowManagerUtil.setCallBack(new IjkWindowVideoView.CallBack() {
+                    @Override
+                    public void removeSmallWindow(IMediaPlayer mediaPlayer) {
+                        videoView.setMediaPlayer(mediaPlayer);
+                        videoView.resetRenders();
+                    }
+                });
+//                AndPermission.with(mContext)
+//                        .requestCode(100)
+//                        .permission(Manifest.permission.SYSTEM_ALERT_WINDOW)
+//                        .rationale(new RationaleListener() {
+//                            @Override
+//                            public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
+//                                AndPermission.rationaleDialog(mContext, rationale).show();
+//                            }
+//                        })
+//                        .callback(new PermissionListener() {
+//                            @Override
+//                            public void onSucceed(int requestCode, @NonNull List<String> grantPermissions) {
+//                                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
+//                            }
+//
+//                            @Override
+//                            public void onFailed(int requestCode, @NonNull List<String> deniedPermissions) {
+//                                Toast.makeText(mContext,"需要取得权限以使用悬浮窗",Toast.LENGTH_SHORT).show();
+//                            }
+//                        })
+//                        .start();
                 break;
             case R.id.btn_app_player:
 //                WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
@@ -431,9 +461,9 @@ public class VideoActivity extends BaseActivity {
                 appVideoReplayIcon.setVisibility(View.GONE);
                 videoCover.setImageDrawable(new ColorDrawable(0));
                 videoView.startVideoInfo();
-                if(videoView.getMediaPlayer() instanceof IjkExoMediaPlayer) {
+                if (videoView.getMediaPlayer() instanceof IjkExoMediaPlayer) {
                     ArrayList<Integer> trackGroup = ((IjkExoMediaPlayer) videoView.getMediaPlayer()).getTrackGroup();
-                    if(!trackGroup.contains(C.TRACK_TYPE_VIDEO)) {
+                    if (!trackGroup.contains(C.TRACK_TYPE_VIDEO)) {
                         if (!TextUtils.isEmpty(mVideoCoverUrl)) {
                             GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
                         }
@@ -752,7 +782,7 @@ public class VideoActivity extends BaseActivity {
 //                    playIcon.setEnabled(false);
 //                }
 //            }
-        }else if(mMediaPlayer != null && mMediaPlayer instanceof IjkExoMediaPlayer) {
+        } else if (mMediaPlayer != null && mMediaPlayer instanceof IjkExoMediaPlayer) {
             IjkExoMediaPlayer mp = (IjkExoMediaPlayer) mMediaPlayer;
 
             long tcpSpeeds = mp.getTotalRxBytes(mActivity);

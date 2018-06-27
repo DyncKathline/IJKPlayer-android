@@ -814,6 +814,10 @@ public class IjkWindowVideoView extends FrameLayout implements MediaController.M
                     // 双击的间隔在 300ms以下
                     if (end < 300) {
                         WindowManagerUtil.removeSmallWindow(mAppContext);
+
+                        if(mCallBack != null) {
+                            mCallBack.removeSmallWindow(mMediaPlayer);
+                        }
                     }
                     startTime = System.currentTimeMillis();
                 }
@@ -1307,4 +1311,13 @@ public class IjkWindowVideoView extends FrameLayout implements MediaController.M
         openVideo();
     }
 
+    public interface CallBack {
+        void removeSmallWindow(IMediaPlayer mediaPlayer);
+    }
+
+    private CallBack mCallBack;
+
+    public void setCallBack(CallBack callBack) {
+        mCallBack = callBack;
+    }
 }

@@ -1293,6 +1293,13 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         openVideo();
     }
 
+    /**
+     * 用于重置
+     */
+    public void resetRenders() {
+        initRenders();
+    }
+
     private Runnable runnable;
     private long delayMillis = 500;
     public static final int UPDATE_VIDEO_INFO = 1;
