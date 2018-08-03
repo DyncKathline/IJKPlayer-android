@@ -215,7 +215,6 @@ public class WindowManagerUtil {
     public static void removeSmallApp(ViewGroup viewGroup) {
         if (smallApp != null) {
             viewGroup.removeView(smallApp);
-//            smallApp = null;
         }
     }
 

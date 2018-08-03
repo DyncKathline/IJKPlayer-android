@@ -244,6 +244,7 @@ public class VideoActivity extends BaseActivity {
                 WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
                     @Override
                     public void removeSmallWindow(IMediaPlayer mediaPlayer) {
+                        WindowManagerUtil.removeSmallWindow(mContext);
                         videoView.setMediaPlayer(mediaPlayer);
                         videoView.resetRenders();
                     }
@@ -284,6 +285,7 @@ public class VideoActivity extends BaseActivity {
                 WindowManagerUtil.setAppCallBack(new WindowManagerUtil.AppCallBack() {
                     @Override
                     public void removeSmallApp(IMediaPlayer mediaPlayer) {
+                        WindowManagerUtil.removeSmallApp(flAppWindow);
                         videoView.setMediaPlayer(mediaPlayer);
                         videoView.resetRenders();
                     }
