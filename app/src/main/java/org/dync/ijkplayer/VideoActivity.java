@@ -241,7 +241,7 @@ public class VideoActivity extends BaseActivity {
             case R.id.btn_window_player:
                 WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
                 videoView.setRenderView(null);
-                WindowManagerUtil.setCallBack(new IjkWindowVideoView.CallBack() {
+                WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
                     @Override
                     public void removeSmallWindow(IMediaPlayer mediaPlayer) {
                         videoView.setMediaPlayer(mediaPlayer);
@@ -260,7 +260,15 @@ public class VideoActivity extends BaseActivity {
 //                        .callback(new PermissionListener() {
 //                            @Override
 //                            public void onSucceed(int requestCode, @NonNull List<String> grantPermissions) {
-//                                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
+//                                WindowManagerUtil.createSmallApp(mContext, videoView.getMediaPlayer());
+//                                videoView.setRenderView(null);
+//                                WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
+//                                    @Override
+//                                    public void removeSmallWindow(IMediaPlayer mediaPlayer) {
+//                                        videoView.setMediaPlayer(mediaPlayer);
+//                                        videoView.resetRenders();
+//                                    }
+//                                });
 //                            }
 //
 //                            @Override
@@ -271,7 +279,15 @@ public class VideoActivity extends BaseActivity {
 //                        .start();
                 break;
             case R.id.btn_app_player:
-//                WindowManagerUtil.createSmallWindow(flAppWindow, videoView.getMediaPlayer());
+                WindowManagerUtil.createSmallApp(flAppWindow, videoView.getMediaPlayer());
+                videoView.setRenderView(null);
+                WindowManagerUtil.setAppCallBack(new WindowManagerUtil.AppCallBack() {
+                    @Override
+                    public void removeSmallApp(IMediaPlayer mediaPlayer) {
+                        videoView.setMediaPlayer(mediaPlayer);
+                        videoView.resetRenders();
+                    }
+                });
                 break;
         }
     }
@@ -869,6 +885,7 @@ public class VideoActivity extends BaseActivity {
         super.onDestroy();
         onDestroyVideo();
         WindowManagerUtil.removeSmallWindow(mContext);
+        WindowManagerUtil.removeSmallApp(flAppWindow);
     }
 
     private void onDestroyVideo() {

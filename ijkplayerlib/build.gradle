@@ -28,8 +28,8 @@ android {
 }
 
 dependencies {
-    api fileTree(include: ['*.jar'], dir: 'libs')
-    api 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
     //第一种
 //    implementation project(':ijkplayer-java')
 //    api (project(':ijkplayer-exo2')){
@@ -37,23 +37,23 @@ dependencies {
 //                module: 'ijkplayer-java'
 //    }
     //第二种
-    api 'org.dync.kathline:ijkplayer-exo2:0.8.8'
+    compile 'org.dync.kathline:ijkplayer-exo2:0.8.8'
 //    api (project(':ijkplayer-exo2'))
 //    api ('org.dync.kathline:ijkplayer-exo2:0.8.4.1'){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'
 //    }
 
-    api 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
-    api 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
-    api 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
+    compile 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
+    compile 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
+    compile 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
     //    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
 
-    api 'tv.danmaku.ijk.media:ijkplayer-armv7a:' + rootProject.ijkplayer
+    compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:' + rootProject.ijkplayer
     //    // Other ABIs: optional
     //    implementation 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
     //    implementation 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
-    api 'tv.danmaku.ijk.media:ijkplayer-x86:' + rootProject.ijkplayer
+    compile 'tv.danmaku.ijk.media:ijkplayer-x86:' + rootProject.ijkplayer
     //    implementation 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
 }
 
@@ -63,3 +63,30 @@ tasks.withType(Javadoc) {
     options.addStringOption('Xdoclint:none', '-quiet')
     options.addStringOption('encoding', 'UTF-8')
 }
+
+ext {
+    //显示的目录bintray.user/bintrayRepo/bintrayName
+    bintrayRepo = 'DyncKathline' //这个应该是传到maven的仓库的，即在Open Source Repository界面
+    bintrayName = 'ijkplayerlib'  //发布的项目名字，即在Create New Package界面
+
+    //GROUP_ID:ARTIFACT_ID:VERSION
+    publishedGroupId = 'org.dync.kathline'//依赖时的GROUP_ID
+    libraryName = 'ijkplayerlib'
+    artifact = 'ijkplayerlib'//依赖时的ARTIFACT_ID，这里要与类库名保持一致，即项目的module名
+
+    libraryDescription = 'With immersion sideslip the effect of closed Activity' //项目的描述
+
+    siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
+    gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
+
+    libraryVersion = '1.0.0' //依赖时的VERSION
+
+    developerId = 'dync'
+    developerName = 'DyncKathline'
+    developerEmail = 'xiongxuesong@dync.cc'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+apply from: '../bintray.gradle'

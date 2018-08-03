@@ -12,11 +12,10 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.view.WindowManager.LayoutParams;
 
+import org.dync.ijkplayerlib.widget.common.IMediaPlayer;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 
 import java.lang.reflect.Field;
-
-import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 public class WindowManagerUtil {
 
@@ -92,26 +91,18 @@ public class WindowManagerUtil {
     private static int downY;
     private static long startTime;
 
-    /**
-     * 在当前页面创建一个视图
-     * @param viewGroup
-     * @param mediaPlayer
-     */
     @SuppressLint("ClickableViewAccessibility")
-    public static void createSmallApp(final ViewGroup viewGroup, IMediaPlayer mediaPlayer) {
-        Context context = viewGroup.getContext();
+    public static void createSmallWindow(ViewGroup view, IMediaPlayer mediaPlayer) {
+        final Context context = view.getContext();
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         screenWidth = dm.widthPixels;
         screenHeight = dm.heightPixels - getStatusBarHeight(context);
-        smallApp = new IjkWindowVideoView(context);
-        smallApp.setFocusableInTouchMode(false);
+        smallWindow = new IjkWindowVideoView(context);
+        smallWindow.setFocusableInTouchMode(false);
         if(mediaPlayer != null) {
-            smallApp.setMediaPlayer(mediaPlayer);
+            smallWindow.setMediaPlayer(mediaPlayer);
         }
-        ViewGroup.LayoutParams layoutParams = new ViewGroup.LayoutParams(
-                ViewGroup.LayoutParams.WRAP_CONTENT,
-                ViewGroup.LayoutParams.WRAP_CONTENT
-        );
+        ViewGroup.LayoutParams layoutParams = view.getLayoutParams();
         int width;
         int height;
         if(screenWidth > screenHeight) {
@@ -123,10 +114,9 @@ public class WindowManagerUtil {
         }
         layoutParams.width = width;
         layoutParams.height = height;
-        smallApp.setLayoutParams(layoutParams);
-        viewGroup.addView(smallApp);
-        smallApp.setClickable(true);
-        smallApp.setOnTouchListener(new View.OnTouchListener() {
+        smallWindow.addView(smallWindow);
+        smallWindow.setClickable(true);
+        smallWindow.setOnTouchListener(new View.OnTouchListener() {
             @Override
             public boolean onTouch(View v, MotionEvent event) {
                 int action=event.getAction();
@@ -134,9 +124,9 @@ public class WindowManagerUtil {
                 switch(action){
                     case MotionEvent.ACTION_DOWN:
                         lastX = (int) event.getRawX();
-                        lastY = (int) event.getRawY();
+                        lastY = (int) event.getRawY() - getStatusBarHeight(context);
                         downX = (int) event.getRawX();
-                        downY = (int) event.getRawY();
+                        downY = (int) event.getRawY() - getStatusBarHeight(context);
                         break;
                     /**
                      * layout(l,t,r,b)
@@ -172,7 +162,7 @@ public class WindowManagerUtil {
                         v.layout(left, top, right, bottom);
                         Log.i(TAG, "position: " + left +", " + top + ", " + right + ", " + bottom);
                         lastX = (int) event.getRawX();
-                        lastY = (int) event.getRawY();
+                        lastY = (int) event.getRawY() - getStatusBarHeight(context);
                         break;
                     case MotionEvent.ACTION_UP:
                         // 如果手指离开屏幕时，downX和lastX相等，且downY和lastY相等，则视为触发了单击事件。
@@ -180,7 +170,6 @@ public class WindowManagerUtil {
                             long end = System.currentTimeMillis() - startTime;
                             // 双击的间隔在 300ms以下
                             if (end < 300) {
-                                removeSmallApp(viewGroup);
                                 if(appCallBack != null) {
                                     appCallBack.removeSmallApp(smallApp.getMediaPlayer());
                                 }
@@ -215,7 +204,7 @@ public class WindowManagerUtil {
     public static void removeSmallApp(ViewGroup viewGroup) {
         if (smallApp != null) {
             viewGroup.removeView(smallApp);
-//            smallApp = null;
+            smallApp = null;
         }
     }
 
