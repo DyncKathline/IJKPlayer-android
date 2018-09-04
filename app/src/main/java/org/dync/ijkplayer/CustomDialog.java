@@ -80,6 +80,8 @@ public class CustomDialog extends Dialog {
         setCancelable(cancelable);
         if (cancelable) {
             setCanceledOnTouchOutside(true);
+        }else {
+            setCanceledOnTouchOutside(false);
         }
     }
 

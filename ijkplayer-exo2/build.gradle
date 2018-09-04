@@ -28,6 +28,7 @@ dependencies {
 
     compile 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
     compile 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
+    compile 'com.google.android.exoplayer:extension-okhttp:' + rootProject.exoplayer
     compile 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
 //    api (project(':ffmpeg'))
 }

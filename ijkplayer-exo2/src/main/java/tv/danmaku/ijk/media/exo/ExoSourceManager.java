@@ -6,7 +6,6 @@ import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
 import com.google.android.exoplayer2.C;
-import com.google.android.exoplayer2.ext.rtmp.RtmpDataSourceFactory;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
 import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.LoopingMediaSource;
@@ -80,12 +79,12 @@ public class ExoSourceManager {
             case C.TYPE_HLS:
                 mediaSource = new HlsMediaSource.Factory(getDataSourceFactoryCache(mAppContext, cacheEnable, preview, cacheDir)).createMediaSource(contentUri);
                 break;
-            case TYPE_RTMP:
-                RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSourceFactory(null);
-                mediaSource = new ExtractorMediaSource.Factory(rtmpDataSourceFactory)
-                        .setExtractorsFactory(new DefaultExtractorsFactory())
-                        .createMediaSource(contentUri);
-                break;
+//            case TYPE_RTMP:
+//                RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSourceFactory(null);
+//                mediaSource = new ExtractorMediaSource.Factory(rtmpDataSourceFactory)
+//                        .setExtractorsFactory(new DefaultExtractorsFactory())
+//                        .createMediaSource(contentUri);
+//                break;
             case C.TYPE_OTHER:
             default:
                 mediaSource = new ExtractorMediaSource.Factory(getDataSourceFactoryCache(mAppContext, cacheEnable, preview, cacheDir))

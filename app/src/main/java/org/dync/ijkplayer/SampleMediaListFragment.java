@@ -69,7 +69,7 @@ public class SampleMediaListFragment extends Fragment {
         mAdapter.addItem("http://down.fodizi.com/05/d4267-11.flv", "flv");
         mAdapter.addItem("http://vod-ali.qmai.cc/860287c2cab641d3815fdf271e70188a/ecae4c35afb541b4812b585b917f56c6-0e19caff3a68710e7adec8335f2dd85b-fd.mp4", "mp4");
         mAdapter.addItem("rtmp://live.hkstv.hk.lxdns.com/live/hks", "rtmp");
-        mAdapter.addItem(" rtsp://184.72.239.149/vod/mp4:BigBuckBunny_115k.mov", "rtsp");
+        mAdapter.addItem("rtsp://184.72.239.149/vod/mp4:BigBuckBunny_115k.mov", "rtsp");
         mAdapter.addItem("rtsp://218.204.223.237:554/live/1/0547424F573B085C/gsfp90ef4k0a6iap.sdp", "rtsp");
         mAdapter.addItem("http://baobab.wdjcdn.com/1457423930928CGI.mp4", "mp4");
         mAdapter.addItem("http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4", "mp4");

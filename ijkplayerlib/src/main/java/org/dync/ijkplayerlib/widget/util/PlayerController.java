@@ -28,6 +28,8 @@ import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
 import java.util.Locale;
 
+import tv.danmaku.ijk.media.player.IMediaPlayer;
+
 /**
  * Created by KathLine on 2017/8/22.
  */
