@@ -18,6 +18,11 @@
             android:layout_height="match_parent"
             android:layout_gravity="center" />
 
+        <org.dync.subtitleconverter.SubtitleView
+            android:id="@+id/subtitleView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+
         <ImageView
             android:id="@+id/video_cover"
             android:layout_width="match_parent"
@@ -262,6 +267,11 @@
 
         <Spinner
             android:id="@+id/sp_speed"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+
+        <Spinner
+            android:id="@+id/sp_subtitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"/>
 

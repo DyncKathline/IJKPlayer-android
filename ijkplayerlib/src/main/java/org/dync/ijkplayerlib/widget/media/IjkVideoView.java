@@ -18,6 +18,7 @@
 package org.dync.ijkplayerlib.widget.media;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;

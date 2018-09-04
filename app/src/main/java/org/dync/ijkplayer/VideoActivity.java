@@ -38,7 +38,17 @@ import org.dync.ijkplayerlib.widget.util.IjkWindowVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
 import org.dync.ijkplayerlib.widget.util.WindowManagerUtil;
+import org.dync.subtitleconverter.SubtitleView;
+import org.dync.subtitleconverter.subtitleFile.FatalParsingException;
+import org.dync.subtitleconverter.subtitleFile.FormatASS;
+import org.dync.subtitleconverter.subtitleFile.FormatSRT;
+import org.dync.subtitleconverter.subtitleFile.FormatSTL;
+import org.dync.subtitleconverter.subtitleFile.FormatTTML;
+import org.dync.subtitleconverter.subtitleFile.TimedTextFileFormat;
+import org.dync.subtitleconverter.subtitleFile.TimedTextObject;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Locale;
 
@@ -66,6 +76,8 @@ public class VideoActivity extends BaseActivity {
 
     @BindView(R.id.video_view)
     IjkVideoView videoView;
+    @BindView(R.id.subtitleView)
+    SubtitleView subtitleView;
     @BindView(R.id.video_cover)
     ImageView videoCover;
     @BindView(R.id.app_video_status_text)
@@ -328,6 +340,9 @@ public class VideoActivity extends BaseActivity {
                     public void syncTime(long position, long duration) {
                         tvCurrentTime.setText(mPlayerController.generateTime(position));
                         tvTotalTime.setText(mPlayerController.generateTime(duration));
+                        if (subtitleView != null) {
+                            subtitleView.seekTo(position);
+                        }
                     }
                 })
                 .setGestureListener(new PlayerController.GestureListener() {
@@ -456,12 +471,95 @@ public class VideoActivity extends BaseActivity {
         sp_speed.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if(pos == 0) {
+                    return;
+                }
                 try {
                     float parseFloat = Float.parseFloat(speeds[pos]);
                     videoView.setSpeed(parseFloat);
                 } catch (NumberFormatException e) {
                     e.printStackTrace();
                 }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+            }
+        });
+
+        Spinner sp_subtitle = (Spinner) findViewById(R.id.sp_subtitle);
+        final String[] subtitles = {
+                "字幕",
+                "ass",
+                "srt",
+                "stl",
+                "xml"
+        };
+        final String[] subtitleList = {
+                "字幕",
+                "standards/ASS/Oceans.Eight.2018.1080p.BluRay.x264-SPARKS.简体.ass",
+                "standards/SRT/哆啦A梦：伴我同行.1080P.x264.Hi10P.flac.chs.srt",
+                "standards/STL/Aquí no hay quien viva 1.STL",
+                "standards/XML/Debate0_03-03-08.dfxp.xml"
+        };
+        ArrayAdapter<String> subtitleAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, subtitles);
+        subtitleAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        sp_subtitle.setAdapter(subtitleAdapter);
+        sp_subtitle.setSelection(0, true);
+        sp_subtitle.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, final int pos, long id) {
+                ThreadUtil.runInThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(pos == 0) {
+                            return;
+                        }
+                        String subtitle = subtitleList[pos];
+                        final TimedTextObject tto;
+                        TimedTextFileFormat ttff = null;
+                        try {
+                            InputStream is = getAssets().open(subtitle);
+                            switch (subtitles[pos]) {
+                                case "ass":
+                                    ttff = new FormatASS();
+                                    break;
+                                case "srt":
+                                    ttff = new FormatSRT();
+                                    break;
+                                case "stl":
+                                    ttff = new FormatSTL();
+                                    break;
+                                case "xml":
+                                    ttff = new FormatTTML();
+                                    break;
+                                default:
+
+                                    break;
+                            }
+
+                            tto = ttff != null ? ttff.parseFile("test", is) : null;
+//                        IOClass.writeFileTxt("test.srt", tto.toSRT());
+
+                            ThreadUtil.runOnUiThread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    Toast.makeText(mContext, "加载字幕成功", Toast.LENGTH_SHORT).show();
+                                    if(subtitleView != null) {
+                                        subtitleView.setData(tto);
+                                        subtitleView.setLanguage(SubtitleView.LANGUAGE_TYPE_CHINA);
+                                    }
+                                }
+                            });
+                        } catch (IOException e) {
+                            e.printStackTrace();
+                        } catch (FatalParsingException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                });
             }
 
             @Override
