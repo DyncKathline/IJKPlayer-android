@@ -1,1 +1,1 @@
-include ':app', ':ijkplayerlib', ':ijkplayer-exo2', ':nowithijkplayerlib'
+include ':app', ':ijkplayerlib', ':ijkplayer-exo2', ':exoplayerlib'

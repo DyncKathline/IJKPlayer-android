@@ -43,7 +43,6 @@ import android.widget.TextView;
 
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.AndroidMediaPlayer;
-import org.dync.ijkplayerlib.widget.IjkExoMediaPlayer;
 import org.dync.ijkplayerlib.widget.common.IMediaPlayer;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
