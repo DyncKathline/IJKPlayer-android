@@ -27,7 +27,7 @@
 
         <!-- 这里可以选择性设置，不是必选项 -->
         <service
-            android:name="org.dync.ijkplayerlib.widget.services.MediaPlayerService"
+            android:name="org.dync.ijkplayerlib.services.MediaPlayerService"
             android:enabled="false"
             android:exported="false"
             android:icon="@mipmap/ic_launcher"

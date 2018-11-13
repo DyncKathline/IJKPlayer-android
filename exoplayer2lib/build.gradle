@@ -1,0 +1,62 @@
+apply plugin: 'com.android.library'
+
+android {
+    compileSdkVersion rootProject.ext.compileSdkVersion
+//    buildToolsVersion rootProject.ext.buildToolsVersion
+    defaultConfig {
+        minSdkVersion 15
+        targetSdkVersion rootProject.ext.targetSdkVersion
+        versionCode 1
+        versionName "1.0"
+
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    productFlavors {
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
+    compile 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
+    compile 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
+}
+
+//解决 gradlew 构建错误: 编码 GBK的不可映射字符
+tasks.withType(Javadoc) {
+    //    options.encoding = "UTF-8"
+    options.addStringOption('Xdoclint:none', '-quiet')
+    options.addStringOption('encoding', 'UTF-8')
+}
+
+ext {
+    //显示的目录bintray.user/bintrayRepo/bintrayName
+    bintrayRepo = 'DyncKathline' //这个应该是传到maven的仓库的，即在Open Source Repository界面
+    bintrayName = 'exoplayer2lib'  //发布的项目名字，即在Create New Package界面
+
+    //GROUP_ID:ARTIFACT_ID:VERSION
+    publishedGroupId = 'org.dync.kathline'//依赖时的GROUP_ID
+    libraryName = 'exoplayer2lib'
+    artifact = 'exoplayer2lib'//依赖时的ARTIFACT_ID，这里要与类库名保持一致，即项目的module名
+
+    libraryDescription = '' //项目的描述
+
+    siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
+    gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
+
+    libraryVersion = '1.0.0' //依赖时的VERSION
+
+    developerId = 'dync'
+    developerName = 'DyncKathline'
+    developerEmail = 'xiongxuesong@dync.cc'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
+apply from: '../bintray.gradle'
