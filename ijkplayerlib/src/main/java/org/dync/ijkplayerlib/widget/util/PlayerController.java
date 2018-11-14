@@ -28,8 +28,6 @@ import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
 import java.util.Locale;
 
-import tv.danmaku.ijk.media.player.IMediaPlayer;
-
 /**
  * Created by KathLine on 2017/8/22.
  */
@@ -251,9 +249,9 @@ public class PlayerController {
                 int position = (int) ((duration * progress * 1.0) / 1000);
                 newPosition = position;
                 String time = generateTime(position);
-                Log.d(TAG, "onProgressChanged: time= " + time + ", progress= " + progress);
+//                Log.d(TAG, "onProgressChanged: time= " + time + ", progress= " + progress);
                 if (maxPlaytime != -1 && maxPlaytime + 1000 < position) {
-                    Log.d(TAG, "onProgressChanged: -------------");
+//                    Log.d(TAG, "onProgressChanged: -------------");
                     isMaxTime = true;
                     long pos = seekBarMaxProgress * maxPlaytime / duration;
                     seekBar.setProgress((int) pos);
@@ -682,7 +680,7 @@ public class PlayerController {
      * }
      */
     public boolean onBackPressed() {
-//        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+//        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
         if (!isOnlyFullScreen && mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             return true;
@@ -872,7 +870,7 @@ public class PlayerController {
             }
         };
         if (isOnlyFullScreen) {
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -1006,7 +1004,7 @@ public class PlayerController {
         this.isOnlyFullScreen = isFull;
         tryFullScreen(isOnlyFullScreen);
         if (isOnlyFullScreen) {
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         } else {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         }
@@ -1044,7 +1042,7 @@ public class PlayerController {
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);// 竖屏
         } else if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         return this;
     }
@@ -1120,7 +1118,6 @@ public class PlayerController {
             switch (rotation) {
                 case Surface.ROTATION_0:
                     orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
                     break;
                 case Surface.ROTATION_90:
                     orientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT;
@@ -1163,6 +1160,8 @@ public class PlayerController {
 
     /**
      * 时长格式化显示
+     * @param time  毫秒级
+     * @return
      */
     public static String generateTime(long time) {
         int totalSeconds = (int) (time / 1000);

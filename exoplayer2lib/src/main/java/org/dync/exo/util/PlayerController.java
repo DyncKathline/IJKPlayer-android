@@ -680,7 +680,7 @@ public class PlayerController {
      * }
      */
     public boolean onBackPressed() {
-//        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE) {
+//        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
         if (!isOnlyFullScreen && mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
             return true;
@@ -870,7 +870,7 @@ public class PlayerController {
             }
         };
         if (isOnlyFullScreen) {
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -1004,7 +1004,7 @@ public class PlayerController {
         this.isOnlyFullScreen = isFull;
         tryFullScreen(isOnlyFullScreen);
         if (isOnlyFullScreen) {
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         } else {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
         }
@@ -1042,7 +1042,7 @@ public class PlayerController {
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);// 竖屏
         } else if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
-            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE);
+            mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
         }
         return this;
     }
@@ -1117,7 +1117,6 @@ public class PlayerController {
         else {
             switch (rotation) {
                 case Surface.ROTATION_0:
-                    orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
                     orientation = ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE;
                     break;
                 case Surface.ROTATION_90:
