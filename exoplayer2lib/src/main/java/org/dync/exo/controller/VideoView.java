@@ -701,11 +701,21 @@ public class VideoView extends RelativeLayout {
         if(mVideoView != null) {
             mVideoView.start();
         }
+        if (mVideoView.isPlaying()) {
+            updatePlayState(false);
+        } else {
+            updatePlayState(true);
+        }
     }
 
     public void pause(){
         if(mVideoView.isPlaying()) {
             mVideoView.pause();
+        }
+        if (mVideoView.isPlaying()) {
+            updatePlayState(false);
+        } else {
+            updatePlayState(true);
         }
     }
 

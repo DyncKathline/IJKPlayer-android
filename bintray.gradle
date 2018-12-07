@@ -73,6 +73,9 @@ artifacts {
 }
 
 // Bintray
+//https://bintray.com/
+//gradlew install
+//gradlew bintrayUpload
 Properties properties = new Properties()
 properties.load(project.rootProject.file('local.properties').newDataInputStream())
 

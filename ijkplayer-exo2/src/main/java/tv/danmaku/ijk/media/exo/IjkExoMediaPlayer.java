@@ -19,6 +19,7 @@ package tv.danmaku.ijk.media.exo;
 
 import android.app.Activity;
 import android.content.Context;
+import android.media.session.PlaybackState;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
 import android.net.Uri;
@@ -510,6 +511,12 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                         isPrepareing = false;
                         break;
                 }
+            }
+
+            if(playbackState == PlaybackState.STATE_PLAYING) {
+//            long bufferedPosition = mInternalPlayer.getBufferedPosition() / 1000;
+//            long totalPosition = mInternalPlayer.getContentPosition() / 1000;
+                notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
             }
 
             switch (playbackState) {

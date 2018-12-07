@@ -55,7 +55,7 @@ ext {
     siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
     gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
 
-    libraryVersion = '0.8.8' //依赖时的VERSION
+    libraryVersion = '0.8.9' //依赖时的VERSION
 
     developerId = 'dync'
     developerName = 'DyncKathline'

@@ -44,7 +44,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
-            android:secondaryProgress="80"
+            android:secondaryProgress="0"
             android:progressDrawable="@drawable/progress_drawable" />
 
         <TextView

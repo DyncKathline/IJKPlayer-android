@@ -31,15 +31,14 @@ dependencies {
     compile fileTree(include: ['*.jar'], dir: 'libs')
     compile 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
     //第一种
-//    implementation project(':ijkplayer-java')
 //    api (project(':ijkplayer-exo2')){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'
 //    }
     //第二种
-//    compile 'org.dync.kathline:ijkplayer-exo2:0.8.8'
-    api (project(':ijkplayer-exo2'))
-//    api ('org.dync.kathline:ijkplayer-exo2:0.8.4.1'){
+//    compile 'org.dync.kathline:ijkplayer-exo2:0.8.9'
+    compile (project(':ijkplayer-exo2'))
+//    api ('org.dync.kathline:ijkplayer-exo2:0.8.8.8'){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'
 //    }
@@ -79,7 +78,7 @@ ext {
     siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
     gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
 
-    libraryVersion = '1.0.3' //依赖时的VERSION
+    libraryVersion = '1.0.4' //依赖时的VERSION
 
     developerId = 'dync'
     developerName = 'DyncKathline'

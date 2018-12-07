@@ -23,6 +23,7 @@ import android.view.WindowManager;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
+import org.dync.exo.common.IMediaPlayer;
 import org.dync.exo.media.IRenderView;
 import org.dync.exo.media.IjkVideoView;
 
@@ -1144,6 +1145,9 @@ public class PlayerController {
             long pos = seekBarMaxProgress * position / duration;
             videoController.setProgress((int) pos);
             int percent = videoView.getBufferPercentage();
+            if(percent >= 99) {
+                percent = 100;
+            }
             videoController.setSecondaryProgress(percent);
 //            Log.d(TAG, "syncProgress: progress= " + pos + ", SecondaryProgress= " + percent);
         }else{

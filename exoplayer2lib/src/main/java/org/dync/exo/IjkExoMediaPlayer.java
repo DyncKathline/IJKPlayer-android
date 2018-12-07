@@ -20,6 +20,7 @@ package org.dync.exo;
 import android.content.Context;
 import android.media.MediaDataSource;
 import android.media.MediaPlayer;
+import android.media.session.PlaybackState;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.support.annotation.Nullable;
@@ -460,6 +461,12 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                         isPrepareing = false;
                         break;
                 }
+            }
+
+            if(playbackState == PlaybackState.STATE_PLAYING) {
+//            long bufferedPosition = mInternalPlayer.getBufferedPosition() / 1000;
+//            long totalPosition = mInternalPlayer.getContentPosition() / 1000;
+                notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
             }
 
             switch (playbackState) {

@@ -629,6 +629,27 @@ public class VideoView extends RelativeLayout {
     }
 
     //////////////////////////////////////////开放方法///////////////////////////////////////////////
+    public void start(){
+        if(mVideoView != null) {
+            mVideoView.start();
+        }
+        if (mVideoView.isPlaying()) {
+            updatePlayState(false);
+        } else {
+            updatePlayState(true);
+        }
+    }
+
+    public void pause(){
+        if(mVideoView.isPlaying()) {
+            mVideoView.pause();
+        }
+        if (mVideoView.isPlaying()) {
+            updatePlayState(false);
+        } else {
+            updatePlayState(true);
+        }
+    }
 
     public void stopPlayback() {
         if (mVideoView != null) {

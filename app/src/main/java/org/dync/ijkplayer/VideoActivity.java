@@ -232,7 +232,7 @@ public class VideoActivity extends BaseActivity {
         initListener();
         initVideoListener();
 //
-        StatusBarUtil.setStatusBarColor(this, getResources().getColor(R.color.colorPrimary));
+        StatusBarUtil.setColor(this, getResources().getColor(R.color.colorPrimary));
     }
 
     public void onClick(View view) {
@@ -1011,11 +1011,6 @@ public class VideoActivity extends BaseActivity {
         super.onConfigurationChanged(newConfig);
         if (mPlayerController != null) {
             mPlayerController.onConfigurationChanged();
-            if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
-                StatusBarUtil.setFitsSystemWindows(this, true);
-            } else if (getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
-                StatusBarUtil.setFitsSystemWindows(this, false);
-            }
         }
 
     }
