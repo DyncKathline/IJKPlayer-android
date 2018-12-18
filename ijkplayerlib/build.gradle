@@ -28,32 +28,32 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    compile 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
+    api fileTree(include: ['*.jar'], dir: 'libs')
+    api 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
     //第一种
 //    api (project(':ijkplayer-exo2')){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'
 //    }
     //第二种
-//    compile 'org.dync.kathline:ijkplayer-exo2:0.8.9'
-    compile (project(':ijkplayer-exo2'))
+//    api 'org.dync.kathline:ijkplayer-exo2:0.8.9'
+    api (project(':ijkplayer-exo2'))
 //    api ('org.dync.kathline:ijkplayer-exo2:0.8.8.8'){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'
 //    }
 
-    compile 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
-    compile 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
-    compile 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
-    //    implementation 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
+    api 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
+    api 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
+    api 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
+    //    api 'tv.danmaku.ijk.media:ijkplayer-exo:0.8.8'
 
-    compile 'tv.danmaku.ijk.media:ijkplayer-armv7a:' + rootProject.ijkplayer
+    api 'tv.danmaku.ijk.media:ijkplayer-armv7a:' + rootProject.ijkplayer
     //    // Other ABIs: optional
-    //    implementation 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
-    //    implementation 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
-    compile 'tv.danmaku.ijk.media:ijkplayer-x86:' + rootProject.ijkplayer
-    //    implementation 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-armv5:0.8.8'
+    //    api 'tv.danmaku.ijk.media:ijkplayer-arm64:0.8.8'
+    api 'tv.danmaku.ijk.media:ijkplayer-x86:' + rootProject.ijkplayer
+    //    api 'tv.danmaku.ijk.media:ijkplayer-x86_64:0.8.8'
 }
 
 //解决 gradlew 构建错误: 编码 GBK的不可映射字符

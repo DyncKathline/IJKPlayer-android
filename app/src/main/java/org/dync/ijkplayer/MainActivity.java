@@ -24,6 +24,8 @@ public class MainActivity extends AppCompatActivity {
     Button btnSetting;
     @BindView(R.id.btn_ijkPlayer)
     Button btnIjkPlayer;
+    @BindView(R.id.btn_exoPlayer)
+    Button btnExoPlayer;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,7 +44,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public boolean onKeyDown( int keyCode, KeyEvent event) {
+    public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == event.KEYCODE_HOME) {
             return true;
         }
@@ -55,7 +57,7 @@ public class MainActivity extends AppCompatActivity {
         NetWorkControl.unRegister(TAG, this);
     }
 
-    @OnClick({R.id.btn_setting, R.id.btn_ijkPlayer})
+    @OnClick({R.id.btn_setting, R.id.btn_ijkPlayer, R.id.btn_exoPlayer})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_setting:
@@ -69,6 +71,9 @@ public class MainActivity extends AppCompatActivity {
 //                String videoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
                 String videoPath = "http://www.jingsi.org/icloud/project/50-years/050.mp3";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
+                break;
+            case R.id.btn_exoPlayer:
+                startActivity(new Intent(mContext, ExoActivity.class));
                 break;
         }
     }
