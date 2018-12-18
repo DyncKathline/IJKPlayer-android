@@ -160,7 +160,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
         if (mInternalPlayer != null)
             throw new IllegalStateException("can't prepare a prepared player");
         TrackSelection.Factory videoTrackSelectionFactory =
-                new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
+                new AdaptiveTrackSelection.Factory();
         mTrackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
         mTrackSelector.setParameters(new DefaultTrackSelector.ParametersBuilder().build());
 
@@ -175,7 +175,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
         renderersFactory = new DefaultRenderersFactory(mAppContext, extensionRendererMode);
         DefaultLoadControl loadControl = new DefaultLoadControl();
-        mInternalPlayer = ExoPlayerFactory.newSimpleInstance(renderersFactory, mTrackSelector, loadControl, null);
+        mInternalPlayer = ExoPlayerFactory.newSimpleInstance(mAppContext, renderersFactory, mTrackSelector, loadControl, null);
         mInternalPlayer.addListener(this);
         mInternalPlayer.addAnalyticsListener(this);
         mInternalPlayer.addAnalyticsListener(mEventLogger);
@@ -621,16 +621,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
-
-    }
-
-    @Override
-    public void onViewportSizeChange(EventTime eventTime, int width, int height) {
-
-    }
-
-    @Override
-    public void onNetworkTypeChanged(EventTime eventTime, @Nullable NetworkInfo networkInfo) {
 
     }
 
