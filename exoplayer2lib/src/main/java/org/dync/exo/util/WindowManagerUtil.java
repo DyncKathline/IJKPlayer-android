@@ -3,6 +3,7 @@ package org.dync.exo.util;
 import android.annotation.SuppressLint;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.os.Build;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Gravity;
@@ -53,7 +54,11 @@ public class WindowManagerUtil {
         int screenHeight = mWindowManager.getDefaultDisplay().getHeight();
         if (smallWindowParams == null) {
             smallWindowParams = new LayoutParams();
-            smallWindowParams.type = LayoutParams.TYPE_PHONE;
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                smallWindowParams.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY;
+            }else {
+                smallWindowParams.type = WindowManager.LayoutParams.TYPE_PHONE;
+            }
             smallWindowParams.format = PixelFormat.RGBA_8888;
             smallWindowParams.flags = LayoutParams.FLAG_NOT_TOUCH_MODAL
                     | LayoutParams.FLAG_NOT_FOCUSABLE;

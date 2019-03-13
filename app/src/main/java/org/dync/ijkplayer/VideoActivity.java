@@ -745,7 +745,7 @@ public class VideoActivity extends BaseActivity {
             @Override
             public void onCompletion(IMediaPlayer iMediaPlayer) {
                 updatePlayBtnBg(true);
-                videoView.release(false);
+//                videoView.release(false);
                 videoView.stopVideoInfo();
                 initVideoControl();
             }
@@ -828,7 +828,7 @@ public class VideoActivity extends BaseActivity {
     }
 
     private void initVideoControl() {
-        playIcon.setEnabled(false);
+//        playIcon.setEnabled(false);
         seekbar.setEnabled(false);
         seekbar.setProgress(0);
     }

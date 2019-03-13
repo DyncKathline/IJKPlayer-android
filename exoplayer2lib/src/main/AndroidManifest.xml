@@ -7,8 +7,10 @@
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
     <!--允许读取wifi网络状态-->
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE"/>
-
-    <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    <!--小窗口-->
+    <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
+    <!--8.0以后在屏幕最顶部显示-->
+    <uses-permission android:name="android.permission.SYSTEM_OVERLAY_WINDOW"/>
 
     <application
         android:allowBackup="true"
