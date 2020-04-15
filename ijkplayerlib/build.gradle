@@ -29,7 +29,7 @@ android {
 
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
-    api 'com.android.support:appcompat-v7:' + rootProject.supportLibraryVersion
+    api 'androidx.appcompat:appcompat:' + rootProject.supportLibraryVersion
     //第一种
 //    api (project(':ijkplayer-exo2')){
 //        exclude group: 'tv.danmaku.ijk.media',

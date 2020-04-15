@@ -3,7 +3,8 @@ package org.dync.ijkplayerlib.widget.receiver;
 import android.app.Activity;
 import android.content.IntentFilter;
 import android.net.ConnectivityManager;
-import android.support.v4.util.ArrayMap;
+
+import androidx.collection.ArrayMap;
 
 /**
  * Created by KathLine on 2017/10/17.

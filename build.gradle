@@ -3,15 +3,12 @@
 buildscript {
     repositories {
         jcenter()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
+        google()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:3.1.4'
-        classpath 'com.github.dcendents:android-maven-gradle-plugin:1.5'
+        classpath 'com.android.tools.build:gradle:3.4.0'
         classpath 'com.jfrog.bintray.gradle:gradle-bintray-plugin:1.8.0'
+        classpath 'com.github.dcendents:android-maven-gradle-plugin:2.1'
         // NOTE: Do not place your application dependencies here; they belong
         // in the individual module build.gradle files
     }
@@ -20,10 +17,7 @@ buildscript {
 allprojects {
     repositories {
         jcenter()
-        maven {
-            url 'https://maven.google.com/'
-            name 'Google'
-        }
+        google()
     }
 }
 
@@ -32,14 +26,14 @@ allprojects {
 //}
 
 ext {
-    compileSdkVersion = 27
+    compileSdkVersion = 28
 //    buildToolsVersion = "27.0.3"
 
-    targetSdkVersion = 27
-    supportLibraryVersion = "27.1.0"
+    targetSdkVersion = 28
+    supportLibraryVersion = "1.1.0"
 
     versionCode = 1
     versionName = "1.0"
     ijkplayer = "0.8.8"
-    exoplayer = "2.9.2"
+    exoplayer = "2.11.4"
 }

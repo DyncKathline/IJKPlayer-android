@@ -1,29 +1,35 @@
 package org.dync.exo.exo2;
 
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.net.Uri;
-import android.support.annotation.Nullable;
 import android.text.TextUtils;
 
+import androidx.annotation.Nullable;
+
 import com.google.android.exoplayer2.C;
+import com.google.android.exoplayer2.ext.rtmp.RtmpDataSourceFactory;
 import com.google.android.exoplayer2.extractor.DefaultExtractorsFactory;
-import com.google.android.exoplayer2.source.ExtractorMediaSource;
 import com.google.android.exoplayer2.source.LoopingMediaSource;
 import com.google.android.exoplayer2.source.MediaSource;
+import com.google.android.exoplayer2.source.ProgressiveMediaSource;
 import com.google.android.exoplayer2.source.dash.DashMediaSource;
 import com.google.android.exoplayer2.source.dash.DefaultDashChunkSource;
 import com.google.android.exoplayer2.source.hls.HlsMediaSource;
 import com.google.android.exoplayer2.source.smoothstreaming.DefaultSsChunkSource;
 import com.google.android.exoplayer2.source.smoothstreaming.SsMediaSource;
 import com.google.android.exoplayer2.upstream.DataSource;
+import com.google.android.exoplayer2.upstream.DataSpec;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
+import com.google.android.exoplayer2.upstream.RawResourceDataSource;
 import com.google.android.exoplayer2.upstream.cache.Cache;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSource;
 import com.google.android.exoplayer2.upstream.cache.CacheDataSourceFactory;
 import com.google.android.exoplayer2.upstream.cache.CacheSpan;
 import com.google.android.exoplayer2.upstream.cache.CacheUtil;
+import com.google.android.exoplayer2.upstream.cache.ContentMetadata;
 import com.google.android.exoplayer2.upstream.cache.LeastRecentlyUsedCacheEvictor;
 import com.google.android.exoplayer2.upstream.cache.SimpleCache;
 import com.google.android.exoplayer2.util.Util;
@@ -31,10 +37,6 @@ import com.google.android.exoplayer2.util.Util;
 import java.io.File;
 import java.util.Map;
 import java.util.NavigableSet;
-
-/**
- * Created by KathLine on 2018/5/18.
- */
 
 public class ExoSourceManager {
 
@@ -44,13 +46,24 @@ public class ExoSourceManager {
 
     public static final int TYPE_RTMP = 4;
 
-    protected static Cache mCache;
+    private static Cache mCache;
+    /**
+     * 忽律Https证书校验
+     */
+    private static boolean sSkipSSLChain = false;
 
-    protected Context mAppContext;
+    private static int sHttpReadTimeout = -1;
 
-    protected Map<String, String> mMapHeadData;
+    private static int sHttpConnectTimeout = -1;
 
-    protected String mDataSource;
+
+    private static boolean s = false;
+
+    private Context mAppContext;
+
+    private Map<String, String> mMapHeadData;
+
+    private String mDataSource;
 
     private boolean isCached = false;
 
@@ -63,11 +76,39 @@ public class ExoSourceManager {
         mMapHeadData = mapHeadData;
     }
 
-    public MediaSource getMediaSource(String dataSource, boolean preview, boolean cacheEnable, boolean isLooping, File cacheDir) {
+    /**
+     * @param dataSource  链接
+     * @param preview     是否带上header，默认有header自动设置为true
+     * @param cacheEnable 是否需要缓存
+     * @param isLooping   是否循环
+     * @param cacheDir    自定义缓存目录
+     */
+    public MediaSource getMediaSource(String dataSource, boolean preview, boolean cacheEnable, boolean isLooping, File cacheDir, @Nullable String overrideExtension) {
+        MediaSource mediaSource;
         mDataSource = dataSource;
         Uri contentUri = Uri.parse(dataSource);
-        int contentType = inferContentType(dataSource);
-        MediaSource mediaSource;
+        int contentType = inferContentType(dataSource, overrideExtension);
+
+
+        if ("android.resource".equals(contentUri.getScheme())) {
+            DataSpec dataSpec = new DataSpec(contentUri);
+            final RawResourceDataSource rawResourceDataSource = new RawResourceDataSource(mAppContext);
+            try {
+                rawResourceDataSource.open(dataSpec);
+            } catch (RawResourceDataSource.RawResourceDataSourceException e) {
+                e.printStackTrace();
+            }
+            DataSource.Factory factory = new DataSource.Factory() {
+                @Override
+                public DataSource createDataSource() {
+                    return rawResourceDataSource;
+                }
+            };
+            return new ProgressiveMediaSource.Factory(
+                    factory).createMediaSource(contentUri);
+
+        }
+
         switch (contentType) {
             case C.TYPE_SS:
                 mediaSource = new SsMediaSource.Factory(
@@ -83,16 +124,16 @@ public class ExoSourceManager {
             case C.TYPE_HLS:
                 mediaSource = new HlsMediaSource.Factory(getDataSourceFactoryCache(mAppContext, cacheEnable, preview, cacheDir)).createMediaSource(contentUri);
                 break;
-//            case TYPE_RTMP:
-//                RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSourceFactory(null);
-//                mediaSource = new ExtractorMediaSource.Factory(rtmpDataSourceFactory)
-//                        .setExtractorsFactory(new DefaultExtractorsFactory())
-//                        .createMediaSource(contentUri);
-//                break;
+            case TYPE_RTMP:
+                RtmpDataSourceFactory rtmpDataSourceFactory = new RtmpDataSourceFactory(null);
+                mediaSource = new ProgressiveMediaSource.Factory(rtmpDataSourceFactory,
+                        new DefaultExtractorsFactory())
+                        .createMediaSource(contentUri);
+                break;
             case C.TYPE_OTHER:
             default:
-                mediaSource = new ExtractorMediaSource.Factory(getDataSourceFactoryCache(mAppContext, cacheEnable, preview, cacheDir))
-                        .setExtractorsFactory(new DefaultExtractorsFactory())
+                mediaSource = new ProgressiveMediaSource.Factory(getDataSourceFactoryCache(mAppContext, cacheEnable,
+                        preview, cacheDir), new DefaultExtractorsFactory())
                         .createMediaSource(contentUri);
                 break;
         }
@@ -102,21 +143,20 @@ public class ExoSourceManager {
         return mediaSource;
     }
 
+    @SuppressLint("WrongConstant")
     @C.ContentType
-    public static int inferContentType(String fileName) {
+    public static int inferContentType(String fileName, @Nullable String overrideExtension) {
         fileName = Util.toLowerInvariant(fileName);
-        if (fileName.endsWith(".mpd")) {
-            return C.TYPE_DASH;
-        } else if (fileName.endsWith(".m3u8")) {
-            return C.TYPE_HLS;
-        } else if (fileName.endsWith(".ism") || fileName.endsWith(".isml")
-                || fileName.endsWith(".ism/manifest") || fileName.endsWith(".isml/manifest")) {
-            return C.TYPE_SS;
-        } else if (fileName.startsWith("rtmp:")) {
+        if (fileName.startsWith("rtmp:")) {
             return TYPE_RTMP;
         } else {
-            return C.TYPE_OTHER;
+            return inferContentType(Uri.parse(fileName), overrideExtension);
         }
+    }
+
+    @C.ContentType
+    public static int inferContentType(Uri uri, @Nullable String overrideExtension) {
+        return Util.inferContentType(uri, overrideExtension);
     }
 
     /**
@@ -143,7 +183,7 @@ public class ExoSourceManager {
             try {
                 mCache.release();
                 mCache = null;
-            } catch (Cache.CacheException e) {
+            } catch (Exception e) {
                 e.printStackTrace();
             }
         }
@@ -184,6 +224,42 @@ public class ExoSourceManager {
     }
 
 
+    public static boolean isSkipSSLChain() {
+        return sSkipSSLChain;
+    }
+
+    /**
+     * 设置https忽略证书
+     *
+     * @param skipSSLChain true时是hulve
+     */
+    public static void setSkipSSLChain(boolean skipSSLChain) {
+        sSkipSSLChain = skipSSLChain;
+    }
+
+
+    public static int getHttpReadTimeout() {
+        return sHttpReadTimeout;
+    }
+
+    /**
+     * 如果设置小于 0 就使用默认 8000 MILLIS
+     */
+    public static void setHttpReadTimeout(int httpReadTimeout) {
+        ExoSourceManager.sHttpReadTimeout = httpReadTimeout;
+    }
+
+    public static int getHttpConnectTimeout() {
+        return sHttpConnectTimeout;
+    }
+
+    /**
+     * 如果设置小于 0 就使用默认 8000 MILLIS
+     */
+    public static void setHttpConnectTimeout(int httpConnectTimeout) {
+        ExoSourceManager.sHttpConnectTimeout = httpConnectTimeout;
+    }
+
     /**
      * 获取SourceFactory，是否带Cache
      */
@@ -202,7 +278,7 @@ public class ExoSourceManager {
      * 获取SourceFactory
      */
     private DataSource.Factory getDataSourceFactory(Context context, boolean preview) {
-        return new DefaultDataSourceFactory(context, preview ? null : new DefaultBandwidthMeter(),
+        return new DefaultDataSourceFactory(context, preview ? null : new DefaultBandwidthMeter.Builder(context).build(),
                 getHttpDataSourceFactory(context, preview));
     }
 
@@ -231,7 +307,7 @@ public class ExoSourceManager {
                 if (cachedSpans.size() == 0) {
                     isCache = false;
                 } else {
-                    long contentLength = cache.getContentLength(key);
+                    long contentLength = cache.getContentMetadata(key).get(ContentMetadata.KEY_CONTENT_LENGTH, C.LENGTH_UNSET);
                     long currentLength = 0;
                     for (CacheSpan cachedSpan : cachedSpans) {
                         currentLength += cache.getCachedLength(key, cachedSpan.position, cachedSpan.length);

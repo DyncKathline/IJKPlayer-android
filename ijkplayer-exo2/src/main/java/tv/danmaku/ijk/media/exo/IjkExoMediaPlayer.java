@@ -23,12 +23,12 @@ import android.media.session.PlaybackState;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
 import android.net.Uri;
-import android.support.annotation.NonNull;
-import android.support.annotation.Nullable;
-import android.support.annotation.Size;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Size;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
@@ -129,7 +129,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     @Override
     public void setDataSource(Context context, Uri uri) {
         mDataSource = uri.toString();
-        mMediaSource = mExoSourceManager.getMediaSource(mDataSource, isPreview, isCache, isLooping, mCacheDir);
+        mMediaSource = mExoSourceManager.getMediaSource(mDataSource, isPreview, isCache, isLooping, mCacheDir, "");
     }
 
     @Override

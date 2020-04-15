@@ -25,8 +25,6 @@ import android.media.MediaPlayer;
 import android.media.TimedText;
 import android.net.Uri;
 import android.os.Build;
-import android.support.annotation.FloatRange;
-import android.support.annotation.NonNull;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -37,6 +35,9 @@ import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
+
+import androidx.annotation.FloatRange;
+import androidx.annotation.NonNull;
 
 import org.dync.exo.AndroidMediaPlayer;
 import org.dync.exo.IjkExoMediaPlayer;

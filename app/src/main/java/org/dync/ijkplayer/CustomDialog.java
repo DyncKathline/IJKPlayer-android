@@ -4,13 +4,14 @@ import android.app.Dialog;
 import android.content.Context;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
-import android.support.annotation.IdRes;
-import android.support.annotation.LayoutRes;
-import android.support.annotation.StyleRes;
 import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+
+import androidx.annotation.IdRes;
+import androidx.annotation.LayoutRes;
+import androidx.annotation.StyleRes;
 
 
 /**
@@ -19,9 +20,11 @@ import android.view.WindowManager;
 public class CustomDialog extends Dialog {
 
     private Builder builder;
-    private @LayoutRes int layoutId;
+    private @LayoutRes
+    int layoutId;
     private int gravity;
-    private @StyleRes int animId;
+    private @StyleRes
+    int animId;
     private boolean backgroundDrawableable;
     private float dimAmount;
     private boolean cancelable;

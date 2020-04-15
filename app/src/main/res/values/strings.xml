@@ -1,4 +1,4 @@
-<resources>
+<resources xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
     <string name="app_name">ijkPlayer</string>
 
 
@@ -16,4 +16,22 @@
 
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="error_unrecognized_stereo_mode">Unrecognized stereo mode</string>
+    <string name="track_selection_title">Select tracks</string>
+    <string name="storage_permission_denied">Permission to access storage was denied</string>
+    <string name="error_unrecognized_abr_algorithm">Unrecognized ABR algorithm</string>
+    <string name="unexpected_intent_action"><![CDATA[Unexpected intent action: <xliff:g id=\"action\">%1$s</xliff:g>]]></string>
+    <string name="error_drm_unknown">An unknown DRM error occurred</string>
+    <string name="error_cleartext_not_permitted">Cleartext traffic not permitted</string>
+    <string name="unsupported_ads_in_concatenation">Playing sample without ads, as ads are not supported in concatenations</string>
+    <string name="ima_not_loaded">Playing sample without ads, as the IMA extension was not loaded</string>
+    <string name="error_drm_unsupported_before_api_18">Protected content not supported on API levels below 18</string>
+    <string name="error_drm_unsupported_scheme">This device does not support the required DRM scheme</string>
+    <string name="error_unsupported_video">Media includes video tracks, but none are playable by this device</string>
+    <string name="error_unsupported_audio">Media includes audio tracks, but none are playable by this device</string>
+    <string name="error_generic">Playback failed</string>
+    <string name="error_querying_decoders">Unable to query device decoders</string>
+    <string name="error_instantiating_decoder"><![CDATA[Unable to instantiate decoder <xliff:g id=\"decoder_name\">%1$s</xliff:g>]]></string>
+    <string name="error_no_secure_decoder"><![CDATA[This device does not provide a secure decoder for <xliff:g id=\"mime_type\">%1$s</xliff:g>]]></string>
+    <string name="error_no_decoder"><![CDATA[This device does not provide a decoder for <xliff:g id=\"mime_type\">%1$s</xliff:g>]]></string>
 </resources>
