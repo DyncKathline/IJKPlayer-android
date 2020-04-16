@@ -409,7 +409,7 @@ public class ExoActivity extends AppCompatActivity
         Uri[] uris;
 
         uris = new Uri[2];
-        uris[0] = Uri.parse("http://baobab.wdjcdn.com/1457423930928CGI.mp4");
+        uris[0] = Uri.parse("http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4");
         uris[1] = Uri.parse("http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8");
 
         Sample.UriSample samples = Sample.UriSample.createFromIntent(intent.getData(), intent, /* extrasKeySuffix= */ "");

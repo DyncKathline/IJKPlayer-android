@@ -58,7 +58,7 @@ public class MainActivity extends AppCompatActivity {
         NetWorkControl.unRegister(TAG, this);
     }
 
-    @OnClick({R.id.btn_setting, R.id.btn_ijkPlayer, R.id.btn_exoPlayer})
+    @OnClick({R.id.btn_setting, R.id.btn_ijkPlayer, R.id.btn_exo2Player, R.id.btn_exoPlayer})
     public void onViewClicked(View view) {
         switch (view.getId()) {
             case R.id.btn_setting:
@@ -72,6 +72,10 @@ public class MainActivity extends AppCompatActivity {
 //                String videoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
                 String videoPath = "http://www.jingsi.org/icloud/project/50-years/050.mp3";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
+                break;
+            case R.id.btn_exo2Player:
+                videoPath = "http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4";
+                Video2Activity.intentTo(mContext, videoPath, "测试");
                 break;
             case R.id.btn_exoPlayer:
                 startActivity(new Intent(mContext, ExoActivity.class));

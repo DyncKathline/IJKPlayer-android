@@ -18,6 +18,7 @@
 package org.dync.exo.media;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
 import android.content.Context;
 import android.media.AudioManager;
 import android.media.MediaDataSource;
@@ -25,6 +26,9 @@ import android.media.MediaPlayer;
 import android.media.TimedText;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -41,6 +45,7 @@ import androidx.annotation.NonNull;
 
 import org.dync.exo.AndroidMediaPlayer;
 import org.dync.exo.IjkExoMediaPlayer;
+import org.dync.exo.MediaPlayerProxy;
 import org.dync.exo.TextureMediaPlayer;
 import org.dync.exo.common.IMediaPlayer;
 import org.dync.exo.services.MediaPlayerService;
@@ -1040,6 +1045,22 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     ///////////////////////////////额外增加的方法//////////////////////////////////
 
+    public int getVideoWidth() {
+        return mVideoWidth;
+    }
+
+    public int getVideoHeight() {
+        return mVideoHeight;
+    }
+
+    public IMediaPlayer getMediaPlayer() {
+        return mMediaPlayer;
+    }
+
+    public void setMediaPlayer(IMediaPlayer mediaPlayer) {
+        this.mMediaPlayer = mediaPlayer;
+    }
+
     /**
      * 参考{@link IRenderView#AR_ASPECT_FIT_PARENT}、{@link IRenderView#AR_ASPECT_FILL_PARENT}、{@link IRenderView#AR_ASPECT_WRAP_CONTENT}
      * {@link IRenderView#AR_16_9_FIT_PARENT}、{@link IRenderView#AR_4_3_FIT_PARENT}
@@ -1125,4 +1146,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         openVideo();
     }
 
+    /**
+     * 用于重置
+     */
+    public void resetRenders() {
+        initRenders();
+    }
 }
