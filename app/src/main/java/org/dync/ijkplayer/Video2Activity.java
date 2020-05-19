@@ -582,6 +582,7 @@ public class Video2Activity extends BaseActivity {
                         .setGestureEnabled(true)
                         .setAutoControlPanel(true);//视频加载后才自动隐藏操作面板
                 mPlayerController.setSpeed(1.0f);
+                updatePlayBtnBg(false);
             }
         });
         final Settings mSettings = new Settings(mContext);

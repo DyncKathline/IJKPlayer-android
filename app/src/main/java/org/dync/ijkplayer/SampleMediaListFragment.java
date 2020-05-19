@@ -80,6 +80,7 @@ public class SampleMediaListFragment extends Fragment {
         mAdapter.addItem("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears.mpd", "mpd");
         mAdapter.addItem("https://storage.googleapis.com/wvmedia/clear/vp9/tears/tears_hd.mpd", "mpd");
         mAdapter.addItem("http://playready.directtaps.net/smoothstreaming/SSWSS720H264/SuperSpeedway_720.ism", "ism");
+        mAdapter.addItem("http://223.110.243.139/PLTV/3/224/3221225548/index.m3u8", "m3u8");
         mAdapter.addItem("http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8", "m3u8");
         mAdapter.addItem("https://bitdash-a.akamaihd.net/content/MI201109210084_1/m3u8s/f08e80da-bf1d-4e3d-8899-f0f6155f6efa.m3u8", "m3u8");
         mAdapter.addItem("http://daaiguangbo.qmai.cc/cj/dagb.m3u8", "m3u8");

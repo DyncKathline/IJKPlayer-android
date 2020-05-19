@@ -70,11 +70,13 @@ public class MainActivity extends AppCompatActivity {
 //                String videoPath = "http://hot.vrs.sohu.com/ipad3969651_4718009227337_6170972.m3u8?plat=3&uid=e8192000-5281-4dac-9d6d-f4db0f8c7efa&pt=3&prod=mdk&pg=1&qd=130015&cv=1.5";
 //                String videoPath = "http://daai.waaarp.wscdns.com/live-transcode/_definst_/smil:daai/tv01.smil/playlist.m3u8";
 //                String videoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
-                String videoPath = "http://www.jingsi.org/icloud/project/50-years/050.mp3";
+//                String videoPath = "http://www.jingsi.org/icloud/project/50-years/050.mp3";
+                String videoPath = "http://jvc.flashapp.cn/baiducdnct.inter.iqiyi.com/tslive/c20_lb_mingzhentankenan_720p_t10/c20_lb_mingzhentankenan_720p_t10.m3u8";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
                 break;
             case R.id.btn_exo2Player:
                 videoPath = "http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4";
+                videoPath = "http://jvc.flashapp.cn/baiducdnct.inter.iqiyi.com/tslive/c20_lb_mingzhentankenan_720p_t10/c20_lb_mingzhentankenan_720p_t10.m3u8";
                 Video2Activity.intentTo(mContext, videoPath, "测试");
                 break;
             case R.id.btn_exoPlayer:
