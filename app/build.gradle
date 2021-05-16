@@ -43,7 +43,7 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:' + rootProject.supportLibraryVersion
     implementation 'com.google.android.material:material:1.1.0'
     //权限检查
-    implementation 'com.yanzhenjie:permission:1.1.2'
+    implementation 'com.github.getActivity:XXPermissions:11.0'
     //butterknife
     implementation 'com.jakewharton:butterknife:10.2.1'
     annotationProcessor 'com.jakewharton:butterknife-compiler:10.2.1'

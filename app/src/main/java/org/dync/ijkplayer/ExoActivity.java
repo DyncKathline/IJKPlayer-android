@@ -730,7 +730,7 @@ public class ExoActivity extends AppCompatActivity
 
     /** Returns whether extension renderers should be used. */
     public boolean useExtensionRenderers() {
-        return "withExtensions".equals(BuildConfig.FLAVOR);
+        return true; //"withExtensions".equals(BuildConfig.FLAVOR);
     }
 
     public RenderersFactory buildRenderersFactory(boolean preferExtensionRenderer) {

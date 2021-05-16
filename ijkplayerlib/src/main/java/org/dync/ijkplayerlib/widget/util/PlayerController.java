@@ -1,10 +1,17 @@
 package org.dync.ijkplayerlib.widget.util;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.media.AudioManager;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -24,10 +31,13 @@ import androidx.annotation.FloatRange;
 import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 
+import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 
 import java.util.Locale;
+
+import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 /**
  * Created by KathLine on 2017/8/22.
@@ -145,6 +155,86 @@ public class PlayerController {
      * 播放的时候是否需要网络提示，默认显示网络提示，true为显示网络提示，false不显示网络提示
      */
     private boolean isGNetWork = true;
+    protected boolean mIsWifi;
+    public static boolean WIFI_TIP_DIALOG_SHOWED = false;
+    public BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
+                boolean isWifi = isWifiConnected(context);
+                if (isGNetWork == isWifi) return;
+                mIsWifi = isWifi;
+                if (!mIsWifi && !WIFI_TIP_DIALOG_SHOWED && videoView.isPlaying()) {
+                    if(playStateListener != null) {
+                        playStateListener.playState(IjkVideoView.STATE_PLAYING);
+                    }
+                    videoView.start();
+                    showWifiDialog();
+                }
+            }
+        }
+    };
+
+    public void showWifiDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+        builder.setMessage(mContext.getResources().getString(R.string.tips_not_wifi));
+        builder.setPositiveButton(mContext.getResources().getString(R.string.tips_not_wifi_confirm), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                WIFI_TIP_DIALOG_SHOWED = true;
+                if (videoView.getCurrentState() == IjkVideoView.STATE_PAUSED) {
+                    videoView.start();
+                } else {
+                    videoView.autoPlay();
+                }
+            }
+        });
+        builder.setNegativeButton(mContext.getResources().getString(R.string.tips_not_wifi_cancel), new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                dialog.dismiss();
+                videoView.release(true);
+            }
+        });
+        builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                dialog.dismiss();
+                videoView.release(true);
+            }
+        });
+
+        builder.create().show();
+    }
+
+    /**
+     * This method requires the caller to hold the permission ACCESS_NETWORK_STATE.
+     *
+     * @param context context
+     * @return if wifi is connected,return true
+     */
+    public static boolean isWifiConnected(Context context) {
+        ConnectivityManager connectivityManager = (ConnectivityManager) context.getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        return networkInfo != null && networkInfo.getType() == ConnectivityManager.TYPE_WIFI;
+    }
+
+    public void registerWifiListener(Context context) {
+        if (context == null) return;
+        mIsWifi = isWifiConnected(context);
+        IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
+        context.registerReceiver(wifiReceiver, intentFilter);
+    }
+
+    public void unregisterWifiListener(Context context) {
+        if (context == null) return;
+        try {
+            context.unregisterReceiver(wifiReceiver);
+        } catch (IllegalArgumentException e) {
+            e.printStackTrace();
+        }
+    }
 
     private GestureDetector gestureDetector;
     /**
@@ -510,6 +600,7 @@ public class PlayerController {
      */
     public PlayerController setNetWorkTypeTie(boolean isGNetWork) {
         this.isGNetWork = isGNetWork;
+        registerWifiListener(mContext);
         return this;
     }
 
@@ -565,6 +656,7 @@ public class PlayerController {
      * }
      */
     public PlayerController onDestroy() {
+        unregisterWifiListener(mContext);
         orientationEventListener.disable();
         mHandler.removeMessages(MESSAGE_SEEK_NEW_POSITION);
         if (videoView != null) {
@@ -875,6 +967,17 @@ public class PlayerController {
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
+        return this;
+    }
+
+    public interface PlayStateListener {
+        void playState(int state);
+    }
+
+    private PlayStateListener playStateListener;
+
+    public PlayerController setPlayStateListener(PlayStateListener listener) {
+        playStateListener = listener;
         return this;
     }
 

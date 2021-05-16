@@ -50,6 +50,9 @@ public class WindowManagerUtil {
      * @param mediaPlayer
      */
     public static void createSmallWindow(final Context context, IMediaPlayer mediaPlayer) {
+        if (smallWindow != null) {
+            return;
+        }
         mWindowManager = getWindowManager(context);
         int screenWidth = mWindowManager.getDefaultDisplay().getWidth();
         int screenHeight = mWindowManager.getDefaultDisplay().getHeight();

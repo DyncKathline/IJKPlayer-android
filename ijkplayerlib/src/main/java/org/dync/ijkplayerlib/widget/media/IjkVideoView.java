@@ -24,6 +24,7 @@ import android.content.DialogInterface;
 import android.content.res.Resources;
 import android.media.AudioManager;
 import android.media.MediaPlayer;
+import android.media.PlaybackParams;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
@@ -43,6 +44,8 @@ import android.widget.TextView;
 import androidx.annotation.FloatRange;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
+
+import com.google.android.exoplayer2.C;
 
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.services.MediaPlayerService;
@@ -64,6 +67,7 @@ import tv.danmaku.ijk.media.player.MediaPlayerProxy;
 import tv.danmaku.ijk.media.player.TextureMediaPlayer;
 import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
 import tv.danmaku.ijk.media.player.misc.ITrackInfo;
+import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
 public class IjkVideoView extends FrameLayout implements MediaController.MediaPlayerControl {
     private String TAG = "IjkVideoView";
@@ -72,13 +76,13 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     private Map<String, String> mHeaders;
 
     // all possible internal states
-    private static final int STATE_ERROR = -1;
-    private static final int STATE_IDLE = 0;
-    private static final int STATE_PREPARING = 1;
-    private static final int STATE_PREPARED = 2;
-    private static final int STATE_PLAYING = 3;
-    private static final int STATE_PAUSED = 4;
-    private static final int STATE_PLAYBACK_COMPLETED = 5;
+    public static final int STATE_ERROR = -1;
+    public static final int STATE_IDLE = 0;
+    public static final int STATE_PREPARING = 1;
+    public static final int STATE_PREPARED = 2;
+    public static final int STATE_PLAYING = 3;
+    public static final int STATE_PAUSED = 4;
+    public static final int STATE_PLAYBACK_COMPLETED = 5;
 
     // mCurrentState is a VideoView object's current state.
     // mTargetState is the state that a method caller intends to reach.
@@ -813,8 +817,21 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         release(false);
     }
 
-    public void resume() {
-        openVideo();
+    /**
+     * 根据当前状态自动选择
+     */
+    public void autoPlay() {
+        if(mCurrentState == STATE_PLAYING) {
+            pause();
+        }else if(mCurrentState == STATE_PAUSED) {
+            start();
+        }else if(mCurrentState == STATE_PLAYBACK_COMPLETED) {
+            openVideo();
+        }
+    }
+
+    public int getCurrentState() {
+        return mCurrentState;
     }
 
     @Override
@@ -1262,6 +1279,12 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             ((IjkMediaPlayer) mMediaPlayer).setSpeed(speed);
         } else if (mMediaPlayer instanceof IjkExoMediaPlayer) {
             ((IjkExoMediaPlayer) mMediaPlayer).setSpeed(speed, 1);
+        } else if (mMediaPlayer instanceof MediaPlayer) {
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
+                PlaybackParams pp = ((MediaPlayer)mMediaPlayer).getPlaybackParams();
+                pp.setSpeed(speed);
+                ((MediaPlayer)mMediaPlayer).setPlaybackParams(pp);
+            }
         } else  {
             Log.d(TAG, "not support setSpeed! ");
         }
@@ -1300,6 +1323,35 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      */
     public void resetRenders() {
         initRenders();
+    }
+
+    /**
+     * 是否含有视频轨道
+     * @return
+     */
+    public boolean hasVideoTrackInfo() {
+        if(mMediaPlayer instanceof IjkMediaPlayer) {
+            IjkMediaPlayer mMediaPlayer = (IjkMediaPlayer) this.mMediaPlayer;
+            int videoTrack = mMediaPlayer.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO);
+            return videoTrack != -1;
+        } else if(mMediaPlayer instanceof IjkExoMediaPlayer) {
+            IjkExoMediaPlayer mMediaPlayer = (IjkExoMediaPlayer) this.mMediaPlayer;
+            ArrayList<Integer> trackGroup = mMediaPlayer.getTrackGroup();
+            return trackGroup.contains(C.TRACK_TYPE_VIDEO);
+        } else if(mMediaPlayer instanceof AndroidMediaPlayer) {
+            AndroidMediaPlayer mMediaPlayer = (AndroidMediaPlayer) this.mMediaPlayer;
+            ITrackInfo[] trackInfo = mMediaPlayer.getTrackInfo();
+            boolean hasVideo = false;
+            for (int i = 0; i < trackInfo.length; i++) {
+                if(trackInfo[i].getTrackType() == ITrackInfo.MEDIA_TRACK_TYPE_VIDEO) {
+                    hasVideo = true;
+                    break;
+                }
+            }
+            return hasVideo;
+        }else {
+            return true;
+        }
     }
 
     private Runnable runnable;

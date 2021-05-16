@@ -26,7 +26,9 @@ import android.widget.Toast;
 
 import androidx.fragment.app.FragmentTransaction;
 
-import com.google.android.exoplayer2.C;
+import com.hjq.permissions.OnPermissionCallback;
+import com.hjq.permissions.Permission;
+import com.hjq.permissions.XXPermissions;
 
 import org.dync.ijkplayer.utils.GlideUtil;
 import org.dync.ijkplayer.utils.NetworkUtils;
@@ -50,7 +52,7 @@ import org.dync.subtitleconverter.subtitleFile.TimedTextObject;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 
 import butterknife.BindView;
@@ -195,7 +197,7 @@ public class VideoActivity extends BaseActivity {
 
         // handle arguments
         mVideoPath = getIntent().getStringExtra("videoPath");
-        mVideoCoverUrl = "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3120404212,3339906847&fm=27&gp=0.jpg";
+//        mVideoCoverUrl = "https://ss1.bdstatic.com/70cFvXSh_Q1YnxGkpoWK1HF6hhy/it/u=3120404212,3339906847&fm=27&gp=0.jpg";
         mVideoCoverUrl = "https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2973320425,1464020144&fm=27&gp=0.jpg";
 
         Intent intent = getIntent();
@@ -252,45 +254,30 @@ public class VideoActivity extends BaseActivity {
                 mPlayerController.toggleAspectRatio();
                 break;
             case R.id.btn_window_player:
-                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
-                videoView.setRenderView(null);
-                WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
-                    @Override
-                    public void removeSmallWindow(IMediaPlayer mediaPlayer) {
-                        WindowManagerUtil.removeSmallWindow(mContext);
-                        videoView.setMediaPlayer(mediaPlayer);
-                        videoView.resetRenders();
-                    }
-                });
-//                AndPermission.with(mContext)
-//                        .requestCode(100)
-//                        .permission(Manifest.permission.SYSTEM_ALERT_WINDOW)
-//                        .rationale(new RationaleListener() {
-//                            @Override
-//                            public void showRequestPermissionRationale(int requestCode, Rationale rationale) {
-//                                AndPermission.rationaleDialog(mContext, rationale).show();
-//                            }
-//                        })
-//                        .callback(new PermissionListener() {
-//                            @Override
-//                            public void onSucceed(int requestCode, @NonNull List<String> grantPermissions) {
-//                                WindowManagerUtil.createSmallApp(mContext, videoView.getMediaPlayer());
-//                                videoView.setRenderView(null);
-//                                WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
-//                                    @Override
-//                                    public void removeSmallWindow(IMediaPlayer mediaPlayer) {
-//                                        videoView.setMediaPlayer(mediaPlayer);
-//                                        videoView.resetRenders();
-//                                    }
-//                                });
-//                            }
-//
-//                            @Override
-//                            public void onFailed(int requestCode, @NonNull List<String> deniedPermissions) {
-//                                Toast.makeText(mContext,"需要取得权限以使用悬浮窗",Toast.LENGTH_SHORT).show();
-//                            }
-//                        })
-//                        .start();
+                XXPermissions.with(this)
+                        .permission(Permission.SYSTEM_ALERT_WINDOW)
+                        .request(new OnPermissionCallback() {
+
+                            @Override
+                            public void onGranted(List<String> permissions, boolean all) {
+                                WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
+                                videoView.setRenderView(null);
+                                WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
+                                    @Override
+                                    public void removeSmallWindow(IMediaPlayer mediaPlayer) {
+                                        WindowManagerUtil.removeSmallWindow(mContext);
+                                        videoView.setMediaPlayer(mediaPlayer);
+                                        videoView.resetRenders();
+                                    }
+                                });
+                            }
+
+                            @Override
+                            public void onDenied(List<String> permissions, boolean never) {
+//                                Toast.makeText(mContext, "需要取得权限以使用悬浮窗", Toast.LENGTH_SHORT).show();
+                                XXPermissions.startPermissionActivity(VideoActivity.this, permissions);
+                            }
+                        });
                 break;
             case R.id.btn_app_player:
                 WindowManagerUtil.createSmallApp(flAppWindow, videoView.getMediaPlayer());
@@ -333,6 +320,19 @@ public class VideoActivity extends BaseActivity {
                             llBottom.setVisibility(View.VISIBLE);
                         } else {
                             llBottom.setVisibility(View.GONE);
+                        }
+                    }
+                })
+                .setPlayStateListener(new PlayerController.PlayStateListener() {
+                    @Override
+                    public void playState(int state) {
+                        switch (state) {
+                            case IjkVideoView.STATE_PLAYING:
+                                updatePlayBtnBg(true);
+                                break;
+                            case IjkVideoView.STATE_PAUSED:
+                                updatePlayBtnBg(false);
+                                break;
                         }
                     }
                 })
@@ -472,7 +472,7 @@ public class VideoActivity extends BaseActivity {
         sp_speed.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
-                if(pos == 0) {
+                if (pos == 0) {
                     return;
                 }
                 try {
@@ -515,7 +515,7 @@ public class VideoActivity extends BaseActivity {
                 ThreadUtil.runInThread(new Runnable() {
                     @Override
                     public void run() {
-                        if(pos == 0) {
+                        if (pos == 0) {
                             return;
                         }
                         String subtitle = subtitleList[pos];
@@ -548,7 +548,7 @@ public class VideoActivity extends BaseActivity {
                                 @Override
                                 public void run() {
                                     Toast.makeText(mContext, "加载字幕成功", Toast.LENGTH_SHORT).show();
-                                    if(subtitleView != null) {
+                                    if (subtitleView != null) {
                                         subtitleView.setData(tto);
                                         subtitleView.setLanguage(SubtitleView.LANGUAGE_TYPE_CHINA);
                                     }
@@ -578,12 +578,9 @@ public class VideoActivity extends BaseActivity {
                 appVideoReplayIcon.setVisibility(View.GONE);
                 videoCover.setImageDrawable(new ColorDrawable(0));
                 videoView.startVideoInfo();
-                if (videoView.getMediaPlayer() instanceof IjkExoMediaPlayer) {
-                    ArrayList<Integer> trackGroup = ((IjkExoMediaPlayer) videoView.getMediaPlayer()).getTrackGroup();
-                    if (!trackGroup.contains(C.TRACK_TYPE_VIDEO)) {
-                        if (!TextUtils.isEmpty(mVideoCoverUrl)) {
-                            GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
-                        }
+                if(!videoView.hasVideoTrackInfo()) {
+                    if (!TextUtils.isEmpty(mVideoCoverUrl)) {
+                        GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
                     }
                 }
 
@@ -600,26 +597,10 @@ public class VideoActivity extends BaseActivity {
                 showVideoInfo(mMediaPlayer);
             }
         });
-        final Settings mSettings = new Settings(mContext);
-        final ArrayList<Integer> audios = new ArrayList<>();
-        //音频软解成功通知
-        audios.add(IMediaPlayer.MEDIA_INFO_OPEN_INPUT);
-        audios.add(IMediaPlayer.MEDIA_INFO_FIND_STREAM_INFO);
-        audios.add(IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN);
-        audios.add(IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED);
-        audios.add(IMediaPlayer.MEDIA_INFO_AUDIO_DECODED_START);
-        audios.add(IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START);
-        final ArrayList<Integer> temp_audios = new ArrayList<>();
         videoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
                 Log.d(TAG, "onInfo: what= " + what + ", extra= " + extra);
-                if (what == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
-                    temp_audios.clear();
-                    temp_audios.add(what);
-                } else if (temp_audios.size() < 6) {
-                    temp_audios.add(what);
-                }
                 switch (what) {
                     case IMediaPlayer.MEDIA_INFO_STARTED_AS_NEXT://播放下一条
                         Log.d(TAG, "MEDIA_INFO_STARTED_AS_NEXT:");
@@ -638,11 +619,6 @@ public class VideoActivity extends BaseActivity {
                         seekbar.setEnabled(true);
                         playIcon.setEnabled(true);
                         updatePlayBtnBg(false);
-                        if (!temp_audios.contains(IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)) {
-                            if (!TextUtils.isEmpty(mVideoCoverUrl)) {
-                                GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
-                            }
-                        }
                         break;
                     case IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN:
                         hideVideoLoading();
@@ -656,30 +632,6 @@ public class VideoActivity extends BaseActivity {
                             updatePlayBtnBg(true);
                         }
                         showVideoLoading();
-                        if (mSettings.getPlayer() == Settings.PV_PLAYER__IjkMediaPlayer) {
-                            ThreadUtil.runInThread(new Runnable() {
-                                @Override
-                                public void run() {
-                                    if (temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
-                                        for (int i = 0; i < temp_audios.size(); i++) {
-                                            if (!audios.get(i).equals(temp_audios.get(i))) {
-                                                onDestroyVideo();
-                                                ThreadUtil.runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        if (mVideoPath != null) {
-                                                            videoView.setVideoPath(mVideoPath);
-                                                            videoView.start();
-                                                        }
-                                                    }
-                                                });
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                            });
-                        }
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
