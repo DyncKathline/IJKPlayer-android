@@ -23,6 +23,7 @@ import android.media.session.PlaybackState;
 import android.net.NetworkInfo;
 import android.net.TrafficStats;
 import android.net.Uri;
+import android.os.Handler;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -105,10 +106,14 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     private int audioSessionId = C.AUDIO_SESSION_ID_UNSET;
 
+    public Handler handler;
+    private Runnable callback;
+
     public IjkExoMediaPlayer(Context context) {
         mAppContext = context.getApplicationContext();
         lastReportedPlaybackState = Player.STATE_IDLE;
         mExoSourceManager = ExoSourceManager.newInstance(context, mHeaders);
+        handler = new Handler();
     }
 
     @Override
@@ -184,6 +189,10 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
         mInternalPlayer.prepare(mMediaSource);
         mInternalPlayer.setPlayWhenReady(false);
+
+        if(callback == null) {
+            callback = new onBufferingUpdate();
+        }
     }
 
     @Override
@@ -516,7 +525,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             if(playbackState == PlaybackState.STATE_PLAYING) {
 //            long bufferedPosition = mInternalPlayer.getBufferedPosition() / 1000;
 //            long totalPosition = mInternalPlayer.getContentPosition() / 1000;
-                notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
+//                notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
             }
 
             switch (playbackState) {
@@ -526,6 +535,10 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                 case Player.STATE_BUFFERING:
                     notifyOnInfo(IMediaPlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
                     isBuffering = true;
+                    if(callback == null) {
+                        callback = new onBufferingUpdate();
+                    }
+                    handler.post(callback);
                     break;
                 case Player.STATE_READY:
                     break;
@@ -749,5 +762,25 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     @Override
     public void onDrmKeysRemoved(EventTime eventTime) {
 
+    }
+
+    private class onBufferingUpdate implements Runnable {
+        @Override
+        public void run() {
+            if (mInternalPlayer != null) {
+                final int percent = mInternalPlayer.getBufferedPercentage();
+                handler.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        notifyOnBufferingUpdate(percent);
+                    }
+                });
+                if (percent < 100) {
+                    handler.postDelayed(callback, 300);
+                } else {
+                    handler.removeCallbacks(callback);
+                }
+            }
+        }
     }
 }

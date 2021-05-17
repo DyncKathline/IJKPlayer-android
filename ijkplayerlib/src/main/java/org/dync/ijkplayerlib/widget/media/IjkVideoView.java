@@ -817,6 +817,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         release(false);
     }
 
+    public boolean needRePlay() {
+        return mCurrentState == IjkVideoView.STATE_IDLE || mCurrentState == STATE_PLAYBACK_COMPLETED || mCurrentState == STATE_ERROR;
+    }
+
     /**
      * 根据当前状态自动选择
      */
@@ -825,7 +829,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             pause();
         }else if(mCurrentState == STATE_PAUSED) {
             start();
-        }else if(mCurrentState == STATE_PLAYBACK_COMPLETED) {
+        }else if(needRePlay()) {
             openVideo();
         }
     }

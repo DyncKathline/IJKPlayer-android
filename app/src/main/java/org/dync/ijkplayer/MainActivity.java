@@ -71,7 +71,8 @@ public class MainActivity extends AppCompatActivity {
 //                String videoPath = "http://daai.waaarp.wscdns.com/live-transcode/_definst_/smil:daai/tv01.smil/playlist.m3u8";
 //                String videoPath = "http://baobab.wdjcdn.com/1457423930928CGI.mp4";
 //                String videoPath = "http://m10.music.126.net/20210517001841/5e00fe35c1d69b90cb433abc3e3b556d/ymusic/5409/5158/025b/cc5945120af2295af4f051f44fc9981d.mp3";
-                String videoPath = "http://videos.jzvd.org/v/ldj/01-ldj.mp4";
+//                String videoPath = "http://videos.jzvd.org/v/ldj/01-ldj.mp4";
+                String videoPath = "http://videos.jzvd.org/v/饺子主动.mp4";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
                 break;
             case R.id.btn_exo2Player:

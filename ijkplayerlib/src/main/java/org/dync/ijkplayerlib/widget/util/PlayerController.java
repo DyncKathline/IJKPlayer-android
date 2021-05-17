@@ -156,6 +156,7 @@ public class PlayerController {
      */
     private boolean isGNetWork = true;
     protected boolean mIsWifi;
+    protected boolean wifiReceiverSuccess;
     public static boolean WIFI_TIP_DIALOG_SHOWED = false;
     public BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
         @Override
@@ -225,12 +226,16 @@ public class PlayerController {
         mIsWifi = isWifiConnected(context);
         IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         context.registerReceiver(wifiReceiver, intentFilter);
+        wifiReceiverSuccess = true;
     }
 
     public void unregisterWifiListener(Context context) {
         if (context == null) return;
         try {
-            context.unregisterReceiver(wifiReceiver);
+            if(wifiReceiverSuccess) {
+                context.unregisterReceiver(wifiReceiver);
+                wifiReceiverSuccess = false;
+            }
         } catch (IllegalArgumentException e) {
             e.printStackTrace();
         }
@@ -593,7 +598,7 @@ public class PlayerController {
     }
 
     /**
-     * 设置2/3/4/5G和WiFi网络类型提示，
+     * 设置是否非WiFi网络类型提示
      *
      * @param isGNetWork true为进行2/3/4/5G网络类型提示
      *                   false 不进行网络类型提示
@@ -1252,6 +1257,7 @@ public class PlayerController {
 //            Log.d(TAG, "syncProgress: progress= " + pos + ", SecondaryProgress= " + percent);
         }else{
             videoController.setProgress(0);
+            videoController.setSecondaryProgress(0);
             videoController.setEnabled(false);
         }
     }

@@ -409,8 +409,8 @@ public class ExoActivity extends AppCompatActivity
         Uri[] uris;
 
         uris = new Uri[2];
-        uris[0] = Uri.parse("http://tanzi27niu.cdsb.mobi/wps/wp-content/uploads/2017/05/2017-05-17_17-33-30.mp4");
-        uris[1] = Uri.parse("http://f.rtmpc.cn/thatthatthat/mJGuqyHMpnVQNRoA/hls/playlist.m3u8");
+        uris[0] = Uri.parse("http://videos.jzvd.org/v/饺子主动.mp4");
+        uris[1] = Uri.parse("http://videos.jzvd.org/v/ldj/01-ldj.mp4");
 
         Sample.UriSample samples = Sample.UriSample.createFromIntent(intent.getData(), intent, /* extrasKeySuffix= */ "");
         String extrasKeySuffix = "";

@@ -45,7 +45,14 @@
             android:layout_gravity="center_vertical"
             android:layout_weight="1"
             android:secondaryProgress="80"
-            android:progressDrawable="@drawable/progress_drawable" />
+            android:maxHeight="1dp"
+            android:minHeight="1dp"
+            android:paddingLeft="12dp"
+            android:paddingTop="8dp"
+            android:paddingRight="12dp"
+            android:paddingBottom="8dp"
+            android:progressDrawable="@drawable/jz_bottom_seek_progress"
+            android:thumb="@drawable/jz_bottom_seek_poster" />
 
         <TextView
             android:id="@+id/tv_total_time"

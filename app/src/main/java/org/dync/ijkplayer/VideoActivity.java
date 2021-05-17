@@ -312,6 +312,7 @@ public class VideoActivity extends BaseActivity {
                 .setVideoRatio(IRenderView.AR_16_9_FIT_PARENT)
                 .setPortrait(true)
                 .setKeepScreenOn(true)
+                .setNetWorkTypeTie(true)
                 .setAutoControlListener(llBottom)//触摸以下控件可以取消自动隐藏布局的线程
                 .setPanelControl(new PlayerController.PanelControlListener() {
                     @Override
@@ -436,7 +437,9 @@ public class VideoActivity extends BaseActivity {
         playIcon.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if (videoView.isPlaying()) {
+                if(videoView.needRePlay()) {
+                    videoView.autoPlay();
+                } else if (videoView.isPlaying()) {
                     updatePlayBtnBg(true);
                 } else {
                     updatePlayBtnBg(false);
@@ -699,7 +702,10 @@ public class VideoActivity extends BaseActivity {
             @Override
             public void onCompletion(IMediaPlayer iMediaPlayer) {
                 updatePlayBtnBg(true);
-//                videoView.release(false);
+                videoView.release(false);
+                seekbar.setEnabled(false);
+                seekbar.setProgress(0);
+                seekbar.setSecondaryProgress(0);
                 videoView.stopVideoInfo();
                 initVideoControl();
             }
@@ -785,6 +791,7 @@ public class VideoActivity extends BaseActivity {
 //        playIcon.setEnabled(false);
         seekbar.setEnabled(false);
         seekbar.setProgress(0);
+        seekbar.setSecondaryProgress(0);
     }
 
     private void showVideoInfo(IMediaPlayer mMediaPlayer) {
