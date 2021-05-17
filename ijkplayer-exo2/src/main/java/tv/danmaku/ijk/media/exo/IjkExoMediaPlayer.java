@@ -24,6 +24,7 @@ import android.net.NetworkInfo;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -41,6 +42,7 @@ import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
+import com.google.android.exoplayer2.analytics.AnalyticsCollector;
 import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.decoder.DecoderCounters;
 import com.google.android.exoplayer2.metadata.Metadata;
@@ -53,7 +55,9 @@ import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelection;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
 import com.google.android.exoplayer2.upstream.DefaultBandwidthMeter;
+import com.google.android.exoplayer2.util.Clock;
 import com.google.android.exoplayer2.util.EventLogger;
+import com.google.android.exoplayer2.util.Util;
 
 import java.io.File;
 import java.io.FileDescriptor;
@@ -163,10 +167,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     public void prepareAsync() throws IllegalStateException {
         if (mInternalPlayer != null)
             throw new IllegalStateException("can't prepare a prepared player");
-        TrackSelection.Factory videoTrackSelectionFactory =
-                new AdaptiveTrackSelection.Factory(new DefaultBandwidthMeter());
-        mTrackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-        mTrackSelector.setParameters(new DefaultTrackSelector.ParametersBuilder().build());
+        mTrackSelector = new DefaultTrackSelector(mAppContext);
 
         mEventLogger = new EventLogger(mTrackSelector);
 
@@ -177,9 +178,13 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                         : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
 
-        renderersFactory = new DefaultRenderersFactory(mAppContext, extensionRendererMode);
+        renderersFactory = new DefaultRenderersFactory(mAppContext);
+        renderersFactory.setExtensionRendererMode(extensionRendererMode);
         DefaultLoadControl loadControl = new DefaultLoadControl();
-        mInternalPlayer = ExoPlayerFactory.newSimpleInstance(mAppContext, renderersFactory, mTrackSelector, loadControl, null);
+        mInternalPlayer = new SimpleExoPlayer.Builder(mAppContext, renderersFactory)
+                .setLooper(Looper.myLooper())
+                .setTrackSelector(mTrackSelector)
+                .setLoadControl(loadControl).build();
         mInternalPlayer.addListener(this);
         mInternalPlayer.addAnalyticsListener(this);
         mInternalPlayer.addAnalyticsListener(mEventLogger);
@@ -529,9 +534,9 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
             }
 
             switch (playbackState) {
-                case Player.STATE_IDLE:
-                    notifyOnCompletion();
-                    break;
+//                case Player.STATE_IDLE:
+//                    notifyOnCompletion();
+//                    break;
                 case Player.STATE_BUFFERING:
                     notifyOnInfo(IMediaPlayer.MEDIA_INFO_BUFFERING_START, mInternalPlayer.getBufferedPercentage());
                     isBuffering = true;
@@ -637,51 +642,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void onTracksChanged(EventTime eventTime, TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
-    }
-
-    @Override
-    public void onLoadStarted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onLoadCompleted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onLoadCanceled(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onLoadError(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
-
-    }
-
-    @Override
-    public void onDownstreamFormatChanged(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onUpstreamDiscarded(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onMediaPeriodCreated(EventTime eventTime) {
-
-    }
-
-    @Override
-    public void onMediaPeriodReleased(EventTime eventTime) {
-
-    }
-
-    @Override
-    public void onReadingStarted(EventTime eventTime) {
 
     }
 

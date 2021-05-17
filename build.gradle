@@ -36,5 +36,5 @@ ext {
     versionCode = 1
     versionName = "1.0"
     ijkplayer = "0.8.8"
-    exoplayer = "2.11.4"
+    exoplayer = "2.12.1"
 }

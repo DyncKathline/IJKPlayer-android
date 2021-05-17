@@ -23,6 +23,7 @@ import android.media.MediaPlayer;
 import android.media.session.PlaybackState;
 import android.net.NetworkInfo;
 import android.net.Uri;
+import android.os.Looper;
 import android.util.Log;
 import android.view.Surface;
 import android.view.SurfaceHolder;
@@ -159,10 +160,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
     public void prepareAsync() throws IllegalStateException {
         if (mInternalPlayer != null)
             throw new IllegalStateException("can't prepare a prepared player");
-        TrackSelection.Factory videoTrackSelectionFactory =
-                new AdaptiveTrackSelection.Factory();
-        mTrackSelector = new DefaultTrackSelector(videoTrackSelectionFactory);
-        mTrackSelector.setParameters(new DefaultTrackSelector.ParametersBuilder().build());
+        mTrackSelector = new DefaultTrackSelector(mAppContext);
 
         mEventLogger = new EventLogger(mTrackSelector);
 
@@ -173,9 +171,13 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
                 : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_ON)
                 : DefaultRenderersFactory.EXTENSION_RENDERER_MODE_OFF;
 
-        renderersFactory = new DefaultRenderersFactory(mAppContext, extensionRendererMode);
+        renderersFactory = new DefaultRenderersFactory(mAppContext);
+        renderersFactory.setExtensionRendererMode(extensionRendererMode);
         DefaultLoadControl loadControl = new DefaultLoadControl();
-        mInternalPlayer = ExoPlayerFactory.newSimpleInstance(mAppContext, renderersFactory, mTrackSelector, loadControl, null);
+        mInternalPlayer = new SimpleExoPlayer.Builder(mAppContext, renderersFactory)
+                .setLooper(Looper.myLooper())
+                .setTrackSelector(mTrackSelector)
+                .setLoadControl(loadControl).build();
         mInternalPlayer.addListener(this);
         mInternalPlayer.addAnalyticsListener(this);
         mInternalPlayer.addAnalyticsListener(mEventLogger);
@@ -571,51 +573,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Eve
 
     @Override
     public void onTracksChanged(EventTime eventTime, TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
-    }
-
-    @Override
-    public void onLoadStarted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onLoadCompleted(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onLoadCanceled(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onLoadError(EventTime eventTime, MediaSourceEventListener.LoadEventInfo loadEventInfo, MediaSourceEventListener.MediaLoadData mediaLoadData, IOException error, boolean wasCanceled) {
-
-    }
-
-    @Override
-    public void onDownstreamFormatChanged(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onUpstreamDiscarded(EventTime eventTime, MediaSourceEventListener.MediaLoadData mediaLoadData) {
-
-    }
-
-    @Override
-    public void onMediaPeriodCreated(EventTime eventTime) {
-
-    }
-
-    @Override
-    public void onMediaPeriodReleased(EventTime eventTime) {
-
-    }
-
-    @Override
-    public void onReadingStarted(EventTime eventTime) {
 
     }
 

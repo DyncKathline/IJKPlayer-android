@@ -728,6 +728,7 @@ public class VideoActivity extends BaseActivity {
                 videoView.release(false);
                 videoView.stopVideoInfo();
                 appVideoReplay.setVisibility(View.VISIBLE);
+                appVideoRetry.setVisibility(View.GONE);
                 playIcon.setEnabled(false);
                 initVideoControl();
             }
@@ -744,6 +745,7 @@ public class VideoActivity extends BaseActivity {
                             .setAutoControlPanel(false);
                 }
                 videoView.stopVideoInfo();
+                appVideoReplay.setVisibility(View.GONE);
                 appVideoRetry.setVisibility(View.VISIBLE);
                 playIcon.setEnabled(false);
                 initVideoControl();
@@ -973,11 +975,11 @@ public class VideoActivity extends BaseActivity {
     }
 
     private void onDestroyVideo() {
+        if (appVideoReplay != null) {
+            appVideoReplay.setVisibility(View.GONE);
+        }
         if (appVideoRetry != null) {
             appVideoRetry.setVisibility(View.GONE);
-        }
-        if (appVideoRetryIcon != null) {
-            appVideoRetryIcon.setVisibility(View.GONE);
         }
         if (mPlayerController != null) {
             mPlayerController.onDestroy();

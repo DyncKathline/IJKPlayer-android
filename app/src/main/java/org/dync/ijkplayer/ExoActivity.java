@@ -36,6 +36,7 @@ import com.google.android.exoplayer2.C.ContentType;
 import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
 import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
 import com.google.android.exoplayer2.PlaybackPreparer;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RenderersFactory;
@@ -76,6 +77,7 @@ import com.google.android.exoplayer2.upstream.DataSource;
 import com.google.android.exoplayer2.upstream.DefaultDataSourceFactory;
 import com.google.android.exoplayer2.upstream.DefaultHttpDataSourceFactory;
 import com.google.android.exoplayer2.upstream.HttpDataSource;
+import com.google.android.exoplayer2.upstream.LoadErrorHandlingPolicy;
 import com.google.android.exoplayer2.util.ErrorMessageProvider;
 import com.google.android.exoplayer2.util.EventLogger;
 import com.google.android.exoplayer2.util.Util;
@@ -465,7 +467,7 @@ public class ExoActivity extends AppCompatActivity
     private MediaSource createLeafMediaSource(Sample.UriSample parameters) {
         Sample.DrmInfo drmInfo = parameters.drmInfo;
         int errorStringId = R.string.error_drm_unknown;
-        DrmSessionManager<ExoMediaCrypto> drmSessionManager = null;
+        DrmSessionManager drmSessionManager = null;
         if (drmInfo == null) {
             drmSessionManager = DrmSessionManager.getDummyDrmSessionManager();
         } else if (Util.SDK_INT < 18) {
@@ -486,7 +488,7 @@ public class ExoActivity extends AppCompatActivity
     }
 
     private MediaSource createLeafMediaSource(
-            Uri uri, String extension, DrmSessionManager<?> drmSessionManager) {
+            Uri uri, String extension, DrmSessionManager drmSessionManager) {
         @ContentType int type = Util.inferContentType(uri, extension);
         switch (type) {
             case C.TYPE_DASH:
@@ -567,55 +569,6 @@ public class ExoActivity extends AppCompatActivity
         startAutoPlay = true;
         startWindow = C.INDEX_UNSET;
         startPosition = C.TIME_UNSET;
-    }
-
-    /** Returns an ads media source, reusing the ads loader if one exists. */
-    @Nullable
-    private MediaSource createAdsMediaSource(MediaSource mediaSource, Uri adTagUri) {
-        // Load the extension source using reflection so the demo app doesn't have to depend on it.
-        // The ads loader is reused for multiple playbacks, so that ad playback can resume.
-        try {
-            Class<?> loaderClass = Class.forName("com.google.android.exoplayer2.ext.ima.ImaAdsLoader");
-            if (adsLoader == null) {
-                // Full class names used so the LINT.IfChange rule triggers should any of the classes move.
-                // LINT.IfChange
-                Constructor<? extends AdsLoader> loaderConstructor =
-                        loaderClass
-                                .asSubclass(AdsLoader.class)
-                                .getConstructor(android.content.Context.class, android.net.Uri.class);
-                // LINT.ThenChange(../../../../../../../../proguard-rules.txt)
-                adsLoader = loaderConstructor.newInstance(this, adTagUri);
-            }
-            MediaSourceFactory adMediaSourceFactory =
-                    new MediaSourceFactory() {
-
-                        private DrmSessionManager<?> drmSessionManager =
-                                DrmSessionManager.getDummyDrmSessionManager();
-
-                        @Override
-                        public MediaSourceFactory setDrmSessionManager(DrmSessionManager<?> drmSessionManager) {
-                            this.drmSessionManager = drmSessionManager;
-                            return this;
-                        }
-
-                        @Override
-                        public MediaSource createMediaSource(Uri uri) {
-                            return ExoActivity.this.createLeafMediaSource(
-                                    uri, /* extension=*/ null, drmSessionManager);
-                        }
-
-                        @Override
-                        public int[] getSupportedTypes() {
-                            return new int[] {C.TYPE_DASH, C.TYPE_SS, C.TYPE_HLS, C.TYPE_OTHER};
-                        }
-                    };
-            return new AdsMediaSource(mediaSource, adMediaSourceFactory, adsLoader, playerView);
-        } catch (ClassNotFoundException e) {
-            // IMA extension not loaded.
-            return null;
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
     }
 
     // User controls
