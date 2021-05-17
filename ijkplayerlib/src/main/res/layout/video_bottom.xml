@@ -51,8 +51,8 @@
             android:paddingTop="8dp"
             android:paddingRight="12dp"
             android:paddingBottom="8dp"
-            android:progressDrawable="@drawable/jz_bottom_seek_progress"
-            android:thumb="@drawable/jz_bottom_seek_poster" />
+            android:progressDrawable="@drawable/play_bottom_seek_progress"
+            android:thumb="@drawable/play_bottom_seek_poster" />
 
         <TextView
             android:id="@+id/tv_total_time"

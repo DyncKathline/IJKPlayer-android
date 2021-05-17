@@ -377,6 +377,11 @@ public class VideoView extends RelativeLayout {
                         mPlayerBottom.getTvCurrentTime().setText(mPlayerController.generateTime(position));
                         mPlayerBottom.getTvTotalTime().setText(mPlayerController.generateTime(duration));
                     }
+
+                    @Override
+                    public void syncProgress(int progress, int secondaryProgress) {
+
+                    }
                 })
                 .setGestureListener(new PlayerController.GestureListener() {
                     @Override

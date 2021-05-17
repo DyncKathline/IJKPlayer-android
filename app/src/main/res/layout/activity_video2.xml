@@ -30,7 +30,7 @@
 
         <!--重新播放-->
         <LinearLayout
-            android:id="@+id/app_video_replay"
+            android:id="@+id/app_video_retry"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#33000000"
@@ -47,7 +47,7 @@
                 android:textSize="14dp" />
 
             <ImageView
-                android:id="@+id/app_video_replay_icon"
+                android:id="@+id/app_video_retry_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"

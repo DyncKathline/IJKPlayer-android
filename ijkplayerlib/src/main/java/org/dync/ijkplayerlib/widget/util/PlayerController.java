@@ -24,6 +24,7 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
+import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -994,6 +995,8 @@ public class PlayerController {
          * @param duration 视频的总时间
          */
         void syncTime(long position, long duration);
+
+        void syncProgress(int progress, int secondaryProgress);
     }
 
     private SyncProgressListener syncProgressListener;
@@ -1254,11 +1257,17 @@ public class PlayerController {
             videoController.setProgress((int) pos);
             int percent = videoView.getBufferPercentage();
             videoController.setSecondaryProgress(percent);
+            if(syncProgressListener != null) {
+                syncProgressListener.syncProgress((int) pos, percent);
+            }
 //            Log.d(TAG, "syncProgress: progress= " + pos + ", SecondaryProgress= " + percent);
         }else{
             videoController.setProgress(0);
             videoController.setSecondaryProgress(0);
             videoController.setEnabled(false);
+            if(syncProgressListener != null) {
+                syncProgressListener.syncProgress(0, 0);
+            }
         }
     }
 

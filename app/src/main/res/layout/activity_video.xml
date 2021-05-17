@@ -31,6 +31,34 @@
         <!--重新播放-->
         <LinearLayout
             android:id="@+id/app_video_replay"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerHorizontal="true"
+            android:layout_centerVertical="true"
+            android:orientation="vertical"
+            android:layout_gravity="center"
+            android:visibility="gone">
+
+            <TextView
+                android:id="@+id/app_video_replay_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/replay"
+                android:textColor="#ffffff"
+                android:textSize="14sp" />
+
+            <ImageView
+                android:id="@+id/app_video_replay_icon"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:src="@drawable/simple_player_circle_outline_white_36dp" />
+
+        </LinearLayout>
+
+        <!--播放出错-->
+        <LinearLayout
+            android:id="@+id/app_video_retry"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:background="#33000000"
@@ -47,7 +75,7 @@
                 android:textSize="14dp" />
 
             <ImageView
-                android:id="@+id/app_video_replay_icon"
+                android:id="@+id/app_video_retry_icon"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -206,8 +234,8 @@
                 android:paddingTop="8dp"
                 android:paddingRight="12dp"
                 android:paddingBottom="8dp"
-                android:progressDrawable="@drawable/jz_bottom_seek_progress"
-                android:thumb="@drawable/jz_bottom_seek_poster" />
+                android:progressDrawable="@drawable/play_bottom_seek_progress"
+                android:thumb="@drawable/play_bottom_seek_poster" />
 
             <TextView
                 android:id="@+id/tv_total_time"
@@ -229,6 +257,15 @@
                 android:padding="5dp" />
 
         </LinearLayout>
+
+        <ProgressBar
+            android:id="@+id/bottom_progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="1.5dp"
+            android:layout_alignParentBottom="true"
+            android:max="100"
+            android:progressDrawable="@drawable/play_bottom_progress" />
 
     </RelativeLayout>
 

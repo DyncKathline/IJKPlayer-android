@@ -51,14 +51,11 @@ import org.dync.subtitleconverter.subtitleFile.TimedTextObject;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
-import java.util.Locale;
 
 import butterknife.BindView;
 import butterknife.ButterKnife;
 import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
 
-import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedDurationMilli;
-import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSize;
 import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSpeed;
 
 public class Video2Activity extends BaseActivity {
@@ -80,9 +77,9 @@ public class Video2Activity extends BaseActivity {
     ImageView videoCover;
     @BindView(R.id.app_video_status_text)
     TextView appVideoStatusText;
-    @BindView(R.id.app_video_replay_icon)
+    @BindView(R.id.app_video_retry_icon)
     ImageView appVideoReplayIcon;
-    @BindView(R.id.app_video_replay)
+    @BindView(R.id.app_video_retry)
     LinearLayout appVideoReplay;
     @BindView(R.id.app_video_netTie_icon)
     TextView appVideoNetTieIcon;

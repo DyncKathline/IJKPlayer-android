@@ -18,6 +18,7 @@ import android.widget.FrameLayout;
 import android.widget.HorizontalScrollView;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.SeekBar;
 import android.widget.Spinner;
@@ -83,12 +84,18 @@ public class VideoActivity extends BaseActivity {
     SubtitleView subtitleView;
     @BindView(R.id.video_cover)
     ImageView videoCover;
-    @BindView(R.id.app_video_status_text)
-    TextView appVideoStatusText;
+    @BindView(R.id.app_video_replay_text)
+    TextView appVideoReplayText;
     @BindView(R.id.app_video_replay_icon)
     ImageView appVideoReplayIcon;
     @BindView(R.id.app_video_replay)
     LinearLayout appVideoReplay;
+    @BindView(R.id.app_video_status_text)
+    TextView appVideoStatusText;
+    @BindView(R.id.app_video_retry_icon)
+    ImageView appVideoRetryIcon;
+    @BindView(R.id.app_video_retry)
+    LinearLayout appVideoRetry;
     @BindView(R.id.app_video_netTie_icon)
     TextView appVideoNetTieIcon;
     @BindView(R.id.app_video_netTie)
@@ -135,6 +142,8 @@ public class VideoActivity extends BaseActivity {
     ImageView imgChangeScreen;
     @BindView(R.id.ll_bottom)
     LinearLayout llBottom;
+    @BindView(R.id.bottom_progress)
+    ProgressBar bottomProgress;
     @BindView(R.id.rl_video_view_layout)
     RelativeLayout rlVideoViewLayout;
     @BindView(R.id.btn_ratio)
@@ -319,8 +328,10 @@ public class VideoActivity extends BaseActivity {
                     public void operatorPanel(boolean isShowControlPanel) {
                         if (isShowControlPanel) {
                             llBottom.setVisibility(View.VISIBLE);
+                            bottomProgress.setVisibility(View.GONE);
                         } else {
                             llBottom.setVisibility(View.GONE);
+                            bottomProgress.setVisibility(View.VISIBLE);
                         }
                     }
                 })
@@ -345,6 +356,12 @@ public class VideoActivity extends BaseActivity {
                         if (subtitleView != null) {
                             subtitleView.seekTo(position);
                         }
+                    }
+
+                    @Override
+                    public void syncProgress(int progress, int secondaryProgress) {
+                        bottomProgress.setProgress(progress);
+                        bottomProgress.setSecondaryProgress(secondaryProgress);
                     }
                 })
                 .setGestureListener(new PlayerController.GestureListener() {
@@ -465,6 +482,12 @@ public class VideoActivity extends BaseActivity {
                 initPlayer();
             }
         });
+        appVideoRetryIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initPlayer();
+            }
+        });
         Spinner sp_speed = (Spinner) findViewById(R.id.sp_speed);
         final String[] speeds = {"倍速播放", "0.25", "0.5", "0.75", "1", "1.25", "1.5", "1.75", "2"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, speeds);
@@ -578,7 +601,7 @@ public class VideoActivity extends BaseActivity {
             @Override
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 appVideoReplay.setVisibility(View.GONE);
-                appVideoReplayIcon.setVisibility(View.GONE);
+                appVideoRetry.setVisibility(View.GONE);
                 videoCover.setImageDrawable(new ColorDrawable(0));
                 videoView.startVideoInfo();
                 if(!videoView.hasVideoTrackInfo()) {
@@ -703,10 +726,9 @@ public class VideoActivity extends BaseActivity {
             public void onCompletion(IMediaPlayer iMediaPlayer) {
                 updatePlayBtnBg(true);
                 videoView.release(false);
-                seekbar.setEnabled(false);
-                seekbar.setProgress(0);
-                seekbar.setSecondaryProgress(0);
                 videoView.stopVideoInfo();
+                appVideoReplay.setVisibility(View.VISIBLE);
+                playIcon.setEnabled(false);
                 initVideoControl();
             }
         });
@@ -715,8 +737,6 @@ public class VideoActivity extends BaseActivity {
             public boolean onError(IMediaPlayer iMediaPlayer, int framework_err, int impl_err) {
                 hideVideoLoading();
                 Toast.makeText(mContext, "播放出错", Toast.LENGTH_SHORT).show();
-                appVideoReplay.setVisibility(View.VISIBLE);
-                appVideoReplayIcon.setVisibility(View.VISIBLE);
 
                 if (mPlayerController != null) {
                     mPlayerController
@@ -724,6 +744,9 @@ public class VideoActivity extends BaseActivity {
                             .setAutoControlPanel(false);
                 }
                 videoView.stopVideoInfo();
+                appVideoRetry.setVisibility(View.VISIBLE);
+                playIcon.setEnabled(false);
+                initVideoControl();
                 return true;
             }
         });
@@ -950,11 +973,11 @@ public class VideoActivity extends BaseActivity {
     }
 
     private void onDestroyVideo() {
-        if (appVideoReplay != null) {
-            appVideoReplay.setVisibility(View.GONE);
+        if (appVideoRetry != null) {
+            appVideoRetry.setVisibility(View.GONE);
         }
-        if (appVideoReplayIcon != null) {
-            appVideoReplayIcon.setVisibility(View.GONE);
+        if (appVideoRetryIcon != null) {
+            appVideoRetryIcon.setVisibility(View.GONE);
         }
         if (mPlayerController != null) {
             mPlayerController.onDestroy();
