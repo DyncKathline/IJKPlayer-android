@@ -36,6 +36,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
+import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
@@ -280,6 +281,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mUri = uri;
         mHeaders = headers;
         mSeekWhenPrepared = 0;
+        setRender(mCurrentRender);
         openVideo();
         requestLayout();
         invalidate();
@@ -337,7 +339,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     (TextUtils.isEmpty(scheme) || scheme.equalsIgnoreCase("file"))) {
                 IMediaDataSource dataSource = new FileMediaDataSource(new File(mUri.toString()));
                 mMediaPlayer.setDataSource(dataSource);
-            }  else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.ICE_CREAM_SANDWICH) {
                 mMediaPlayer.setDataSource(mAppContext, mUri, mHeaders);
             } else {
                 mMediaPlayer.setDataSource(mUri.toString());
@@ -562,9 +564,9 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                                 .setPositiveButton(R.string.VideoView_error_button,
                                         new DialogInterface.OnClickListener() {
                                             public void onClick(DialogInterface dialog, int whichButton) {
-                                            /* If we get here, there is no onError listener, so
-                                             * at least inform them that the video is over.
-                                             */
+                                                /* If we get here, there is no onError listener, so
+                                                 * at least inform them that the video is over.
+                                                 */
                                                 if (mOnCompletionListener != null) {
                                                     mOnCompletionListener.onCompletion(mMediaPlayer);
                                                 }
@@ -715,9 +717,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      */
     public void release(boolean cleartargetstate) {
         if (mMediaPlayer != null) {
-            mMediaPlayer.reset();
+            mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
+
             // REMOVED: mPendingSubtitleTracks.clear();
             mCurrentState = STATE_IDLE;
             if (cleartargetstate) {
@@ -825,11 +828,11 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      * 根据当前状态自动选择
      */
     public void autoPlay() {
-        if(mCurrentState == STATE_PLAYING) {
+        if (mCurrentState == STATE_PLAYING) {
             pause();
-        }else if(mCurrentState == STATE_PAUSED) {
+        } else if (mCurrentState == STATE_PAUSED) {
             start();
-        }else if(needRePlay()) {
+        } else if (needRePlay()) {
             openVideo();
         }
     }
@@ -862,7 +865,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             mMediaPlayer.seekTo(msec);
             mSeekWhenPrepared = 0;
         } else {
-            if(msec > 1000) {//大于1秒赋值
+            if (msec > 1000) {//大于1秒赋值
                 mSeekWhenPrepared = msec;
             }
         }
@@ -1049,8 +1052,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                 IjkMediaPlayer ijkMediaPlayer = null;
                 if (mUri != null) {
                     ijkMediaPlayer = new IjkMediaPlayer();
-                    ijkMediaPlayer.native_setLogLevel(IjkMediaPlayer.IJK_LOG_DEBUG);
 
+                    ijkMediaPlayer.setAudioStreamType(AudioManager.STREAM_MUSIC);
                     if (mSettings.getUsingMediaCodec()) {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 1);
                         if (mSettings.getUsingMediaCodecAutoRotate()) {
@@ -1066,29 +1069,43 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                     } else {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "mediacodec", 0);
                     }
-
+                    //使用opensles把文件从java层拷贝到native层
                     if (mSettings.getUsingOpenSLES()) {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 1);
                     } else {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "opensles", 0);
                     }
-
+                    //视频格式
                     String pixelFormat = mSettings.getPixelFormat();
                     if (TextUtils.isEmpty(pixelFormat)) {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", IjkMediaPlayer.SDL_FCC_RV32);
                     } else {
                         ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "overlay-format", pixelFormat);
                     }
+                    //跳帧处理（-1~120）。CPU处理慢时，进行跳帧处理，保证音视频同步
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "framedrop", 1);
+                    //0为一进入就播放,1为进入时不播放
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "start-on-prepared", 0);
-
+                    ////域名检测
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "http-detect-range-support", 0);
-
+                    //设置是否开启环路过滤: 0开启，画面质量高，解码开销大，48关闭，画面质量差点，解码开销小
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_CODEC, "skip_loop_filter", 48);
-
+                    //最大缓冲大小,单位kb
+//                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "max-buffer-size", 1024 * 1024);
+                    //某些视频在SeekTo的时候，会跳回到拖动前的位置，这是因为视频的关键帧的问题，通俗一点就是FFMPEG不兼容，视频压缩过于厉害，seek只支持关键帧，出现这个情况就是原始的视频文件中i 帧比较少
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "enable-accurate-seek", 1);
+                    //是否重连
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "reconnect", 1);
+                    //http重定向https
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "dns_cache_clear", 1);
+                    //设置seekTo能够快速seek到指定位置并播放
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "fflags", "fastseek");
+                    //播放前的探测Size，默认是1M, 改小一点会出画面更快
+                    ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_FORMAT, "probesize", 1024 * 10);
+                    //1变速变调状态 0变速不变调状态
                     ijkMediaPlayer.setOption(IjkMediaPlayer.OPT_CATEGORY_PLAYER, "soundtouch", 1);
 
-                    ijkMediaPlayer.setOnNativeInvokeListener(mNativeInvokeListener);
+//                    ijkMediaPlayer.setOnNativeInvokeListener(mNativeInvokeListener);
                 }
                 mediaPlayer = ijkMediaPlayer;
             }
@@ -1266,7 +1283,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         }
         mVideoRotationDegree = rotation;
         if (mRenderView != null) {
-            if(mCurrentRender != IjkVideoView.RENDER_TEXTURE_VIEW) {
+            if (mCurrentRender != IjkVideoView.RENDER_TEXTURE_VIEW) {
                 setRender(IjkVideoView.RENDER_TEXTURE_VIEW);
             }
             mRenderView.setVideoRotation(mVideoRotationDegree);
@@ -1285,11 +1302,11 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             ((IjkExoMediaPlayer) mMediaPlayer).setSpeed(speed, 1);
         } else if (mMediaPlayer instanceof MediaPlayer) {
             if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.M) {
-                PlaybackParams pp = ((MediaPlayer)mMediaPlayer).getPlaybackParams();
+                PlaybackParams pp = ((MediaPlayer) mMediaPlayer).getPlaybackParams();
                 pp.setSpeed(speed);
-                ((MediaPlayer)mMediaPlayer).setPlaybackParams(pp);
+                ((MediaPlayer) mMediaPlayer).setPlaybackParams(pp);
             }
-        } else  {
+        } else {
             Log.d(TAG, "not support setSpeed! ");
         }
     }
@@ -1308,6 +1325,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      * 切换播放器，Settings.PV_PLAYER__IjkMediaPlayer、
      * Settings.PV_PLAYER__IjkExoMediaPlayer、
      * Settings.PV_PLAYER__AndroidMediaPlayer
+     *
      * @param playerType
      */
     public void switchPlayer(int playerType) {
@@ -1316,9 +1334,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     public void switchPlayer(int playerType, boolean seekTo) {
         mSettings.setPlayer(playerType);
-        if(seekTo) {
+        if (seekTo) {
             mSeekWhenPrepared = getCurrentPosition();
         }
+        setRender(mCurrentRender);
         openVideo();
     }
 
@@ -1331,29 +1350,30 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
     /**
      * 是否含有视频轨道
+     *
      * @return
      */
     public boolean hasVideoTrackInfo() {
-        if(mMediaPlayer instanceof IjkMediaPlayer) {
+        if (mMediaPlayer instanceof IjkMediaPlayer) {
             IjkMediaPlayer mMediaPlayer = (IjkMediaPlayer) this.mMediaPlayer;
             int videoTrack = mMediaPlayer.getSelectedTrack(ITrackInfo.MEDIA_TRACK_TYPE_VIDEO);
             return videoTrack != -1;
-        } else if(mMediaPlayer instanceof IjkExoMediaPlayer) {
+        } else if (mMediaPlayer instanceof IjkExoMediaPlayer) {
             IjkExoMediaPlayer mMediaPlayer = (IjkExoMediaPlayer) this.mMediaPlayer;
             ArrayList<Integer> trackGroup = mMediaPlayer.getTrackGroup();
             return trackGroup.contains(C.TRACK_TYPE_VIDEO);
-        } else if(mMediaPlayer instanceof AndroidMediaPlayer) {
+        } else if (mMediaPlayer instanceof AndroidMediaPlayer) {
             AndroidMediaPlayer mMediaPlayer = (AndroidMediaPlayer) this.mMediaPlayer;
             ITrackInfo[] trackInfo = mMediaPlayer.getTrackInfo();
             boolean hasVideo = false;
             for (int i = 0; i < trackInfo.length; i++) {
-                if(trackInfo[i].getTrackType() == ITrackInfo.MEDIA_TRACK_TYPE_VIDEO) {
+                if (trackInfo[i].getTrackType() == ITrackInfo.MEDIA_TRACK_TYPE_VIDEO) {
                     hasVideo = true;
                     break;
                 }
             }
             return hasVideo;
-        }else {
+        } else {
             return true;
         }
     }
@@ -1377,7 +1397,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     /**
      * 设置该方法监听必须调用{@link #startVideoInfo()}方法才能启动监听，结束时调用{@link #stopVideoInfo()}结束监听<br>
      * 调用{@link #startVideoInfo()}方法可以在{@link #setOnPreparedListener(IMediaPlayer.OnPreparedListener)}中执行，
-     * 调用{@link #stopVideoInfo()}方法可以在{@link Activity#onDestroy()}执行
+     * 调用{@link #stopVideoInfo()}方法可以在Activity#onDestroy()执行
      *
      * @param listener
      */
@@ -1400,7 +1420,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                         IMediaPlayer internal = proxy.getInternalMediaPlayer();
                         if (internal != null && internal instanceof IjkMediaPlayer)
                             mp = internal;
-                    } else if(mMediaPlayer instanceof IjkExoMediaPlayer) {
+                    } else if (mMediaPlayer instanceof IjkExoMediaPlayer) {
                         mp = mMediaPlayer;
                     }
 

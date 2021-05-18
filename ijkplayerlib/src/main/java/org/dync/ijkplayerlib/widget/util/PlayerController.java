@@ -24,7 +24,6 @@ import android.view.Surface;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.WindowManager;
-import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.TextView;
 
@@ -139,7 +138,7 @@ public class PlayerController {
     /**
      * 禁止收起控制面板，默认可以收起，true为禁止false为可触摸
      */
-    private boolean isForbidHideControlPanl;
+    private boolean isForbidHideControlPanel;
     /**
      * 当前是否切换视频流，默认为否，true是切换视频流，false没有切换
      */
@@ -1126,7 +1125,7 @@ public class PlayerController {
     /**
      * 设置是否禁止双击
      */
-    public PlayerController setForbidDoulbeUp(boolean flag) {
+    public PlayerController setForbidDoubleUp(boolean flag) {
         this.isForbidDoulbeUp = flag;
         return this;
     }
@@ -1134,8 +1133,8 @@ public class PlayerController {
     /**
      * 设置是否禁止隐藏bar
      */
-    public PlayerController setForbidHideControlPanl(boolean flag) {
-        this.isForbidHideControlPanl = flag;
+    public PlayerController setForbidHideControlPanel(boolean flag) {
+        this.isForbidHideControlPanel = flag;
         return this;
     }
 

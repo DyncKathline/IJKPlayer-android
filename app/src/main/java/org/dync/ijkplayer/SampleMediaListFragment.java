@@ -67,6 +67,9 @@ public class SampleMediaListFragment extends Fragment {
             }
         });
 
+        mAdapter.addItem("http://videos.jzvd.org/v/饺子主动.mp4", "mp4");
+        mAdapter.addItem("http://videos.jzvd.org/v/饺子运动.mp4", "mp4");
+        mAdapter.addItem("http://videos.jzvd.org/v/饺子有活.mp4", "mp4");
         mAdapter.addItem("http://down.fodizi.com/05/d4267-11.flv", "flv");
         mAdapter.addItem("http://vod-ali.qmai.cc/860287c2cab641d3815fdf271e70188a/ecae4c35afb541b4812b585b917f56c6-0e19caff3a68710e7adec8335f2dd85b-fd.mp4", "mp4");
         mAdapter.addItem("rtmp://live.hkstv.hk.lxdns.com/live/hks", "rtmp");
