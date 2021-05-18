@@ -833,6 +833,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         } else if (mCurrentState == STATE_PAUSED) {
             start();
         } else if (needRePlay()) {
+            setRender(mCurrentRender);
             openVideo();
         }
     }
@@ -1009,6 +1010,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
         if (mRenderView != null)
             mRenderView.getView().invalidate();
+
+        setRender(mCurrentRender);
         openVideo();
         return mSettings.getPlayer();
     }

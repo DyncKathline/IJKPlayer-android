@@ -269,6 +269,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         mUri = uri;
         mHeaders = headers;
         mSeekWhenPrepared = 0;
+        setRender(mCurrentRender);
         openVideo();
         requestLayout();
         invalidate();
@@ -685,9 +686,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      */
     public void release(boolean cleartargetstate) {
         if (mMediaPlayer != null) {
-            mMediaPlayer.reset();
+            mMediaPlayer.stop();
             mMediaPlayer.release();
             mMediaPlayer = null;
+
             // REMOVED: mPendingSubtitleTracks.clear();
             mCurrentState = STATE_IDLE;
             if (cleartargetstate) {
@@ -787,8 +789,22 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         release(false);
     }
 
-    public void resume() {
-        openVideo();
+    public boolean needRePlay() {
+        return mCurrentState == IjkVideoView.STATE_IDLE || mCurrentState == STATE_PLAYBACK_COMPLETED || mCurrentState == STATE_ERROR;
+    }
+
+    /**
+     * 根据当前状态自动选择
+     */
+    public void autoPlay() {
+        if (mCurrentState == STATE_PLAYING) {
+            pause();
+        } else if (mCurrentState == STATE_PAUSED) {
+            start();
+        } else if (needRePlay()) {
+            setRender(mCurrentRender);
+            openVideo();
+        }
     }
 
     @Override
@@ -939,6 +955,8 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
         if (mRenderView != null)
             mRenderView.getView().invalidate();
+
+        setRender(mCurrentRender);
         openVideo();
         return mSettings.getPlayer();
     }
@@ -1143,6 +1161,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         if (seekTo) {
             mSeekWhenPrepared = getCurrentPosition();
         }
+        setRender(mCurrentRender);
         openVideo();
     }
 
