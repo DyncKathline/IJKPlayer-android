@@ -30,6 +30,7 @@ android {
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
     api 'androidx.appcompat:appcompat:' + rootProject.supportLibraryVersion
+    implementation 'com.github.bumptech.glide:glide:4.10.0'
     //第一种
 //    api (project(':ijkplayer-exo2')){
 //        exclude group: 'tv.danmaku.ijk.media',

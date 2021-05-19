@@ -38,7 +38,6 @@ import org.dync.ijkplayer.utils.ThreadUtil;
 import org.dync.ijkplayerlib.widget.media.AndroidMediaController;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
-import org.dync.ijkplayerlib.widget.util.IjkWindowVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
 import org.dync.ijkplayerlib.widget.util.WindowManagerUtil;
@@ -271,7 +270,7 @@ public class VideoActivity extends BaseActivity {
                             public void onGranted(List<String> permissions, boolean all) {
                                 WindowManagerUtil.createSmallWindow(mContext, videoView.getMediaPlayer());
                                 videoView.setRenderView(null);
-                                WindowManagerUtil.setWindowCallBack(new IjkWindowVideoView.CallBack() {
+                                WindowManagerUtil.setWindowCallBack(new WindowManagerUtil.WindowCallBack() {
                                     @Override
                                     public void removeSmallWindow(IMediaPlayer mediaPlayer) {
                                         WindowManagerUtil.removeSmallWindow(mContext);
@@ -311,8 +310,9 @@ public class VideoActivity extends BaseActivity {
         final Settings settings = new Settings(this);
         settings.setEnableTextureView(true);
 
-        showVideoLoading();
         mPlayerController = null;
+        appVideoReplay.setVisibility(View.GONE);
+        appVideoRetry.setVisibility(View.GONE);
 
         mPlayerController = new PlayerController(this, videoView)
                 .setVideoParentLayout(findViewById(R.id.rl_video_view_layout))//建议第一个调用
@@ -656,9 +656,9 @@ public class VideoActivity extends BaseActivity {
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
-                        if (!NetworkUtils.isNetworkConnected(mContext)) {
-                            updatePlayBtnBg(true);
-                        }
+//                        if (!NetworkUtils.isNetworkConnected(mContext)) {
+//                            updatePlayBtnBg(true);
+//                        }
                         showVideoLoading();
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
@@ -666,7 +666,7 @@ public class VideoActivity extends BaseActivity {
                         hideVideoLoading();
                         seekbar.setEnabled(true);
                         playIcon.setEnabled(true);
-                        updatePlayBtnBg(!videoView.isPlaying());
+//                        updatePlayBtnBg(!videoView.isPlaying());
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
                         Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -739,7 +739,6 @@ public class VideoActivity extends BaseActivity {
             @Override
             public boolean onError(IMediaPlayer iMediaPlayer, int framework_err, int impl_err) {
                 hideVideoLoading();
-                Toast.makeText(mContext, "播放出错", Toast.LENGTH_SHORT).show();
 
                 if (mPlayerController != null) {
                     mPlayerController
@@ -961,8 +960,6 @@ public class VideoActivity extends BaseActivity {
     protected void onDestroy() {
         super.onDestroy();
         onDestroyVideo();
-        WindowManagerUtil.removeSmallWindow(mContext);
-        WindowManagerUtil.removeSmallApp(flAppWindow);
     }
 
     private void onDestroyVideo() {
@@ -981,6 +978,8 @@ public class VideoActivity extends BaseActivity {
             videoView.stopBackgroundPlay();
             videoView.stopVideoInfo();
         }
+        WindowManagerUtil.removeSmallWindow(mContext);
+        WindowManagerUtil.removeSmallApp(flAppWindow);
     }
 
     @Override

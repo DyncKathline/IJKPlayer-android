@@ -37,7 +37,6 @@ public class PlayerBottom extends RelativeLayout implements View.OnClickListener
     private Activity mActivity;
     private IjkVideoView mVideoView;
     private SeekBar mSeekBar;
-    private RelativeLayout mRlPlayPause;
     private ImageView mIvPlayPause;
     private TextView mTvCurrentTime;
     private TextView mTvTotalTime;
@@ -48,8 +47,8 @@ public class PlayerBottom extends RelativeLayout implements View.OnClickListener
     private boolean mUserOperateSeecbar = false;//用户是否正在操作进度条
     private static final String TAG = "PlayerController";
 
-    private int iconPause = R.drawable.player_pause;
-    private int iconPlay = R.drawable.player_play;
+    private int iconPause = R.drawable.player_click_pause_selector;
+    private int iconPlay = R.drawable.player_click_play_selector;
 
     int iconShrink = R.drawable.player_shrink;
     int iconExpand = R.drawable.player_expand;
@@ -80,7 +79,6 @@ public class PlayerBottom extends RelativeLayout implements View.OnClickListener
         mContext = context;
         inflate(context, R.layout.video_bottom, this);
 
-        mRlPlayPause = findViewById(R.id.rl_play_pause);
         mIvPlayPause = (ImageView) findViewById(R.id.iv_play_pause);
         mTvCurrentTime = (TextView) findViewById(R.id.tv_current_time);
         mTvTotalTime = (TextView) findViewById(R.id.tv_total_time);
@@ -90,11 +88,18 @@ public class PlayerBottom extends RelativeLayout implements View.OnClickListener
         mRlToggleExpandable = findViewById(R.id.rl_toggle_expandable);
         mIvToggleExpandable = (ImageView) findViewById(R.id.iv_toggle_expandable);
 
+        initVideoControl();
         initListener();
     }
 
+    public void initVideoControl() {
+//        mIvPlayPause.setEnabled(false);
+        mSeekBar.setEnabled(false);
+        mSeekBar.setProgress(0);
+        mSeekBar.setSecondaryProgress(0);
+    }
+
     private void initListener() {
-        mRlPlayPause.setOnClickListener(this);
         mIvPlayPause.setOnClickListener(this);
         mRlToggleExpandable.setOnClickListener(this);
         mIvToggleExpandable.setOnClickListener(this);
@@ -241,7 +246,7 @@ public class PlayerBottom extends RelativeLayout implements View.OnClickListener
             return;
         }
         int id = v.getId();
-        if (id == R.id.rl_play_pause || id == R.id.iv_play_pause) {
+        if (id == R.id.iv_play_pause) {
             mIPlayerBottom.onPlayTurn();
         } else if (id == R.id.iv_toggle_expandable || id == R.id.rl_toggle_expandable) {
             mIPlayerBottom.onOrientationChange();

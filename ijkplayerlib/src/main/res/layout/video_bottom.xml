@@ -9,25 +9,17 @@
         android:layout_width="match_parent"
         android:layout_height="@dimen/normal_bar_height"
         android:layout_alignParentBottom="true"
-        android:background="@drawable/video_player_bar_bg"
+        android:background="@drawable/player_bottom_bg"
         android:orientation="horizontal">
 
-
-        <RelativeLayout
-            android:id="@+id/rl_play_pause"
-            android:layout_width="wrap_content"
-            android:layout_height="match_parent"
-            android:gravity="center_vertical"
-            android:paddingLeft="@dimen/normal_margin"
-            android:paddingRight="@dimen/normal_margin">
-
-            <ImageView
-                android:id="@+id/iv_play_pause"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:scaleType="centerCrop"
-                android:src="@drawable/player_play" />
-        </RelativeLayout>
+        <ImageView
+            android:id="@+id/iv_play_pause"
+            android:layout_width="35dp"
+            android:layout_height="35dp"
+            android:scaleType="centerCrop"
+            android:layout_gravity="center_vertical"
+            android:layout_marginLeft="10dp"
+            android:src="@drawable/player_click_play_selector" />
 
         <TextView
             android:id="@+id/tv_current_time"
@@ -51,8 +43,8 @@
             android:paddingTop="8dp"
             android:paddingRight="12dp"
             android:paddingBottom="8dp"
-            android:progressDrawable="@drawable/play_bottom_seek_progress"
-            android:thumb="@drawable/play_bottom_seek_poster" />
+            android:progressDrawable="@drawable/player_bottom_seek_progress"
+            android:thumb="@drawable/player_bottom_seek_poster" />
 
         <TextView
             android:id="@+id/tv_total_time"
@@ -73,8 +65,8 @@
 
             <ImageView
                 android:id="@+id/iv_toggle_expandable"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:src="@drawable/player_expand" />
         </RelativeLayout>
     </LinearLayout>

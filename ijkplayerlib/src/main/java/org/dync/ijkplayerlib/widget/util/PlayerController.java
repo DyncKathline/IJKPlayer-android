@@ -781,6 +781,8 @@ public class PlayerController {
 //        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
         if (!isOnlyFullScreen && mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            Utils.showStatusBar(mContext);
+            Utils.showSystemUI(mContext);
             return true;
         }
         return false;
@@ -969,6 +971,8 @@ public class PlayerController {
         };
         if (isOnlyFullScreen) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            Utils.hideStatusBar(mContext);
+            Utils.hideSystemUI(mContext);
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -1116,8 +1120,12 @@ public class PlayerController {
         tryFullScreen(isOnlyFullScreen);
         if (isOnlyFullScreen) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            Utils.hideStatusBar(mContext);
+            Utils.hideSystemUI(mContext);
         } else {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+            Utils.showStatusBar(mContext);
+            Utils.showSystemUI(mContext);
         }
         return this;
     }
@@ -1152,8 +1160,12 @@ public class PlayerController {
     public PlayerController toggleScreenOrientation() {
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);// 竖屏
+            Utils.showStatusBar(mContext);
+            Utils.showSystemUI(mContext);
         } else if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            Utils.hideStatusBar(mContext);
+            Utils.hideSystemUI(mContext);
         }
         return this;
     }

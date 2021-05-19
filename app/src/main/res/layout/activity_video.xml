@@ -37,6 +37,7 @@
             android:layout_centerVertical="true"
             android:orientation="vertical"
             android:layout_gravity="center"
+            android:gravity="center"
             android:visibility="gone">
 
             <TextView
@@ -49,10 +50,10 @@
 
             <ImageView
                 android:id="@+id/app_video_replay_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_marginTop="8dp"
-                android:src="@drawable/simple_player_circle_outline_white_36dp" />
+                android:src="@drawable/player_click_play_selector" />
 
         </LinearLayout>
 
@@ -76,10 +77,10 @@
 
             <ImageView
                 android:id="@+id/app_video_retry_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
                 android:layout_marginTop="8dp"
-                android:src="@drawable/simple_player_circle_outline_white_36dp" />
+                android:src="@drawable/player_click_replay_selector" />
         </LinearLayout>
 
         <!-- 网络提示-->
@@ -104,9 +105,9 @@
 
             <TextView
                 android:id="@+id/app_video_netTie_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:background="@drawable/simple_player_btn"
+                android:layout_width="50dp"
+                android:layout_height="50dp"
+                android:background="@drawable/player_click_play_selector"
                 android:gravity="center"
                 android:paddingLeft="8dp"
                 android:paddingRight="8dp"
@@ -173,7 +174,7 @@
 
         <!-- 中间触摸提示-->
         <include
-            layout="@layout/simple_player_touch_gestures"
+            layout="@layout/player_touch_gestures"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -209,10 +210,10 @@
 
             <ImageView
                 android:id="@+id/play_icon"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:layout_marginRight="4dp"
-                android:src="@drawable/simple_player_center_play" />
+                android:src="@drawable/player_click_play_selector" />
 
             <TextView
                 android:id="@+id/tv_current_time"
@@ -234,8 +235,8 @@
                 android:paddingTop="8dp"
                 android:paddingRight="12dp"
                 android:paddingBottom="8dp"
-                android:progressDrawable="@drawable/play_bottom_seek_progress"
-                android:thumb="@drawable/play_bottom_seek_poster" />
+                android:progressDrawable="@drawable/player_bottom_seek_progress"
+                android:thumb="@drawable/player_bottom_seek_poster" />
 
             <TextView
                 android:id="@+id/tv_total_time"
@@ -251,8 +252,8 @@
 
             <ImageView
                 android:id="@+id/img_change_screen"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:background="@drawable/simple_player_icon_fullscreen_stretch"
                 android:padding="5dp" />
 
@@ -265,7 +266,7 @@
             android:layout_height="1.5dp"
             android:layout_alignParentBottom="true"
             android:max="100"
-            android:progressDrawable="@drawable/play_bottom_progress" />
+            android:progressDrawable="@drawable/player_bottom_progress" />
 
     </RelativeLayout>
 

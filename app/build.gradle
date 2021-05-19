@@ -38,7 +38,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
     implementation project(':ijkplayerlib')
-    implementation project(':exoplayer2lib')
 //    implementation 'org.dync.kathline:ijkplayerlib:1.0.4'
     implementation 'androidx.appcompat:appcompat:' + rootProject.supportLibraryVersion
     implementation 'androidx.recyclerview:recyclerview:' + rootProject.supportLibraryVersion

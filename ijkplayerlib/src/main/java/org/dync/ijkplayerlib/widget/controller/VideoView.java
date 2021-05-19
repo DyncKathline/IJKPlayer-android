@@ -7,10 +7,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
-import android.os.Handler;
 import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.util.Log;
@@ -27,7 +27,7 @@ import androidx.annotation.DrawableRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
-import com.google.android.exoplayer2.C;
+import com.bumptech.glide.Glide;
 
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.controller.impl.AnimationImpl;
@@ -41,9 +41,6 @@ import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
 
-import java.util.ArrayList;
-
-import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 
 /**
@@ -54,15 +51,25 @@ public class VideoView extends RelativeLayout {
 
     private static final String TAG = "VideoView";
     private Context mContext;
-    private RelativeLayout mRlVideoParent;
-    private IjkVideoView mVideoView;
-    private PlayerTitleBar mPlayerTitleBar;
-    private PlayerVolumeBright mPlayerVolumeBright;
-    private PlayerBottom mPlayerBottom;
-    private ImageView mIvCover;
-    private LinearLayout mLlLoading;
-    private ProgressBar mProgressBar;
-    private TextView mTvSpeed;
+
+    private RelativeLayout rlVideoParent;
+    private IjkVideoView videoView;
+    private ImageView ivCover;
+    private PlayerTitleBar playerTitleBar;
+    private PlayerBottom playerBottom;
+    private ProgressBar bottomProgress;
+    private LinearLayout appVideoReplay;
+    private TextView appVideoReplayText;
+    private ImageView appVideoReplayIcon;
+    private LinearLayout appVideoRetry;
+    private TextView appVideoStatusText;
+    private ImageView appVideoRetryIcon;
+    private LinearLayout appVideoNetTie;
+    private TextView appVideoNetTieIcon;
+    private PlayerVolumeBright playerVolumeBright;
+    private LinearLayout llLoading;
+    private ProgressBar progressBar;
+    private TextView tvSpeed;
 
     private Animation mEnterFromTop;
     private Animation mEnterFromBottom;
@@ -76,8 +83,6 @@ public class VideoView extends RelativeLayout {
     private boolean mIsOnLocalSource;//是否是本地视频
     private Uri mVideoUri;//mVideoUri.getPath();得到String地址
     private String mVideoCoverUrl;
-
-    private Handler mHandler = new Handler();
 
     /**
      * Sets video path.
@@ -106,8 +111,6 @@ public class VideoView extends RelativeLayout {
         } else if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
             Log.e(TAG, "Can not resolve content below Android-ICS\n");
         }
-        mVideoView.setVideoURI(uri);
-        startOrRestartPlay();
 
         initPlayer();
         initNetworkMonitor();
@@ -148,24 +151,33 @@ public class VideoView extends RelativeLayout {
         mContext = context;
         inflate(context, R.layout.video_view, this);
 
-        mRlVideoParent = findViewById(R.id.rl_video_parent);
-        mVideoView = findViewById(R.id.ijk_video_view);
-        mPlayerTitleBar = findViewById(R.id.player_title_bar);
-        mPlayerBottom = findViewById(R.id.player_bottom);
-        mPlayerVolumeBright = findViewById(R.id.player_volume_bright);
-        mIvCover = findViewById(R.id.iv_cover);
-        mLlLoading = findViewById(R.id.ll_loading);
-        mProgressBar = findViewById(R.id.progressBar);
-        mTvSpeed = findViewById(R.id.tv_speed);
+        rlVideoParent = (RelativeLayout) findViewById(R.id.rl_video_parent);
+        videoView = (IjkVideoView) findViewById(R.id.ijk_video_view);
+        ivCover = (ImageView) findViewById(R.id.iv_cover);
+        playerTitleBar = (PlayerTitleBar) findViewById(R.id.player_title_bar);
+        playerBottom = (PlayerBottom) findViewById(R.id.player_bottom);
+        bottomProgress = (ProgressBar) findViewById(R.id.bottom_progress);
+        appVideoReplay = (LinearLayout) findViewById(R.id.app_video_replay);
+        appVideoReplayText = (TextView) findViewById(R.id.app_video_replay_text);
+        appVideoReplayIcon = (ImageView) findViewById(R.id.app_video_replay_icon);
+        appVideoRetry = (LinearLayout) findViewById(R.id.app_video_retry);
+        appVideoStatusText = (TextView) findViewById(R.id.app_video_status_text);
+        appVideoRetryIcon = (ImageView) findViewById(R.id.app_video_retry_icon);
+        appVideoNetTie = (LinearLayout) findViewById(R.id.app_video_netTie);
+        appVideoNetTieIcon = (TextView) findViewById(R.id.app_video_netTie_icon);
+        playerVolumeBright = (PlayerVolumeBright) findViewById(R.id.player_volume_bright);
+        llLoading = (LinearLayout) findViewById(R.id.ll_loading);
+        progressBar = (ProgressBar) findViewById(R.id.progressBar);
+        tvSpeed = (TextView) findViewById(R.id.tv_speed);
 
-        mPlayerBottom.toggleExpandable(false);
+        playerBottom.toggleExpandable(false);
         initAnimation();
-        initLisenter();
+        initListener();
         initVideoListener();
     }
 
-    private void initLisenter() {
-        mPlayerTitleBar.setTitleBarImpl(new IPlayerTitleBarImpl() {
+    private void initListener() {
+        playerTitleBar.setTitleBarImpl(new IPlayerTitleBarImpl() {
             @Override
             public void onBackClick() {
                 if (mIPlayerImpl != null) {
@@ -177,20 +189,20 @@ public class VideoView extends RelativeLayout {
                 }
             }
         });
-        mPlayerVolumeBright.setPlayerVolumeBrightImpl(new IPlayerVolumeBrightImpl() {
+        playerVolumeBright.setPlayerVolumeBrightImpl(new IPlayerVolumeBrightImpl() {
 
             @Override
             public void onComplete() {
 
             }
         });
-        mPlayerBottom.setPlayerBottomImpl(new IPlayerBottomImpl() {
+        playerBottom.setPlayerBottomImpl(new IPlayerBottomImpl() {
             @Override
             public void onPlayTurn() {
-                if (mVideoView.isPlaying()) {
-                    updatePlayState(false);
-                } else {
+                if (videoView.isPlaying()) {
                     updatePlayState(true);
+                } else {
+                    updatePlayState(false);
                 }
             }
 
@@ -204,139 +216,163 @@ public class VideoView extends RelativeLayout {
 
             }
         });
+        appVideoReplayIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initPlayer();
+            }
+        });
+        appVideoRetryIcon.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                initPlayer();
+            }
+        });
     }
 
     private void initVideoListener() {
-        mVideoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
+        videoView.setOnPreparedListener(new IMediaPlayer.OnPreparedListener() {
             @Override
             public void onPrepared(IMediaPlayer iMediaPlayer) {
-                hideVideoLoading();
-                updatePlayState(true);
+                appVideoReplay.setVisibility(View.GONE);
+                appVideoRetry.setVisibility(View.GONE);
+                ivCover.setImageDrawable(new ColorDrawable(0));
+                updatePlayState(false);
 
-                if(mVideoView.getMediaPlayer() instanceof IjkExoMediaPlayer) {
-                    ArrayList<Integer> trackGroup = ((IjkExoMediaPlayer) mVideoView.getMediaPlayer()).getTrackGroup();
-                    if(!trackGroup.contains(C.TRACK_TYPE_VIDEO)) {
-                        if (!TextUtils.isEmpty(mVideoCoverUrl)) {
-//                            GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
-                        }
+                if (!videoView.hasVideoTrackInfo()) {
+                    if (!TextUtils.isEmpty(mVideoCoverUrl)) {
+                        Glide.with(mContext).load(mVideoCoverUrl).into(ivCover);
                     }
                 }
 
                 mPlayerController
                         .setGestureEnabled(true)
                         .setAutoControlPanel(true);//视频加载后才自动隐藏操作面板
+                mPlayerController.setSpeed(1.0f);
             }
         });
         final Settings mSettings = new Settings(mContext);
-        final ArrayList<Integer> audios = new ArrayList<>();
-        //音频软解成功通知
-        audios.add(IMediaPlayer.MEDIA_INFO_OPEN_INPUT);
-        audios.add(IMediaPlayer.MEDIA_INFO_FIND_STREAM_INFO);
-        audios.add(IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN);
-        audios.add(IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED);
-        audios.add(IMediaPlayer.MEDIA_INFO_AUDIO_DECODED_START);
-        audios.add(IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START);
-        final ArrayList<Integer> temp_audios = new ArrayList<>();
-        mVideoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
+        videoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
                 Log.d(TAG, "onInfo: what= " + what + ", extra= " + extra);
-                if (what == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
-                    temp_audios.clear();
-                    temp_audios.add(what);
-                } else if (temp_audios.size() < 6) {
-                    temp_audios.add(what);
-                }
                 switch (what) {
-                    case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始渲染
+                    case IMediaPlayer.MEDIA_INFO_STARTED_AS_NEXT://播放下一条
+                        Log.d(TAG, "MEDIA_INFO_STARTED_AS_NEXT:");
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始整备中
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
                         hideVideoLoading();
-                        if (TextUtils.isEmpty(mVideoUri.getPath())) {
-                        }
-                        mPlayerBottom.getSeekBar().setEnabled(true);
-                        mPlayerBottom.getIvPlayPause().setEnabled(true);
-                        updatePlayState(true);
+                        playerBottom.getSeekBar().setEnabled(true);
+                        playerBottom.getIvPlayPause().setEnabled(true);
+                        updatePlayState(false);
+                        ivCover.setImageDrawable(new ColorDrawable(0));
                         break;
-                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始渲染
+                    case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
                         hideVideoLoading();
-                        if (TextUtils.isEmpty(mVideoUri.getPath())) {
-                        }
-                        mPlayerBottom.getSeekBar().setEnabled(true);
-                        mPlayerBottom.getIvPlayPause().setEnabled(true);
-                        updatePlayState(true);
-                        if (!temp_audios.contains(IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START)) {
-                            if (!TextUtils.isEmpty(mVideoCoverUrl)) {
-//                                GlideUtil.showImg(mContext, mVideoCoverUrl, videoCover);
-                            }
-                        }
+                        playerBottom.getSeekBar().setEnabled(true);
+                        playerBottom.getIvPlayPause().setEnabled(true);
+                        updatePlayState(false);
+                        break;
+                    case IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN:
+                        hideVideoLoading();
+                        playerBottom.getSeekBar().setEnabled(true);
+                        playerBottom.getIvPlayPause().setEnabled(true);
+                        updatePlayState(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
                         showVideoLoading();
-                        mHandler.post(new Runnable() {
-                            @Override
-                            public void run() {
-                                if (mSettings.getPlayer() == Settings.PV_PLAYER__IjkMediaPlayer) {
-                                    if (temp_audios.get(0) == IMediaPlayer.MEDIA_INFO_OPEN_INPUT) {
-                                        for (int i = 0; i < temp_audios.size(); i++) {
-                                            if (!audios.get(i).equals(temp_audios.get(i))) {
-                                                onDestroyVideo();
-                                                mActivity.runOnUiThread(new Runnable() {
-                                                    @Override
-                                                    public void run() {
-                                                        if (mVideoUri != null) {
-                                                            mVideoView.setVideoPath(mVideoUri.getPath());
-                                                            mVideoView.start();
-                                                        }
-                                                    }
-                                                });
-                                                return;
-                                            }
-                                        }
-                                    }
-                                }
-                            }
-                        });
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
                         hideVideoLoading();
-                        if (TextUtils.isEmpty(mVideoCoverUrl)) {
-                        }
-                        mPlayerBottom.getSeekBar().setEnabled(true);
-                        mPlayerBottom.getIvPlayPause().setEnabled(true);
-                        updatePlayState(true);
+                        playerBottom.getSeekBar().setEnabled(true);
+                        playerBottom.getIvPlayPause().setEnabled(true);
                         break;
+                    case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
+                        Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
+                        break;
+//                    case IMediaPlayer.MEDIA_INFO_NETWORK_BANDWIDTH://网络带宽
+//                        Log.d(TAG, "MEDIA_INFO_NETWORK_BANDWIDTH: " + extra);
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_BAD_INTERLEAVING://
+//                        Log.d(TAG, "MEDIA_INFO_BAD_INTERLEAVING:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
+//                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_METADATA_UPDATE://视频数据更新
+//                        Log.d(TAG, "MEDIA_INFO_METADATA_UPDATE: " + extra);
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_TIMED_TEXT_ERROR://
+//                        Log.d(TAG, "MEDIA_INFO_TIMED_TEXT_ERROR:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_UNSUPPORTED_SUBTITLE://不支持字幕
+//                        Log.d(TAG, "MEDIA_INFO_UNSUPPORTED_SUBTITLE:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_SUBTITLE_TIMED_OUT://字幕超时
+//                        Log.d(TAG, "MEDIA_INFO_SUBTITLE_TIMED_OUT:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_VIDEO_ROTATION_CHANGED://
+//                        Log.d(TAG, "MEDIA_INFO_VIDEO_ROTATION_CHANGED:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE://
+//                        Log.d(TAG, "MEDIA_INFO_MEDIA_ACCURATE_SEEK_COMPLETE:");
+//                        break;
+////                    case IMediaPlayer.MEDIA_ERROR_UNKNOWN://
+////                        Log.d(TAG, "MEDIA_ERROR_UNKNOWN:");
+////                        break;
+//                    case IMediaPlayer.MEDIA_INFO_UNKNOWN://未知信息
+//                        Log.d(TAG, "MEDIA_INFO_UNKNOWN or MEDIA_ERROR_UNKNOWN:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_SERVER_DIED://服务挂掉
+//                        Log.d(TAG, "MEDIA_ERROR_SERVER_DIED:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK://数据错误没有有效的回收
+//                        Log.d(TAG, "MEDIA_ERROR_NOT_VALID_FOR_PROGRESSIVE_PLAYBACK:");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_IO://IO 错误
+//                        Log.d(TAG, "MEDIA_ERROR_IO :");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_UNSUPPORTED://数据不支持
+//                        Log.d(TAG, "MEDIA_ERROR_UNSUPPORTED :");
+//                        break;
+//                    case IMediaPlayer.MEDIA_ERROR_TIMED_OUT://数据超时
+//                        Log.d(TAG, "MEDIA_ERROR_TIMED_OUT :");
+//                        break;
                 }
                 return true;
             }
         });
-        mVideoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+        videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(IMediaPlayer iMediaPlayer) {
                 updatePlayState(true);
-                mVideoView.release(false);
+                videoView.release(false);
+                videoView.stopVideoInfo();
+                appVideoReplay.setVisibility(View.VISIBLE);
+                appVideoRetry.setVisibility(View.GONE);
+                playerBottom.getIvPlayPause().setEnabled(false);
+                playerBottom.initVideoControl();
             }
         });
-        mVideoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
+        videoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
             @Override
             public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
                 hideVideoLoading();
+
                 if (mPlayerController != null) {
                     mPlayerController
                             .setGestureEnabled(false)
                             .setAutoControlPanel(false);
                 }
-                //  判断网络状态,如果有网络,则重新加载播放,如果没有则报错
-                if ((!mIsOnLocalSource && mNetworkAvailable) || mIsOnLocalSource) {
-                    mVideoView.setVideoURI(mVideoUri);
-                    startOrRestartPlay();
-                } else {
-                    if (mIPlayerImpl != null) {
-                        mIPlayerImpl.onError();
-                    }
-                }
+                videoView.stopVideoInfo();
+                appVideoReplay.setVisibility(View.GONE);
+                appVideoRetry.setVisibility(View.VISIBLE);
+                playerBottom.getIvPlayPause().setEnabled(false);
+                playerBottom.initVideoControl();
                 return true;
             }
         });
@@ -346,21 +382,25 @@ public class VideoView extends RelativeLayout {
         if (!mIsOnLocalSource && !mNetworkAvailable) {
             return;
         }
-        showVideoLoading();
-        mVideoView.start();
+        videoView.start();
     }
 
     public void initPlayer() {
-        mPlayerController = new PlayerController(mActivity, mVideoView)
-                .setVideoParentLayout(mRlVideoParent)
-                .setVideoController(mPlayerBottom.getSeekBar())
+        appVideoReplay.setVisibility(View.GONE);
+        appVideoRetry.setVisibility(View.GONE);
+        mPlayerController = null;
+        mPlayerController = new PlayerController(mActivity, videoView)
+                .setVideoParentLayout(rlVideoParent)
+                .setVideoController(playerBottom.getSeekBar())
                 .setVolumeController()
                 .setBrightnessController()
                 .setVideoParentRatio(IRenderView.AR_16_9_FIT_PARENT)
                 .setVideoRatio(IRenderView.AR_16_9_FIT_PARENT)
-                .setOnlyFullScreen(true)
+//                .setPortrait(true)
+//                .setOnlyFullScreen(true)
                 .setKeepScreenOn(true)
-                .setAutoControlListener(mPlayerTitleBar, mPlayerBottom)
+                .setNetWorkTypeTie(true)
+                .setAutoControlListener(playerTitleBar, playerBottom)
                 .setPanelControl(new PlayerController.PanelControlListener() {
                     @Override
                     public void operatorPanel(boolean isShowControlPanel) {
@@ -371,61 +411,82 @@ public class VideoView extends RelativeLayout {
                         }
                     }
                 })
+                .setPlayStateListener(new PlayerController.PlayStateListener() {
+                    @Override
+                    public void playState(int state) {
+                        switch (state) {
+                            case IjkVideoView.STATE_PLAYING:
+                                updatePlayState(false);
+                                break;
+                            case IjkVideoView.STATE_PAUSED:
+                                updatePlayState(true);
+                                break;
+                        }
+                    }
+                })
                 .setSyncProgressListener(new PlayerController.SyncProgressListener() {
                     @Override
                     public void syncTime(long position, long duration) {
-                        mPlayerBottom.getTvCurrentTime().setText(mPlayerController.generateTime(position));
-                        mPlayerBottom.getTvTotalTime().setText(mPlayerController.generateTime(duration));
+                        playerBottom.getTvCurrentTime().setText(mPlayerController.generateTime(position));
+                        playerBottom.getTvTotalTime().setText(mPlayerController.generateTime(duration));
                     }
 
                     @Override
                     public void syncProgress(int progress, int secondaryProgress) {
-
+                        bottomProgress.setProgress(progress);
+                        bottomProgress.setSecondaryProgress(secondaryProgress);
                     }
                 })
                 .setGestureListener(new PlayerController.GestureListener() {
                     @Override
                     public void onProgressSlide(long newPosition, long duration, int showDelta) {
                         if (showDelta != 0) {
-                            mPlayerVolumeBright.getLlVideoFastForward().setVisibility(View.VISIBLE);
-                            mPlayerVolumeBright.getLlVideoBrightness().setVisibility(View.GONE);
-                            mPlayerVolumeBright.getLlVideoVolume().setVisibility(View.GONE);
-                            mPlayerVolumeBright.getTvVideoFastForwardTarget().setVisibility(View.VISIBLE);
-                            mPlayerVolumeBright.getTvVideoFastForwardAll().setVisibility(View.VISIBLE);
-                            mPlayerVolumeBright.getTvVideoFastForwardTarget().setText(mPlayerController.generateTime(newPosition) + "/");
-                            mPlayerVolumeBright.getTvVideoFastForwardAll().setText(mPlayerController.generateTime(duration));
+                            playerVolumeBright.getLlVideoFastForward().setVisibility(View.VISIBLE);
+                            playerVolumeBright.getLlVideoBrightness().setVisibility(View.GONE);
+                            playerVolumeBright.getLlVideoVolume().setVisibility(View.GONE);
+                            playerVolumeBright.getTvVideoFastForwardTarget().setVisibility(View.VISIBLE);
+                            playerVolumeBright.getTvVideoFastForwardAll().setVisibility(View.VISIBLE);
+                            playerVolumeBright.getTvVideoFastForwardTarget().setText(mPlayerController.generateTime(newPosition) + "/");
+                            playerVolumeBright.getTvVideoFastForwardAll().setText(mPlayerController.generateTime(duration));
 
                             String text = showDelta > 0 ? ("+" + showDelta) : "" + showDelta;
-                            mPlayerVolumeBright.getTvVideoFastForward().setVisibility(View.VISIBLE);
-                            mPlayerVolumeBright.getTvVideoFastForward().setText(String.format("%ss", text));
+                            playerVolumeBright.getTvVideoFastForward().setVisibility(View.VISIBLE);
+                            playerVolumeBright.getTvVideoFastForward().setText(String.format("%ss", text));
                         }
                     }
 
                     @Override
                     public void onVolumeSlide(int volume) {
-                        mPlayerVolumeBright.getLlVideoFastForward().setVisibility(View.GONE);
-                        mPlayerVolumeBright.getLlVideoBrightness().setVisibility(View.GONE);
-                        mPlayerVolumeBright.getLlVideoVolume().setVisibility(View.VISIBLE);
-                        mPlayerVolumeBright.getTvVideoVolume().setVisibility(View.VISIBLE);
-                        mPlayerVolumeBright.getTvVideoVolume().setText(volume + "%");
+                        playerVolumeBright.getLlVideoFastForward().setVisibility(View.GONE);
+                        playerVolumeBright.getLlVideoBrightness().setVisibility(View.GONE);
+                        playerVolumeBright.getLlVideoVolume().setVisibility(View.VISIBLE);
+                        playerVolumeBright.getTvVideoVolume().setVisibility(View.VISIBLE);
+                        playerVolumeBright.getTvVideoVolume().setText(volume + "%");
                     }
 
                     @Override
                     public void onBrightnessSlide(float brightness) {
-                        mPlayerVolumeBright.getLlVideoFastForward().setVisibility(View.GONE);
-                        mPlayerVolumeBright.getLlVideoBrightness().setVisibility(View.VISIBLE);
-                        mPlayerVolumeBright.getLlVideoVolume().setVisibility(View.GONE);
-                        mPlayerVolumeBright.getTvVideoBrightness().setVisibility(View.VISIBLE);
-                        mPlayerVolumeBright.getTvVideoBrightness().setText((int) (brightness * 100) + "%");
+                        playerVolumeBright.getLlVideoFastForward().setVisibility(View.GONE);
+                        playerVolumeBright.getLlVideoBrightness().setVisibility(View.VISIBLE);
+                        playerVolumeBright.getLlVideoVolume().setVisibility(View.GONE);
+                        playerVolumeBright.getTvVideoBrightness().setVisibility(View.VISIBLE);
+                        playerVolumeBright.getTvVideoBrightness().setText((int) (brightness * 100) + "%");
                     }
 
                     @Override
                     public void endGesture() {
-                        mPlayerVolumeBright.getLlVideoFastForward().setVisibility(View.GONE);
-                        mPlayerVolumeBright.getLlVideoBrightness().setVisibility(View.GONE);
-                        mPlayerVolumeBright.getLlVideoVolume().setVisibility(View.GONE);
+                        playerVolumeBright.getLlVideoFastForward().setVisibility(View.GONE);
+                        playerVolumeBright.getLlVideoBrightness().setVisibility(View.GONE);
+                        playerVolumeBright.getLlVideoVolume().setVisibility(View.GONE);
                     }
                 });
+
+        onDestroyVideo();
+        if (mVideoUri != null) {
+            showVideoLoading();
+            videoView.setVideoURI(mVideoUri);
+            videoView.start();
+        }
     }
 
     /**
@@ -440,7 +501,7 @@ public class VideoView extends RelativeLayout {
                 // 网络变化
                 if (intent.getAction().equalsIgnoreCase(ConnectivityManager.CONNECTIVITY_ACTION)) {
                     mNetworkAvailable = NetworkUtil.isNetworkConnected(mActivity);
-                    mPlayerBottom.updateNetworkState(mNetworkAvailable || mIsOnLocalSource);
+                    playerBottom.updateNetworkState(mNetworkAvailable || mIsOnLocalSource);
                     if (!mNetworkAvailable) {
                         getBufferProgress();
                     }
@@ -474,28 +535,28 @@ public class VideoView extends RelativeLayout {
             @Override
             public void onAnimationEnd(Animation animation) {
                 super.onAnimationEnd(animation);
-                mPlayerTitleBar.setVisibility(VISIBLE);
+                playerTitleBar.setVisibility(VISIBLE);
             }
         });
         mEnterFromBottom.setAnimationListener(new AnimationImpl() {
             @Override
             public void onAnimationEnd(Animation animation) {
                 super.onAnimationEnd(animation);
-                mPlayerBottom.setVisibility(VISIBLE);
+                playerBottom.setVisibility(VISIBLE);
             }
         });
         mExitFromTop.setAnimationListener(new AnimationImpl() {
             @Override
             public void onAnimationEnd(Animation animation) {
                 super.onAnimationEnd(animation);
-                mPlayerTitleBar.setVisibility(GONE);
+                playerTitleBar.setVisibility(GONE);
             }
         });
         mExitFromBottom.setAnimationListener(new AnimationImpl() {
             @Override
             public void onAnimationEnd(Animation animation) {
                 super.onAnimationEnd(animation);
-                mPlayerBottom.setVisibility(GONE);
+                playerBottom.setVisibility(GONE);
             }
         });
     }
@@ -518,15 +579,17 @@ public class VideoView extends RelativeLayout {
      * 直接显隐标题栏和控制栏
      */
     public void forceShowOrHideBars(boolean show) {
-        mPlayerTitleBar.clearAnimation();
-        mPlayerBottom.clearAnimation();
+        playerTitleBar.clearAnimation();
+        playerBottom.clearAnimation();
 
         if (show) {
-            mPlayerBottom.setVisibility(VISIBLE);
-            mPlayerTitleBar.setVisibility(VISIBLE);
+            playerBottom.setVisibility(VISIBLE);
+            playerTitleBar.setVisibility(VISIBLE);
+            bottomProgress.setVisibility(View.GONE);
         } else {
-            mPlayerBottom.setVisibility(GONE);
-            mPlayerTitleBar.setVisibility(GONE);
+            playerBottom.setVisibility(GONE);
+            playerTitleBar.setVisibility(GONE);
+            bottomProgress.setVisibility(View.VISIBLE);
         }
     }
 
@@ -534,18 +597,20 @@ public class VideoView extends RelativeLayout {
      * 带动画效果的显隐标题栏和控制栏
      */
     private void animateShowOrHideBars(boolean show) {
-        mPlayerTitleBar.clearAnimation();
-        mPlayerBottom.clearAnimation();
+        playerTitleBar.clearAnimation();
+        playerBottom.clearAnimation();
 
         if (show) {
-            if (mPlayerTitleBar.getVisibility() != VISIBLE) {
-                mPlayerTitleBar.startAnimation(mEnterFromTop);
-                mPlayerBottom.startAnimation(mEnterFromBottom);
+            if (playerTitleBar.getVisibility() != VISIBLE) {
+                playerTitleBar.startAnimation(mEnterFromTop);
+                playerBottom.startAnimation(mEnterFromBottom);
+                bottomProgress.setVisibility(View.GONE);
             }
         } else {
-            if (mPlayerTitleBar.getVisibility() != GONE) {
-                mPlayerTitleBar.startAnimation(mExitFromTop);
-                mPlayerBottom.startAnimation(mExitFromBottom);
+            if (playerTitleBar.getVisibility() != GONE) {
+                playerTitleBar.startAnimation(mExitFromTop);
+                playerBottom.startAnimation(mExitFromBottom);
+                bottomProgress.setVisibility(View.VISIBLE);
             }
         }
     }
@@ -554,48 +619,48 @@ public class VideoView extends RelativeLayout {
      * @return 缓冲百分比 0-100
      */
     public int getBufferProgress() {
-        if (mVideoView != null && mVideoView.getDuration() > 0) {
-            return mIsOnLocalSource ? 0 : mVideoView.getBufferPercentage();
+        if (videoView != null && videoView.getDuration() > 0) {
+            return mIsOnLocalSource ? 0 :videoView.getBufferPercentage();
         } else {
             return 0;
         }
     }
 
     public IjkVideoView getVideoView() {
-        return mVideoView;
+        return videoView;
     }
 
     public PlayerTitleBar getPlayerTitleBar() {
-        return mPlayerTitleBar;
+        return playerTitleBar;
     }
 
     public PlayerVolumeBright getPlayerVolumeBright() {
-        return mPlayerVolumeBright;
+        return playerVolumeBright;
     }
 
     public PlayerBottom getPlayerBottom() {
-        return mPlayerBottom;
+        return playerBottom;
     }
 
     public void showVideoLoading() {
-        if (mLlLoading != null) {
-            mLlLoading.setVisibility(View.VISIBLE);
-            mTvSpeed.setVisibility(View.VISIBLE);
-            mTvSpeed.setText("");
+        if (llLoading != null) {
+            llLoading.setVisibility(View.VISIBLE);
+            tvSpeed.setVisibility(View.VISIBLE);
+            tvSpeed.setText("");
         }
     }
 
     public void hideVideoLoading() {
-        if (mLlLoading != null) {
-            mLlLoading.setVisibility(View.GONE);
-            mTvSpeed.setVisibility(View.GONE);
-            mTvSpeed.setText("");
+        if (llLoading != null) {
+            llLoading.setVisibility(View.GONE);
+            tvSpeed.setVisibility(View.GONE);
+            tvSpeed.setText("");
         }
     }
 
     public boolean isPlaying() {
-        if (mVideoView != null) {
-            return mVideoView.isPlaying();
+        if (videoView != null) {
+            return videoView.isPlaying();
         }
         return false;
     }
@@ -607,59 +672,49 @@ public class VideoView extends RelativeLayout {
      */
     public void updatePlayState(boolean isPlay) {
         if (isPlay) {
-            // 播放
-            mPlayerBottom.updatePlayState(true);
-            mVideoView.start();
+            // 播放==>暂停
+            playerBottom.updatePlayState(false);
+            videoView.pause();
         } else {
-            // 暂停
-            mPlayerBottom.updatePlayState(false);
-            mVideoView.pause();
+            // 暂停==>播放
+            playerBottom.updatePlayState(true);
+            videoView.start();
         }
     }
 
     /**
-     *  更新SeekBar的进度
+     * 更新SeekBar的进度
+     *
      * @param position
      */
     public void updateProgress(int position) {
-        mPlayerController.updateProgress(position, mVideoView.getDuration());
+        mPlayerController.updateProgress(position, videoView.getDuration());
     }
 
     /**
      * 发送message给handler,自动隐藏标题栏
      */
     public void sendAutoHideBarsMsg() {
-        if(mPlayerController != null) {
+        if (mPlayerController != null) {
             mPlayerController.sendAutoHideBarsMsg(5000);
         }
     }
-
     //////////////////////////////////////////开放方法///////////////////////////////////////////////
-    public void start(){
-        if(mVideoView != null) {
-            mVideoView.start();
-        }
-        if (mVideoView.isPlaying()) {
-            updatePlayState(false);
-        } else {
-            updatePlayState(true);
+    public void start() {
+        if (videoView != null) {
+            videoView.start();
         }
     }
 
-    public void pause(){
-        if(mVideoView.isPlaying()) {
-            mVideoView.pause();
-        }
-        if (mVideoView.isPlaying()) {
-            updatePlayState(false);
-        } else {
-            updatePlayState(true);
+    public void pause() {
+        if (videoView.isPlaying()) {
+            videoView.pause();
         }
     }
 
     public void stopPlayback() {
-        if (mVideoView != null) {
-            mVideoView.stopPlayback();
+        if (videoView != null) {
+            videoView.stopPlayback();
         }
     }
 
@@ -668,10 +723,10 @@ public class VideoView extends RelativeLayout {
         if (mPlayerController != null) {
             mPlayerController.onDestroy();
         }
-        if (mVideoView != null) {
-            mVideoView.stopPlayback();
-            mVideoView.release(true);
-            mVideoView.stopBackgroundPlay();
+        if (videoView != null) {
+            videoView.stopPlayback();
+            videoView.release(true);
+            videoView.stopBackgroundPlay();
         }
     }
 
@@ -687,7 +742,7 @@ public class VideoView extends RelativeLayout {
      * 设置视频标题
      */
     public void setTitle(String title) {
-        mPlayerTitleBar.setTitle(title);
+        playerTitleBar.setTitle(title);
     }
 
     /**
@@ -708,7 +763,7 @@ public class VideoView extends RelativeLayout {
      *              注意:progress和secondaryProgress的shape资源需要做成clip的,否则会直接完全显示
      */
     public void setProgressLayerDrawables(@DrawableRes int resId) {
-        mPlayerBottom.setProgressLayerDrawables(resId);
+        playerBottom.setProgressLayerDrawables(resId);
     }
 
     /**
@@ -717,7 +772,7 @@ public class VideoView extends RelativeLayout {
      * @param thumbId
      */
     public void setProgressThumbDrawable(@DrawableRes int thumbId) {
-        mPlayerBottom.setProgressThumbDrawable(thumbId);
+        playerBottom.setProgressThumbDrawable(thumbId);
     }
 
     /**
@@ -726,7 +781,7 @@ public class VideoView extends RelativeLayout {
      * @param iconPause
      */
     public void setIconPause(@DrawableRes int iconPause) {
-        mPlayerBottom.setIconPause(iconPause);
+        playerBottom.setIconPause(iconPause);
     }
 
     /**
@@ -735,7 +790,7 @@ public class VideoView extends RelativeLayout {
      * @param iconPlay
      */
     public void setIconPlay(@DrawableRes int iconPlay) {
-        mPlayerBottom.setIconPlay(iconPlay);
+        playerBottom.setIconPlay(iconPlay);
     }
 
     /**
@@ -744,7 +799,7 @@ public class VideoView extends RelativeLayout {
      * @param iconShrink
      */
     public void setIconShrink(@DrawableRes int iconShrink) {
-        mPlayerBottom.setIconShrink(iconShrink);
+        playerBottom.setIconShrink(iconShrink);
     }
 
     /**
@@ -753,7 +808,7 @@ public class VideoView extends RelativeLayout {
      * @param iconExpand
      */
     public void setIconExpand(@DrawableRes int iconExpand) {
-        mPlayerBottom.setIconExpand(iconExpand);
+        playerBottom.setIconExpand(iconExpand);
     }
 
     /**
@@ -761,9 +816,9 @@ public class VideoView extends RelativeLayout {
      */
     public void setIconLoading(@DrawableRes int iconLoading) {
         if (Build.VERSION.SDK_INT >= 21) {
-            mProgressBar.setIndeterminateDrawable(getResources().getDrawable(iconLoading, null));
+            progressBar.setIndeterminateDrawable(getResources().getDrawable(iconLoading, null));
         } else {
-            mProgressBar.setIndeterminateDrawable(getResources().getDrawable(iconLoading));
+            progressBar.setIndeterminateDrawable(getResources().getDrawable(iconLoading));
         }
 
     }
