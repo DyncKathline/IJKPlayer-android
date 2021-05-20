@@ -460,10 +460,4 @@
         android:layout_height="match_parent"
         android:layout_below="@+id/ll_video_info" />
 
-    <FrameLayout
-        android:id="@+id/fl_app_window"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_centerInParent="true"/>
-
 </RelativeLayout>

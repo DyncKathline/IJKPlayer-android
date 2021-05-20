@@ -21,6 +21,8 @@ import android.widget.FrameLayout;
 import androidx.appcompat.app.AppCompatActivity;
 
 import org.dync.ijkplayerlib.widget.controller.VideoView;
+import org.dync.ijkplayerlib.widget.util.PlayerController;
+import org.dync.ijkplayerlib.widget.util.Utils;
 
 public class ExoActivity extends AppCompatActivity {
 
@@ -35,7 +37,12 @@ public class ExoActivity extends AppCompatActivity {
 
         videoView.setVideoCoverUrl("https://ss1.bdstatic.com/70cFuXSh_Q1YnxGkpoWK1HF6hhy/it/u=2973320425,1464020144&fm=27&gp=0.jpg");
         videoView.setVideoPath(this, "http://videos.jzvd.org/v/饺子主动.mp4");
-        videoView.start();
+        if(!Utils.isWifiConnected(this) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
+//            videoView.showWifiDialog();
+            return;
+        }else {
+            videoView.start();
+        }
     }
 
     private void initView() {

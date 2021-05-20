@@ -7,6 +7,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.ActivityInfo;
 import android.graphics.drawable.ColorDrawable;
 import android.net.ConnectivityManager;
 import android.net.Uri;
@@ -40,6 +41,7 @@ import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Settings;
+import org.dync.ijkplayerlib.widget.util.Utils;
 
 import tv.danmaku.ijk.media.player.IMediaPlayer;
 
@@ -78,9 +80,6 @@ public class VideoView extends RelativeLayout {
 
     private PlayerController mPlayerController;
     private Activity mActivity;
-    private BroadcastReceiver mNetworkReceiver;//网络监听广播
-    private boolean mNetworkAvailable;//网络是否可用
-    private boolean mIsOnLocalSource;//是否是本地视频
     private Uri mVideoUri;//mVideoUri.getPath();得到String地址
     private String mVideoCoverUrl;
 
@@ -106,15 +105,8 @@ public class VideoView extends RelativeLayout {
             Log.e(TAG, "Null unknown scheme\n");
             return;
         }
-        if (scheme.equals(ContentResolver.SCHEME_ANDROID_RESOURCE)) {
-            mIsOnLocalSource = true;
-        } else if (scheme.equals(ContentResolver.SCHEME_CONTENT)) {
-            Log.e(TAG, "Can not resolve content below Android-ICS\n");
-        }
 
         initPlayer();
-        initNetworkMonitor();
-        registerNetworkReceiver();
     }
 
     /**
@@ -236,13 +228,22 @@ public class VideoView extends RelativeLayout {
             public void onPrepared(IMediaPlayer iMediaPlayer) {
                 appVideoReplay.setVisibility(View.GONE);
                 appVideoRetry.setVisibility(View.GONE);
-                ivCover.setImageDrawable(new ColorDrawable(0));
-                updatePlayState(false);
+                hideVideoLoading();
+                playerBottom.getSeekBar().setEnabled(true);
+                playerBottom.getIvPlayPause().setEnabled(true);
+                if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
+//                    mPlayerController.showWifiDialog();
+                }else {
+                    updatePlayState(false);
+                }
 
+                videoView.startVideoInfo();
                 if (!videoView.hasVideoTrackInfo()) {
                     if (!TextUtils.isEmpty(mVideoCoverUrl)) {
                         Glide.with(mContext).load(mVideoCoverUrl).into(ivCover);
                     }
+                }else {
+                    ivCover.setImageDrawable(new ColorDrawable(0));
                 }
 
                 mPlayerController
@@ -251,7 +252,37 @@ public class VideoView extends RelativeLayout {
                 mPlayerController.setSpeed(1.0f);
             }
         });
-        final Settings mSettings = new Settings(mContext);
+        videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(IMediaPlayer iMediaPlayer) {
+                videoView.release(false);
+                videoView.stopVideoInfo();
+                appVideoReplay.setVisibility(View.VISIBLE);
+                appVideoRetry.setVisibility(View.GONE);
+                playerBottom.getIvPlayPause().setEnabled(false);
+                playerBottom.initVideoControl();
+                playerBottom.updatePlayState(false);
+            }
+        });
+        videoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
+            @Override
+            public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
+                hideVideoLoading();
+
+                if (mPlayerController != null) {
+                    mPlayerController
+                            .setGestureEnabled(false)
+                            .setAutoControlPanel(false);
+                }
+                videoView.stopVideoInfo();
+                appVideoReplay.setVisibility(View.GONE);
+                appVideoRetry.setVisibility(View.VISIBLE);
+                playerBottom.getIvPlayPause().setEnabled(false);
+                playerBottom.initVideoControl();
+                playerBottom.updatePlayState(false);
+                return true;
+            }
+        });
         videoView.setOnInfoListener(new IMediaPlayer.OnInfoListener() {
             @Override
             public boolean onInfo(IMediaPlayer iMediaPlayer, int what, int extra) {
@@ -262,24 +293,24 @@ public class VideoView extends RelativeLayout {
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始整备中
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
-                        hideVideoLoading();
-                        playerBottom.getSeekBar().setEnabled(true);
-                        playerBottom.getIvPlayPause().setEnabled(true);
-                        updatePlayState(false);
-                        ivCover.setImageDrawable(new ColorDrawable(0));
+//                        hideVideoLoading();
+//                        playerBottom.getSeekBar().setEnabled(true);
+//                        playerBottom.getIvPlayPause().setEnabled(true);
+//                        updatePlayState(false);
+//                        ivCover.setImageDrawable(new ColorDrawable(0));
                         break;
                     case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
-                        hideVideoLoading();
-                        playerBottom.getSeekBar().setEnabled(true);
-                        playerBottom.getIvPlayPause().setEnabled(true);
-                        updatePlayState(false);
+//                        hideVideoLoading();
+//                        playerBottom.getSeekBar().setEnabled(true);
+//                        playerBottom.getIvPlayPause().setEnabled(true);
+//                        updatePlayState(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN:
-                        hideVideoLoading();
-                        playerBottom.getSeekBar().setEnabled(true);
-                        playerBottom.getIvPlayPause().setEnabled(true);
-                        updatePlayState(false);
+//                        hideVideoLoading();
+//                        playerBottom.getSeekBar().setEnabled(true);
+//                        playerBottom.getIvPlayPause().setEnabled(true);
+//                        updatePlayState(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
@@ -288,8 +319,8 @@ public class VideoView extends RelativeLayout {
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
                         hideVideoLoading();
-                        playerBottom.getSeekBar().setEnabled(true);
-                        playerBottom.getIvPlayPause().setEnabled(true);
+//                        playerBottom.getSeekBar().setEnabled(true);
+//                        playerBottom.getIvPlayPause().setEnabled(true);
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
                         Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -346,43 +377,6 @@ public class VideoView extends RelativeLayout {
                 return true;
             }
         });
-        videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(IMediaPlayer iMediaPlayer) {
-                updatePlayState(true);
-                videoView.release(false);
-                videoView.stopVideoInfo();
-                appVideoReplay.setVisibility(View.VISIBLE);
-                appVideoRetry.setVisibility(View.GONE);
-                playerBottom.getIvPlayPause().setEnabled(false);
-                playerBottom.initVideoControl();
-            }
-        });
-        videoView.setOnErrorListener(new IMediaPlayer.OnErrorListener() {
-            @Override
-            public boolean onError(IMediaPlayer iMediaPlayer, int i, int i1) {
-                hideVideoLoading();
-
-                if (mPlayerController != null) {
-                    mPlayerController
-                            .setGestureEnabled(false)
-                            .setAutoControlPanel(false);
-                }
-                videoView.stopVideoInfo();
-                appVideoReplay.setVisibility(View.GONE);
-                appVideoRetry.setVisibility(View.VISIBLE);
-                playerBottom.getIvPlayPause().setEnabled(false);
-                playerBottom.initVideoControl();
-                return true;
-            }
-        });
-    }
-
-    private void startOrRestartPlay() {
-        if (!mIsOnLocalSource && !mNetworkAvailable) {
-            return;
-        }
-        videoView.start();
     }
 
     public void initPlayer() {
@@ -400,7 +394,34 @@ public class VideoView extends RelativeLayout {
 //                .setOnlyFullScreen(true)
                 .setKeepScreenOn(true)
                 .setNetWorkTypeTie(true)
+                .setNetWorkListener(new PlayerController.OnNetWorkListener() {
+                    @Override
+                    public void onChanged() {
+                        if(videoView.getCurrentState() == IjkVideoView.STATE_IDLE) {
+                            appVideoReplay.setVisibility(View.VISIBLE);
+                            appVideoRetry.setVisibility(View.GONE);
+                            playerBottom.getIvPlayPause().setEnabled(false);
+                            playerBottom.updatePlayState(false);
+                        }else if(videoView.getCurrentState() == IjkVideoView.STATE_PAUSED) {
+                            updatePlayState(false);
+                        }else {
+                            updatePlayState(false);
+                        }
+                    }
+                })
                 .setAutoControlListener(playerTitleBar, playerBottom)
+                .setOnConfigurationChangedListener(new PlayerController.OnConfigurationChangedListener() {
+                    @Override
+                    public void onChanged(int requestedOrientation) {
+                        if(requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_PORTRAIT || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT) {
+                            Utils.showSystemUI(getContext());
+                            Utils.showStatusBar(getContext());
+                        }else if(requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE || requestedOrientation == ActivityInfo.SCREEN_ORIENTATION_LANDSCAPE){
+                            Utils.hideSystemUI(getContext());
+                            Utils.hideStatusBar(getContext());
+                        }
+                    }
+                })
                 .setPanelControl(new PlayerController.PanelControlListener() {
                     @Override
                     public void operatorPanel(boolean isShowControlPanel) {
@@ -483,42 +504,12 @@ public class VideoView extends RelativeLayout {
 
         onDestroyVideo();
         if (mVideoUri != null) {
-            showVideoLoading();
             videoView.setVideoURI(mVideoUri);
-            videoView.start();
-        }
-    }
-
-    /**
-     * 初始化网络变化监听器
-     */
-    public void initNetworkMonitor() {
-        unRegisterNetworkReceiver();
-        // 网络变化
-        mNetworkReceiver = new BroadcastReceiver() {
-            @Override
-            public void onReceive(Context context, Intent intent) {
-                // 网络变化
-                if (intent.getAction().equalsIgnoreCase(ConnectivityManager.CONNECTIVITY_ACTION)) {
-                    mNetworkAvailable = NetworkUtil.isNetworkConnected(mActivity);
-                    playerBottom.updateNetworkState(mNetworkAvailable || mIsOnLocalSource);
-                    if (!mNetworkAvailable) {
-                        getBufferProgress();
-                    }
-                }
+            if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
+                mPlayerController.showWifiDialog();
+            }else {
+                updatePlayState(false);
             }
-        };
-    }
-
-    private void registerNetworkReceiver() {
-        IntentFilter filter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
-        mActivity.registerReceiver(mNetworkReceiver, filter);
-    }
-
-    public void unRegisterNetworkReceiver() {
-        if (mNetworkReceiver != null) {
-            mActivity.unregisterReceiver(mNetworkReceiver);
-            mNetworkReceiver = null;
         }
     }
 
@@ -620,7 +611,7 @@ public class VideoView extends RelativeLayout {
      */
     public int getBufferProgress() {
         if (videoView != null && videoView.getDuration() > 0) {
-            return mIsOnLocalSource ? 0 :videoView.getBufferPercentage();
+            return videoView.getBufferPercentage();
         } else {
             return 0;
         }
@@ -702,13 +693,13 @@ public class VideoView extends RelativeLayout {
     //////////////////////////////////////////开放方法///////////////////////////////////////////////
     public void start() {
         if (videoView != null) {
-            videoView.start();
+            updatePlayState(false);
         }
     }
 
     public void pause() {
         if (videoView.isPlaying()) {
-            videoView.pause();
+            updatePlayState(true);
         }
     }
 
@@ -719,7 +710,6 @@ public class VideoView extends RelativeLayout {
     }
 
     public void onDestroyVideo() {
-        unRegisterNetworkReceiver();
         if (mPlayerController != null) {
             mPlayerController.onDestroy();
         }
@@ -727,6 +717,7 @@ public class VideoView extends RelativeLayout {
             videoView.stopPlayback();
             videoView.release(true);
             videoView.stopBackgroundPlay();
+            videoView.stopVideoInfo();
         }
     }
 

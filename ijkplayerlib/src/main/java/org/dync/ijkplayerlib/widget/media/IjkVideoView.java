@@ -19,6 +19,7 @@ package org.dync.ijkplayerlib.widget.media;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -51,6 +52,7 @@ import com.google.android.exoplayer2.C;
 import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.services.MediaPlayerService;
 import org.dync.ijkplayerlib.widget.util.Settings;
+import org.dync.ijkplayerlib.widget.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -674,7 +676,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                 if (mSeekWhenPrepared != 0) {
                     seekTo(mSeekWhenPrepared);
                 }
-                start();
+//                start();
             }
         }
 
@@ -820,19 +822,15 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         release(false);
     }
 
-    public boolean needRePlay() {
-        return mCurrentState == IjkVideoView.STATE_IDLE || mCurrentState == STATE_PLAYBACK_COMPLETED || mCurrentState == STATE_ERROR;
-    }
-
     /**
      * 根据当前状态自动选择
      */
-    public void autoPlay() {
+    public void clickStart() {
         if (mCurrentState == STATE_PLAYING) {
             pause();
-        } else if (mCurrentState == STATE_PAUSED) {
+        } else if (mCurrentState == STATE_PAUSED || mCurrentState == STATE_PREPARING || mCurrentState == STATE_PREPARED) {
             start();
-        } else if (needRePlay()) {
+        } else {
             setRender(mCurrentRender);
             openVideo();
         }
@@ -1232,6 +1230,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
 
 ///////////////////////////////额外增加的方法//////////////////////////////////
 
+    public Uri getUri() {
+        return mUri;
+    }
+
     public int getVideoWidth() {
         return mVideoWidth;
     }
@@ -1480,4 +1482,5 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
             return false;
         }
     };
+
 }

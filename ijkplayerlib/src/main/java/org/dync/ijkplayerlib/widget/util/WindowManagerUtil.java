@@ -1,6 +1,7 @@
 package org.dync.ijkplayerlib.widget.util;
 
 import android.annotation.SuppressLint;
+import android.app.Activity;
 import android.content.Context;
 import android.graphics.PixelFormat;
 import android.os.Build;
@@ -96,6 +97,7 @@ public class WindowManagerUtil {
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         relativeLayout.addView(smallWindow, params);
         relativeLayout.setBackgroundColor(ContextCompat.getColor(context, android.R.color.black));
+        mWindowManager.addView(relativeLayout, smallWindowParams);
         relativeLayout.setOnTouchListener(new View.OnTouchListener() {
 
             /**
@@ -143,7 +145,7 @@ public class WindowManagerUtil {
                         xDownInScreen = event.getRawX();
                         yDownInScreen = event.getRawY() - getStatusBarHeight(context);
                         xInScreen = event.getRawX();
-                        yInScreen = event.getRawY() - getStatusBarHeight(context);
+                        yInScreen = event.getRawY();
                         break;
                     case MotionEvent.ACTION_MOVE:
                         xInScreen = event.getRawX();
@@ -174,7 +176,6 @@ public class WindowManagerUtil {
                 return true;
             }
         });
-        mWindowManager.addView(relativeLayout, smallWindowParams);
     }
 
     /**
@@ -193,14 +194,16 @@ public class WindowManagerUtil {
     private static int statusBarHeight;
     private static int screenWidth;
     private static int screenHeight;
+
     /**
      * 在当前页面创建一个视图
      * @param viewGroup
      * @param mediaPlayer
      */
     @SuppressLint("ClickableViewAccessibility")
-    public static void createSmallApp(final ViewGroup viewGroup, IMediaPlayer mediaPlayer) {
-        Context context = viewGroup.getContext();
+    public static void createSmallApp(final Activity activity, IMediaPlayer mediaPlayer) {
+        ViewGroup decorView = (ViewGroup) activity.getWindow().getDecorView();
+        Context context = activity.getBaseContext();
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         screenWidth = dm.widthPixels;
         screenHeight = dm.heightPixels - getStatusBarHeight(context);
@@ -226,10 +229,14 @@ public class WindowManagerUtil {
         }
         layoutParams.width = width;
         layoutParams.height = height;
-        smallApp.setLayoutParams(layoutParams);
-        viewGroup.addView(smallApp);
-        smallApp.setClickable(true);
-        smallApp.setOnTouchListener(new View.OnTouchListener() {
+
+        RelativeLayout relativeLayout = new RelativeLayout(context);
+        ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
+        relativeLayout.addView(smallApp, params);
+        relativeLayout.setBackgroundColor(ContextCompat.getColor(context, android.R.color.black));
+        relativeLayout.bringToFront();
+        decorView.addView(relativeLayout, layoutParams);
+        relativeLayout.setOnTouchListener(new View.OnTouchListener() {
 
             private int lastX;
             private int lastY;
@@ -290,7 +297,7 @@ public class WindowManagerUtil {
                             long end = System.currentTimeMillis() - startTime;
                             // 双击的间隔在 300ms以下
                             if (end < 300) {
-                                removeSmallApp(viewGroup);
+                                removeSmallApp(activity);
                                 if(appCallBack != null) {
                                     appCallBack.removeSmallApp(smallApp.getMediaPlayer());
                                 }
@@ -307,11 +314,12 @@ public class WindowManagerUtil {
     /**
      * 将视图从viewGroup上移除。
      *
-     * @param viewGroup 必须为应用程序的Context.
+     * @param activity 必须为应用程序的Context.
      */
-    public static void removeSmallApp(ViewGroup viewGroup) {
+    public static void removeSmallApp(Activity activity) {
+        ViewGroup decorView = (ViewGroup) activity.getWindow().getDecorView();
         if (smallApp != null) {
-            viewGroup.removeView(smallApp);
+            decorView.removeView((View) smallApp.getParent());
         }
     }
 

@@ -3,6 +3,7 @@ package org.dync.ijkplayerlib.widget.util;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
@@ -12,6 +13,7 @@ import android.content.res.Configuration;
 import android.media.AudioManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
@@ -169,13 +171,21 @@ public class PlayerController {
                     if(playStateListener != null) {
                         playStateListener.playState(IjkVideoView.STATE_PLAYING);
                     }
-                    videoView.start();
-                    showWifiDialog();
+                    if(!Utils.isWifiConnected(mActivity) && !WIFI_TIP_DIALOG_SHOWED) {
+                        videoView.clickStart();
+                        if(onNetWorkListener != null) {
+                            onNetWorkListener.onChanged();
+                        }
+                        showWifiDialog();
+                    }
                 }
             }
         }
     };
 
+    /**
+     * 这里会回调{@link #setNetWorkListener(OnNetWorkListener)}
+     */
     public void showWifiDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setMessage(mContext.getResources().getString(R.string.tips_not_wifi));
@@ -187,7 +197,10 @@ public class PlayerController {
                 if (videoView.getCurrentState() == IjkVideoView.STATE_PAUSED) {
                     videoView.start();
                 } else {
-                    videoView.autoPlay();
+                    videoView.clickStart();
+                }
+                if(onNetWorkListener != null) {
+                    onNetWorkListener.onChanged();
                 }
             }
         });
@@ -196,6 +209,9 @@ public class PlayerController {
             public void onClick(DialogInterface dialog, int which) {
                 dialog.dismiss();
                 videoView.release(true);
+                if(onNetWorkListener != null) {
+                    onNetWorkListener.onChanged();
+                }
             }
         });
         builder.setOnCancelListener(new DialogInterface.OnCancelListener() {
@@ -203,6 +219,9 @@ public class PlayerController {
             public void onCancel(DialogInterface dialog) {
                 dialog.dismiss();
                 videoView.release(true);
+                if(onNetWorkListener != null) {
+                    onNetWorkListener.onChanged();
+                }
             }
         });
 
@@ -609,6 +628,17 @@ public class PlayerController {
         return this;
     }
 
+    public interface OnNetWorkListener {
+        void onChanged();
+    }
+
+    private OnNetWorkListener onNetWorkListener;
+
+    public PlayerController setNetWorkListener(OnNetWorkListener listener) {
+        onNetWorkListener = listener;
+        return this;
+    }
+
     private MaxPlayListener maxPlayListener;
 
     public PlayerController setMaxPlayListener(MaxPlayListener listener) {
@@ -781,8 +811,9 @@ public class PlayerController {
 //        if (!isOnlyFullScreen && getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE) {
         if (!isOnlyFullScreen && mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
-            Utils.showStatusBar(mContext);
-            Utils.showSystemUI(mContext);
+            if(onConfigurationChangedListener != null) {
+                onConfigurationChangedListener.onChanged(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
             return true;
         }
         return false;
@@ -971,8 +1002,9 @@ public class PlayerController {
         };
         if (isOnlyFullScreen) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-            Utils.hideStatusBar(mContext);
-            Utils.hideSystemUI(mContext);
+            if(onConfigurationChangedListener != null) {
+                onConfigurationChangedListener.onChanged(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
         }
         isPortrait = (getScreenOrientation() == ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
@@ -1120,13 +1152,26 @@ public class PlayerController {
         tryFullScreen(isOnlyFullScreen);
         if (isOnlyFullScreen) {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-            Utils.hideStatusBar(mContext);
-            Utils.hideSystemUI(mContext);
+            if(onConfigurationChangedListener != null) {
+                onConfigurationChangedListener.onChanged(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
         } else {
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
-            Utils.showStatusBar(mContext);
-            Utils.showSystemUI(mContext);
+            if(onConfigurationChangedListener != null) {
+                onConfigurationChangedListener.onChanged(ActivityInfo.SCREEN_ORIENTATION_SENSOR);
+            }
         }
+        return this;
+    }
+
+    public interface OnConfigurationChangedListener {
+        void onChanged(int requestedOrientation);
+    }
+
+    private OnConfigurationChangedListener onConfigurationChangedListener;
+
+    public PlayerController setOnConfigurationChangedListener(OnConfigurationChangedListener listener) {
+        onConfigurationChangedListener = listener;
         return this;
     }
 
@@ -1160,12 +1205,14 @@ public class PlayerController {
     public PlayerController toggleScreenOrientation() {
         if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {// 横屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);// 竖屏
-            Utils.showStatusBar(mContext);
-            Utils.showSystemUI(mContext);
+            if(onConfigurationChangedListener != null) {
+                onConfigurationChangedListener.onChanged(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+            }
         } else if (mActivity.getResources().getConfiguration().orientation == Configuration.ORIENTATION_PORTRAIT) {//竖屏
             mActivity.setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
-            Utils.hideStatusBar(mContext);
-            Utils.hideSystemUI(mContext);
+            if(onConfigurationChangedListener != null) {
+                onConfigurationChangedListener.onChanged(ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE);
+            }
         }
         return this;
     }
@@ -1198,6 +1245,20 @@ public class PlayerController {
             isLive = false;
         }
         return isLive;
+    }
+
+    /**
+     * 判断是否为本地数据源，包括 本地文件、Asset、raw
+     */
+    public boolean isLocalDataSource(Uri uri) {
+//        Uri uri = videoView.getUri();
+        if(uri != null) {
+            String scheme = uri.getScheme();
+            return ContentResolver.SCHEME_ANDROID_RESOURCE.equals(scheme)
+                    || ContentResolver.SCHEME_FILE.equals(scheme)
+                    || "rawresource".equals(scheme);
+        }
+        return false;
     }
 
     /**
