@@ -50,6 +50,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.exoplayer2.C;
 
 import org.dync.ijkplayerlib.R;
+import org.dync.ijkplayerlib.widget.controller.ScaleTextureView;
 import org.dync.ijkplayerlib.widget.services.MediaPlayerService;
 import org.dync.ijkplayerlib.widget.util.Settings;
 import org.dync.ijkplayerlib.widget.util.Utils;
@@ -230,7 +231,10 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
                 setRenderView(null);
                 break;
             case RENDER_TEXTURE_VIEW: {
-                TextureRenderView renderView = new TextureRenderView(getContext());
+                ScaleTextureView renderView = new ScaleTextureView(getContext());
+                renderView.setEnabledScale(false);
+                renderView.setEnabledRotation(false);
+                renderView.setEnabledTranslation(false);
                 if (mMediaPlayer != null) {
                     renderView.getSurfaceHolder().bindToMediaPlayer(mMediaPlayer);
                     renderView.setVideoSize(mMediaPlayer.getVideoWidth(), mMediaPlayer.getVideoHeight());
@@ -1351,6 +1355,25 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
      */
     public void resetRenders() {
         initRenders();
+    }
+
+    /**
+     * 是否开启缩放、旋转和平移
+     * @param enabledRotation
+     * @param enabledTranslation
+     */
+    public void setGesture(boolean enabledScale, boolean enabledRotation, boolean enabledTranslation) {
+        if(mRenderView instanceof ScaleTextureView) {
+            ((ScaleTextureView)mRenderView).setEnabledScale(enabledScale);
+            ((ScaleTextureView)mRenderView).setEnabledRotation(enabledRotation);
+            ((ScaleTextureView)mRenderView).setEnabledTranslation(enabledTranslation);
+        }
+    }
+
+    public void resetGesture() {
+        if(mRenderView instanceof ScaleTextureView) {
+            ((ScaleTextureView)mRenderView).reset(true);
+        }
     }
 
     /**

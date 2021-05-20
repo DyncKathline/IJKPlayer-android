@@ -206,7 +206,7 @@ public class WindowManagerUtil {
         Context context = activity.getBaseContext();
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
         screenWidth = dm.widthPixels;
-        screenHeight = dm.heightPixels - getStatusBarHeight(context);
+        screenHeight = dm.heightPixels;
         smallApp = new IjkVideoView(context);
         smallApp.setFocusableInTouchMode(false);
         if(mediaPlayer != null) {

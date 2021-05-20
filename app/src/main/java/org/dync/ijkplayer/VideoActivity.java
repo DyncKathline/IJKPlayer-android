@@ -690,6 +690,37 @@ public class VideoActivity extends BaseActivity {
                 initPlayer();
             }
         });
+        Spinner sp_gesture = (Spinner) findViewById(R.id.sp_gesture);
+        final String[] gesture = {"视频手势操作", "开启", "关闭"};
+        ArrayAdapter<String> gestureAdapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, gesture);
+        gestureAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+
+        sp_gesture.setAdapter(gestureAdapter);
+        sp_gesture.setSelection(0, true);
+        sp_gesture.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int pos, long id) {
+                if (pos == 0) {
+                    return;
+                }else if(pos == 1) {
+                    mPlayerController
+                            .setGestureEnabled(false)
+                            .setAutoControlPanel(false);
+                    videoView.setGesture(true, true, true);
+                }else if(pos == 2) {
+                    mPlayerController
+                            .setGestureEnabled(true)
+                            .setAutoControlPanel(true);
+                    videoView.setGesture(false, false, false);
+                    videoView.resetGesture();
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+                // Another interface callback
+            }
+        });
         Spinner sp_speed = (Spinner) findViewById(R.id.sp_speed);
         final String[] speeds = {"倍速播放", "0.25", "0.5", "0.75", "1", "1.25", "1.5", "1.75", "2"};
         ArrayAdapter<String> adapter = new ArrayAdapter<String>(this, android.R.layout.simple_spinner_item, speeds);

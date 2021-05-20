@@ -47,6 +47,9 @@ public class ScaleTextureView extends TextureRenderView {
     private boolean enabledTouch = true;
 
     //默认启用旋转功能
+    private boolean enabledScale = true;
+
+    //默认启用旋转功能
     private boolean enabledRotation = true;
 
     //默认启用移动功能
@@ -96,10 +99,11 @@ public class ScaleTextureView extends TextureRenderView {
                             actionY = event.getRawY();
                         }
                     } else if (moveType == 2) {
-                        //启用缩放操作
-                        scale = scale * getSpacing(event) / spacing;
-                        setScaleX(scale);
-                        setScaleY(scale);
+                        if (enabledScale) {//启用缩放操作
+                            scale = scale * getSpacing(event) / spacing;
+                            setScaleX(scale);
+                            setScaleY(scale);
+                        }
                         if (enabledRotation) {//启用了旋转操作
                             rotation = rotation + getDegree(event) - degree;
                             if (rotation > 360) {
@@ -148,6 +152,13 @@ public class ScaleTextureView extends TextureRenderView {
     }
 
     /**
+     * 设置是否启用缩放功能 true:启用（默认）；false:禁用
+     */
+    public void setEnabledScale(boolean enabled) {
+        this.enabledScale = enabled;
+    }
+
+    /**
      * 设置是否启用旋转功能 true:启用（默认）；false:禁用
      */
     public void setEnabledRotation(boolean enabled) {
@@ -183,6 +194,7 @@ public class ScaleTextureView extends TextureRenderView {
         if (!saveEnabled) {
             //enabled 开关
             enabledTouch = true;
+            enabledScale = true;
             enabledRotation = true;
             enabledTranslation = true;
         }
