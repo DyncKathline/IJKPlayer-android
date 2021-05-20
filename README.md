@@ -5,6 +5,10 @@ QQ交流群：611902811，有兴趣的可以交流
 ## 效果图
 ![image](https://raw.githubusercontent.com/DyncKathline/IJKPlayer-android/master/screenshot/GIF.gif)
 ![image](https://raw.githubusercontent.com/DyncKathline/IJKPlayer-android/master/screenshot/GIF1.gif)
+### 2021/05/20
+增加TextureView支持缩放、旋转、平移操作；
+优化播放逻辑，代码更清晰；
+
 ### 2018/09/04
 增加了字幕显示，支持ass、srt、stl的格式
 > 1.由于没有对应的视频，所以字幕仅仅只是解析完后根据时间显示出来
