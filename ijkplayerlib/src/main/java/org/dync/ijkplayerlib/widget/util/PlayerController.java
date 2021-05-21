@@ -262,10 +262,6 @@ public class PlayerController {
 
     private GestureDetector gestureDetector;
     /**
-     * 设置Gesture手势器是否可用
-     */
-    private boolean isGestureEnabled;
-    /**
      * 设置最大播放时间，时间不做限制时设置为-1
      */
     private int maxPlaytime = -1;
@@ -914,11 +910,7 @@ public class PlayerController {
      * 设置Gesture手势器是否可用
      */
     public PlayerController setGestureEnabled(boolean enabled) {
-        isGestureEnabled = enabled;
-        if (isGestureEnabled) {
-            gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
-        }
-        setVideoParentTouchEvent(isGestureEnabled);
+        setVideoParentTouchEvent(enabled);
         return this;
     }
 
@@ -980,7 +972,7 @@ public class PlayerController {
      */
     public PlayerController setVideoParentLayout(View rootLayout) {
         videoParentLayout = rootLayout;
-//        gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
+        gestureDetector = new GestureDetector(mContext, new PlayerGestureListener());
 //        setVideoParentTouchEvent(true);
 
         orientationEventListener = new OrientationEventListener(mActivity) {

@@ -478,6 +478,7 @@ public class VideoActivity extends BaseActivity {
 //        mMediaController.setSupportActionBar(actionBar);
 //        mVideoView.setMediaController(mMediaController);
         final Settings settings = new Settings(this);
+        settings.setEnableSurfaceView(false);
         settings.setEnableTextureView(true);
 
         mPlayerController = null;
@@ -623,6 +624,8 @@ public class VideoActivity extends BaseActivity {
         onDestroyVideo();
         if (mVideoPath != null) {
             videoView.setVideoPath(mVideoPath);
+            //需要在videoView.setRender()方法之后调用
+            videoView.setVideoRadius(50);
             if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
                 mPlayerController.showWifiDialog();
             }else {

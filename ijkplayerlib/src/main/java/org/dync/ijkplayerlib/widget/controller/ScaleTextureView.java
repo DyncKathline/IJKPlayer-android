@@ -1,9 +1,9 @@
 package org.dync.ijkplayerlib.widget.controller;
 
 import android.content.Context;
+import android.os.Build;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
-import android.view.TextureView;
 
 import org.dync.ijkplayerlib.widget.media.TextureRenderView;
 
@@ -68,11 +68,10 @@ public class ScaleTextureView extends TextureRenderView {
         setClickable(true);
     }
 
-//    @Override
-//    public boolean onInterceptTouchEvent(MotionEvent ev) {
-//        getParent().requestDisallowInterceptTouchEvent(true);
-//        return super.onInterceptTouchEvent(ev);
-//    }
+    @Override
+    public boolean dispatchTouchEvent(MotionEvent event) {
+        return enabledTouch && super.dispatchTouchEvent(event);
+    }
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
@@ -156,6 +155,7 @@ public class ScaleTextureView extends TextureRenderView {
      */
     public void setEnabledScale(boolean enabled) {
         this.enabledScale = enabled;
+        isCheck();
     }
 
     /**
@@ -163,6 +163,7 @@ public class ScaleTextureView extends TextureRenderView {
      */
     public void setEnabledRotation(boolean enabled) {
         this.enabledRotation = enabled;
+        isCheck();
     }
 
     /**
@@ -170,6 +171,7 @@ public class ScaleTextureView extends TextureRenderView {
      */
     public void setEnabledTranslation(boolean enabled) {
         this.enabledTranslation = enabled;
+        isCheck();
     }
 
     /**
@@ -204,6 +206,25 @@ public class ScaleTextureView extends TextureRenderView {
         setRotation(0);
         setTranslationX(0);
         setTranslationY(0);
+    }
+
+    private void isCheck() {
+        if(!enabledScale && !enabledRotation && !enabledTranslation) {
+            this.enabledTouch = false;
+        }else {
+            this.enabledTouch = true;
+        }
+    }
+
+    /**
+     * 给任何View增加圆角处理
+     * @param radius
+     */
+    public void setVideoRadius(float radius) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+            setOutlineProvider(new TextureVideoViewOutlineProvider(radius));
+            setClipToOutline(true);
+        }
     }
 
 }

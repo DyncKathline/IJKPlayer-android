@@ -65,12 +65,12 @@ public class MainActivity extends AppCompatActivity {
                 startActivity(new Intent(mContext, SettingActivity.class));
                 break;
             case R.id.btn_ijkPlayer:
-//                String videoPath = "http://videos.jzvd.org/v/ldj/01-ldj.mp4";
-                String videoPath = "http://videos.jzvd.org/v/饺子主动.mp4";
+                String videoPath = "http://videos.jzvd.org/v/ldj/01-ldj.mp4";
+//                String videoPath = "http://videos.jzvd.org/v/饺子主动.mp4";
                 VideoActivity.intentTo(mContext, videoPath, "测试");
                 break;
             case R.id.btn_exoPlayer:
-                startActivity(new Intent(mContext, ExoActivity.class));
+                startActivity(new Intent(mContext, SimpleActivity.class));
                 break;
         }
     }

@@ -18,8 +18,6 @@
 package org.dync.ijkplayerlib.widget.media;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.res.Resources;
@@ -37,7 +35,6 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.KeyEvent;
 import android.view.MotionEvent;
-import android.view.Surface;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.MediaController;
@@ -53,7 +50,6 @@ import org.dync.ijkplayerlib.R;
 import org.dync.ijkplayerlib.widget.controller.ScaleTextureView;
 import org.dync.ijkplayerlib.widget.services.MediaPlayerService;
 import org.dync.ijkplayerlib.widget.util.Settings;
-import org.dync.ijkplayerlib.widget.util.Utils;
 
 import java.io.File;
 import java.io.IOException;
@@ -71,7 +67,6 @@ import tv.danmaku.ijk.media.player.MediaPlayerProxy;
 import tv.danmaku.ijk.media.player.TextureMediaPlayer;
 import tv.danmaku.ijk.media.player.misc.IMediaDataSource;
 import tv.danmaku.ijk.media.player.misc.ITrackInfo;
-import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
 public class IjkVideoView extends FrameLayout implements MediaController.MediaPlayerControl {
     private String TAG = "IjkVideoView";
@@ -1373,6 +1368,20 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
     public void resetGesture() {
         if(mRenderView instanceof ScaleTextureView) {
             ((ScaleTextureView)mRenderView).reset(true);
+        }
+    }
+
+    /**
+     * 给任何View增加圆角处理
+     * @param radius
+     */
+    public void setVideoRadius(float radius) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+//            setOutlineProvider(new TextureVideoViewOutlineProvider(radius));
+//            setClipToOutline(true);
+            if(mRenderView instanceof ScaleTextureView) {
+                ((ScaleTextureView) mRenderView).setVideoRadius(radius);
+            }
         }
     }
 

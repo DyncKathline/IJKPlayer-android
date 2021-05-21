@@ -24,7 +24,7 @@ import org.dync.ijkplayerlib.widget.controller.VideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
 import org.dync.ijkplayerlib.widget.util.Utils;
 
-public class ExoActivity extends AppCompatActivity {
+public class SimpleActivity extends AppCompatActivity {
 
     private FrameLayout root;
     private VideoView videoView;
