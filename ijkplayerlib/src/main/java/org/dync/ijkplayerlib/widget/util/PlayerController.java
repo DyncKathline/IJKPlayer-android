@@ -157,7 +157,6 @@ public class PlayerController {
      * 播放的时候是否需要网络提示，默认显示网络提示，true为显示网络提示，false不显示网络提示
      */
     private boolean isGNetWork = true;
-    protected boolean mIsWifi;
     protected boolean wifiReceiverSuccess;
     public static boolean WIFI_TIP_DIALOG_SHOWED = false;
     public BroadcastReceiver wifiReceiver = new BroadcastReceiver() {
@@ -165,9 +164,7 @@ public class PlayerController {
         public void onReceive(Context context, Intent intent) {
             if (ConnectivityManager.CONNECTIVITY_ACTION.equals(intent.getAction())) {
                 boolean isWifi = isWifiConnected(context);
-                if (isGNetWork == isWifi) return;
-                mIsWifi = isWifi;
-                if (!mIsWifi && !WIFI_TIP_DIALOG_SHOWED && videoView.isPlaying()) {
+                if (!isWifi && !WIFI_TIP_DIALOG_SHOWED && videoView.isPlaying()) {
                     if(playStateListener != null) {
                         playStateListener.playState(IjkVideoView.STATE_PLAYING);
                     }
@@ -187,6 +184,7 @@ public class PlayerController {
      * 这里会回调{@link #setNetWorkListener(OnNetWorkListener)}
      */
     public void showWifiDialog() {
+        if (!isGNetWork) return;
         AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
         builder.setMessage(mContext.getResources().getString(R.string.tips_not_wifi));
         builder.setPositiveButton(mContext.getResources().getString(R.string.tips_not_wifi_confirm), new DialogInterface.OnClickListener() {
@@ -242,7 +240,6 @@ public class PlayerController {
 
     public void registerWifiListener(Context context) {
         if (context == null) return;
-        mIsWifi = isWifiConnected(context);
         IntentFilter intentFilter = new IntentFilter(ConnectivityManager.CONNECTIVITY_ACTION);
         context.registerReceiver(wifiReceiver, intentFilter);
         wifiReceiverSuccess = true;
