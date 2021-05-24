@@ -19,7 +19,6 @@ package tv.danmaku.ijk.media.exo;
 
 import android.app.Activity;
 import android.content.Context;
-import android.media.session.PlaybackState;
 import android.net.TrafficStats;
 import android.net.Uri;
 import android.os.Handler;
@@ -34,18 +33,15 @@ import androidx.annotation.Size;
 
 import com.google.android.exoplayer2.C;
 import com.google.android.exoplayer2.DefaultLoadControl;
-import com.google.android.exoplayer2.DefaultRenderersFactory;
 import com.google.android.exoplayer2.ExoPlaybackException;
-import com.google.android.exoplayer2.Format;
+import com.google.android.exoplayer2.MediaItem;
+import com.google.android.exoplayer2.MediaMetadata;
 import com.google.android.exoplayer2.PlaybackParameters;
 import com.google.android.exoplayer2.Player;
 import com.google.android.exoplayer2.RenderersFactory;
 import com.google.android.exoplayer2.SimpleExoPlayer;
 import com.google.android.exoplayer2.Timeline;
-import com.google.android.exoplayer2.analytics.AnalyticsListener;
 import com.google.android.exoplayer2.audio.AudioAttributes;
-import com.google.android.exoplayer2.decoder.DecoderCounters;
-import com.google.android.exoplayer2.decoder.DecoderReuseEvaluation;
 import com.google.android.exoplayer2.metadata.Metadata;
 import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
@@ -62,6 +58,7 @@ import java.io.File;
 import java.io.FileDescriptor;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import tv.danmaku.ijk.media.player.AbstractMediaPlayer;
@@ -69,13 +66,12 @@ import tv.danmaku.ijk.media.player.IMediaPlayer;
 import tv.danmaku.ijk.media.player.MediaInfo;
 import tv.danmaku.ijk.media.player.misc.IjkTrackInfo;
 
-public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Listener,
-        AnalyticsListener {
+public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Listener {
     private static final String TAG = "IjkExoMediaPlayer";
 
     private Context mAppContext;
     private SimpleExoPlayer mInternalPlayer;
-    private EventLogger mEventLogger;
+    private MyEventLogger mEventLogger;
     private MediaSource mMediaSource;
     private DefaultTrackSelector mTrackSelector;
     private String mDataSource;
@@ -177,7 +173,7 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
         mTrackSelector = new DefaultTrackSelector(mAppContext);
         mTrackSelector.setParameters(trackSelectorParameters);
 
-        mEventLogger = new EventLogger(mTrackSelector);
+        mEventLogger = new MyEventLogger(mTrackSelector);
 
         DefaultLoadControl loadControl = new DefaultLoadControl();
         mInternalPlayer = new SimpleExoPlayer.Builder(mAppContext, renderersFactory)
@@ -300,7 +296,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
         if (mInternalPlayer != null) {
             mInternalPlayer.release();
             mInternalPlayer.removeListener(this);
-            mInternalPlayer.removeAnalyticsListener(this);
             mInternalPlayer.removeAnalyticsListener(mEventLogger);
             mInternalPlayer = null;
         }
@@ -488,8 +483,32 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
         return TrafficStats.getUidRxBytes(activity.getApplicationInfo().uid) == TrafficStats.UNSUPPORTED ? 0 : (TrafficStats.getTotalRxBytes() / 1024);//转为KB
     }
 
+    private class MyEventLogger extends EventLogger {
+
+        public MyEventLogger(@Nullable MappingTrackSelector trackSelector) {
+            super(trackSelector);
+        }
+
+        public MyEventLogger(@Nullable MappingTrackSelector trackSelector, String tag) {
+            super(trackSelector, tag);
+        }
+
+        @Override
+        public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
+            super.onBandwidthEstimate(eventTime, totalLoadTimeMs, totalBytesLoaded, bitrateEstimate);
+            Log.i("kath----", totalLoadTimeMs + ", " + totalBytesLoaded + ", " + bitrateEstimate);
+        }
+    }
+
+    /////////////////////////////////////EventListener/////////////////////////////////////////////
+
     @Override
     public void onTimelineChanged(Timeline timeline, int reason) {
+
+    }
+
+    @Override
+    public void onMediaItemTransition(@Nullable MediaItem mediaItem, int reason) {
 
     }
 
@@ -499,13 +518,27 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
     }
 
     @Override
+    public void onStaticMetadataChanged(List<Metadata> metadataList) {
+
+    }
+
+    @Override
+    public void onMediaMetadataChanged(MediaMetadata mediaMetadata) {
+
+    }
+
+    @Override
     public void onIsLoadingChanged(boolean isLoading) {
 
     }
 
     @Override
-    public void onPlaybackStateChanged(int state) {
+    public void onAvailableCommandsChanged(Player.Commands availableCommands) {
 
+    }
+
+    @Override
+    public void onPlaybackStateChanged(int state) {
     }
 
     @Override
@@ -536,12 +569,6 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
                         isPrepareing = false;
                         break;
                 }
-            }
-
-            if(playbackState == PlaybackState.STATE_PLAYING) {
-//            long bufferedPosition = mInternalPlayer.getBufferedPosition() / 1000;
-//            long totalPosition = mInternalPlayer.getContentPosition() / 1000;
-//                notifyOnBufferingUpdate(mInternalPlayer.getBufferedPercentage());
             }
 
             switch (playbackState) {
@@ -594,125 +621,10 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
 
     }
 
-    /////////////////////////////////////VideoRendererEventListener/////////////////////////////////////////////
+    /////////////////////////////////////VideoListener/////////////////////////////////////////////
 
     @Override
-    public void onPlayerStateChanged(EventTime eventTime, boolean playWhenReady, int playbackState) {
-
-    }
-
-    @Override
-    public void onTimelineChanged(EventTime eventTime, int reason) {
-
-    }
-
-    @Override
-    public void onPositionDiscontinuity(EventTime eventTime, Player.PositionInfo oldPosition, Player.PositionInfo newPosition, int reason) {
-
-    }
-
-    @Override
-    public void onPlaybackParametersChanged(EventTime eventTime, PlaybackParameters playbackParameters) {
-
-    }
-
-    @Override
-    public void onRepeatModeChanged(EventTime eventTime, int repeatMode) {
-
-    }
-
-    @Override
-    public void onShuffleModeChanged(EventTime eventTime, boolean shuffleModeEnabled) {
-
-    }
-
-    @Override
-    public void onIsLoadingChanged(EventTime eventTime, boolean isLoading) {
-
-    }
-
-    @Override
-    public void onPlayerError(EventTime eventTime, ExoPlaybackException error) {
-
-    }
-
-    @Override
-    public void onTracksChanged(EventTime eventTime, TrackGroupArray trackGroups, TrackSelectionArray trackSelections) {
-
-    }
-
-    @Override
-    public void onBandwidthEstimate(EventTime eventTime, int totalLoadTimeMs, long totalBytesLoaded, long bitrateEstimate) {
-
-    }
-
-    @Override
-    public void onMetadata(EventTime eventTime, Metadata metadata) {
-
-    }
-
-    @Override
-    public void onAudioEnabled(EventTime eventTime, DecoderCounters counters) {
-
-    }
-
-    @Override
-    public void onVideoEnabled(EventTime eventTime, DecoderCounters counters) {
-
-    }
-
-    @Override
-    public void onAudioDecoderInitialized(EventTime eventTime, String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-
-    }
-
-    @Override
-    public void onVideoDecoderInitialized(EventTime eventTime, String decoderName, long initializedTimestampMs, long initializationDurationMs) {
-
-    }
-
-    @Override
-    public void onAudioInputFormatChanged(EventTime eventTime, Format format, @Nullable DecoderReuseEvaluation decoderReuseEvaluation) {
-
-    }
-
-    @Override
-    public void onVideoInputFormatChanged(EventTime eventTime, Format format, @Nullable DecoderReuseEvaluation decoderReuseEvaluation) {
-
-    }
-
-    @Override
-    public void onAudioDisabled(EventTime eventTime, DecoderCounters counters) {
-
-    }
-
-    @Override
-    public void onVideoDisabled(EventTime eventTime, DecoderCounters counters) {
-
-    }
-
-    @Override
-    public void onAudioSessionIdChanged(EventTime eventTime, int audioSessionId) {
-        this.audioSessionId = audioSessionId;
-    }
-
-    @Override
-    public void onAudioSessionIdChanged(int audioSessionId) {
-        this.audioSessionId = audioSessionId;
-    }
-
-    @Override
-    public void onAudioUnderrun(EventTime eventTime, int bufferSize, long bufferSizeMs, long elapsedSinceLastFeedMs) {
-
-    }
-
-    @Override
-    public void onDroppedVideoFrames(EventTime eventTime, int droppedFrames, long elapsedMs) {
-
-    }
-
-    @Override
-    public void onVideoSizeChanged(EventTime eventTime, VideoSize videoSize) {
+    public void onVideoSizeChanged(VideoSize videoSize) {
         mVideoWidth = videoSize.width;
         mVideoHeight = videoSize.height;
         notifyOnVideoSizeChanged(videoSize.width, videoSize.height, 1, 1);
@@ -721,27 +633,34 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
     }
 
     @Override
-    public void onRenderedFirstFrame(EventTime eventTime, Object output, long renderTimeMs) {
+    public void onSurfaceSizeChanged(int width, int height) {
 
     }
 
     @Override
-    public void onDrmKeysLoaded(EventTime eventTime) {
+    public void onRenderedFirstFrame() {
+
+    }
+
+    /////////////////////////////////////AudioListener/////////////////////////////////////////////
+
+    @Override
+    public void onAudioSessionIdChanged(int audioSessionId) {
+        this.audioSessionId = audioSessionId;
+    }
+
+    @Override
+    public void onAudioAttributesChanged(AudioAttributes audioAttributes) {
 
     }
 
     @Override
-    public void onDrmSessionManagerError(EventTime eventTime, Exception error) {
+    public void onVolumeChanged(float volume) {
 
     }
 
     @Override
-    public void onDrmKeysRestored(EventTime eventTime) {
-
-    }
-
-    @Override
-    public void onDrmKeysRemoved(EventTime eventTime) {
+    public void onSkipSilenceEnabledChanged(boolean skipSilenceEnabled) {
 
     }
 

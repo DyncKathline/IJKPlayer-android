@@ -386,38 +386,19 @@ public class VideoActivity extends BaseActivity {
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始整备中
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
-//                        hideVideoLoading();
-//                        seekbar.setEnabled(true);
-//                        playIcon.setEnabled(true);
-//                        updatePlayBtnBg(false);
-//                        videoCover.setImageDrawable(new ColorDrawable(0));
                         break;
                     case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
-//                        hideVideoLoading();
-//                        seekbar.setEnabled(true);
-//                        playIcon.setEnabled(true);
-//                        updatePlayBtnBg(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN:
-//                        hideVideoLoading();
-//                        seekbar.setEnabled(true);
-//                        playIcon.setEnabled(true);
-//                        updatePlayBtnBg(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
-//                        if (!NetworkUtils.isNetworkConnected(mContext)) {
-//                            updatePlayBtnBg(true);
-//                        }
                         showVideoLoading();
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
                         hideVideoLoading();
-//                        seekbar.setEnabled(true);
-//                        playIcon.setEnabled(true);
-//                        updatePlayBtnBg(!videoView.isPlaying());
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
                         Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -428,9 +409,9 @@ public class VideoActivity extends BaseActivity {
 //                    case IMediaPlayer.MEDIA_INFO_BAD_INTERLEAVING://
 //                        Log.d(TAG, "MEDIA_INFO_BAD_INTERLEAVING:");
 //                        break;
-//                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
-//                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
-//                        break;
+                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
+                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
+                        break;
 //                    case IMediaPlayer.MEDIA_INFO_METADATA_UPDATE://视频数据更新
 //                        Log.d(TAG, "MEDIA_INFO_METADATA_UPDATE: " + extra);
 //                        break;
@@ -627,6 +608,7 @@ public class VideoActivity extends BaseActivity {
 //        videoView.start();
         onDestroyVideo();
         if (mVideoPath != null) {
+            showVideoLoading();
             videoView.setVideoPath(mVideoPath);
             //需要在videoView.setRender()方法之后调用
             videoView.setVideoRadius(50);
@@ -860,32 +842,6 @@ public class VideoActivity extends BaseActivity {
     }
 
     private void showVideoInfo(IMediaPlayer mMediaPlayer) {
-//        LinearLayout ll_video_info = (LinearLayout) findViewById(R.id.ll_video_info);
-//        if(mVideoView != null) {
-//            ITrackInfo[] trackInfos = mVideoView.getTrackInfo();
-//            for(ITrackInfo trackInfo: trackInfos) {
-//                final CheckBox checkBox = new CheckBox(ll_video_info.getContext());
-//
-//                String infoInline = String.format(Locale.US, "%s", trackInfo.getInfoInline());
-//                final int trackType = trackInfo.getTrackType()-1;//不知道为什么不跟ITrackInfo类中的参数一致，而是减1
-//                checkBox.setText(infoInline);
-//                checkBox.setChecked(true);
-//                checkBox.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
-//                    @Override
-//                    public void onCheckedChanged(CompoundButton compoundButton, boolean b) {
-//                        if(mVideoView != null) {
-//                            if(b) {
-//                                mVideoView.selectTrack(trackType);
-//                            }else {
-//                                mVideoView.deselectTrack(trackType);
-//                            }
-//                        }
-//                    }
-//                });
-//                ll_video_info.addView(checkBox);
-//            }
-//        }
-
         if (mMediaPlayer != null && mMediaPlayer instanceof IjkMediaPlayer) {
             IjkMediaPlayer mp = (IjkMediaPlayer) mMediaPlayer;
 
@@ -917,6 +873,7 @@ public class VideoActivity extends BaseActivity {
             IjkExoMediaPlayer mp = (IjkExoMediaPlayer) mMediaPlayer;
 
             long tcpSpeeds = mp.getTotalRxBytes(mActivity);
+            mPlayerController.setVideoInfo(bitRate, String.format(Locale.US, "%.2f kbs", tcpSpeeds / 1000f));
             if (appVideoSpeed != null) {
                 String formatSize = formatedSpeed(tcpSpeeds);
                 appVideoSpeed.setText(formatSize);

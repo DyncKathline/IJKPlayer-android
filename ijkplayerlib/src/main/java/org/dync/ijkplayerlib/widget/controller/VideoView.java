@@ -2,14 +2,9 @@ package org.dync.ijkplayerlib.widget.controller;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
-import android.content.ContentResolver;
 import android.content.Context;
-import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.pm.ActivityInfo;
 import android.graphics.drawable.ColorDrawable;
-import android.net.ConnectivityManager;
 import android.net.Uri;
 import android.os.Build;
 import android.text.TextUtils;
@@ -36,14 +31,16 @@ import org.dync.ijkplayerlib.widget.controller.impl.IPlayerBottomImpl;
 import org.dync.ijkplayerlib.widget.controller.impl.IPlayerImpl;
 import org.dync.ijkplayerlib.widget.controller.impl.IPlayerTitleBarImpl;
 import org.dync.ijkplayerlib.widget.controller.impl.IPlayerVolumeBrightImpl;
-import org.dync.ijkplayerlib.widget.controller.util.NetworkUtil;
 import org.dync.ijkplayerlib.widget.media.IRenderView;
 import org.dync.ijkplayerlib.widget.media.IjkVideoView;
 import org.dync.ijkplayerlib.widget.util.PlayerController;
-import org.dync.ijkplayerlib.widget.util.Settings;
 import org.dync.ijkplayerlib.widget.util.Utils;
 
+import tv.danmaku.ijk.media.exo.IjkExoMediaPlayer;
 import tv.danmaku.ijk.media.player.IMediaPlayer;
+import tv.danmaku.ijk.media.player.IjkMediaPlayer;
+
+import static org.dync.ijkplayerlib.widget.util.PlayerController.formatedSpeed;
 
 /**
  * Created by KathLine on 2017/12/13.
@@ -232,8 +229,9 @@ public class VideoView extends RelativeLayout {
                 if(videoView.getDuration() > 1) {//exoplayer如果是直播流返回1
                     playerBottom.getSeekBar().setEnabled(true);
                 }else {
-                    playerBottom.getIvPlayPause().setEnabled(false);
+                    playerBottom.getSeekBar().setEnabled(false);
                 }
+                playerBottom.getIvPlayPause().setEnabled(false);
                 if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
 //                    mPlayerController.showWifiDialog();
                 }else {
@@ -253,6 +251,12 @@ public class VideoView extends RelativeLayout {
                         .setGestureEnabled(true)
                         .setAutoControlPanel(true);//视频加载后才自动隐藏操作面板
                 mPlayerController.setSpeed(1.0f);
+            }
+        });
+        videoView.setVideoInfoListener(new IjkVideoView.VideoInfoListener() {
+            @Override
+            public void updateVideoInfo(IMediaPlayer mMediaPlayer) {
+                showVideoInfo(mMediaPlayer);
             }
         });
         videoView.setOnCompletionListener(new IMediaPlayer.OnCompletionListener() {
@@ -296,24 +300,11 @@ public class VideoView extends RelativeLayout {
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_RENDERING_START://视频开始整备中
                         Log.d(TAG, "MEDIA_INFO_VIDEO_RENDERING_START:");
-//                        hideVideoLoading();
-//                        playerBottom.getSeekBar().setEnabled(true);
-//                        playerBottom.getIvPlayPause().setEnabled(true);
-//                        updatePlayState(false);
-//                        ivCover.setImageDrawable(new ColorDrawable(0));
                         break;
                     case IMediaPlayer.MEDIA_INFO_AUDIO_RENDERING_START://音频开始整备中
                         Log.d(TAG, "MEDIA_INFO_AUDIO_RENDERING_START:");
-//                        hideVideoLoading();
-//                        playerBottom.getSeekBar().setEnabled(true);
-//                        playerBottom.getIvPlayPause().setEnabled(true);
-//                        updatePlayState(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_COMPONENT_OPEN:
-//                        hideVideoLoading();
-//                        playerBottom.getSeekBar().setEnabled(true);
-//                        playerBottom.getIvPlayPause().setEnabled(true);
-//                        updatePlayState(false);
                         break;
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_START://视频缓冲开始
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_START:");
@@ -322,8 +313,6 @@ public class VideoView extends RelativeLayout {
                     case IMediaPlayer.MEDIA_INFO_BUFFERING_END://视频缓冲结束
                         Log.d(TAG, "MEDIA_INFO_BUFFERING_END:");
                         hideVideoLoading();
-//                        playerBottom.getSeekBar().setEnabled(true);
-//                        playerBottom.getIvPlayPause().setEnabled(true);
                         break;
                     case IMediaPlayer.MEDIA_INFO_VIDEO_TRACK_LAGGING://视频日志跟踪
                         Log.d(TAG, "MEDIA_INFO_VIDEO_TRACK_LAGGING:");
@@ -334,9 +323,9 @@ public class VideoView extends RelativeLayout {
 //                    case IMediaPlayer.MEDIA_INFO_BAD_INTERLEAVING://
 //                        Log.d(TAG, "MEDIA_INFO_BAD_INTERLEAVING:");
 //                        break;
-//                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
-//                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
-//                        break;
+                    case IMediaPlayer.MEDIA_INFO_NOT_SEEKABLE://不可设置播放位置，直播方面
+                        Log.d(TAG, "MEDIA_INFO_NOT_SEEKABLE:");
+                        break;
 //                    case IMediaPlayer.MEDIA_INFO_METADATA_UPDATE://视频数据更新
 //                        Log.d(TAG, "MEDIA_INFO_METADATA_UPDATE: " + extra);
 //                        break;
@@ -507,6 +496,7 @@ public class VideoView extends RelativeLayout {
 
         onDestroyVideo();
         if (mVideoUri != null) {
+            showVideoLoading();
             videoView.setVideoURI(mVideoUri);
             if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
                 mPlayerController.showWifiDialog();
@@ -657,6 +647,38 @@ public class VideoView extends RelativeLayout {
             return videoView.isPlaying();
         }
         return false;
+    }
+
+    private void showVideoInfo(IMediaPlayer mMediaPlayer) {
+        if (mMediaPlayer != null && mMediaPlayer instanceof IjkMediaPlayer) {
+            IjkMediaPlayer mp = (IjkMediaPlayer) mMediaPlayer;
+
+            float fpsOutput = mp.getVideoOutputFramesPerSecond();
+            float fpsDecode = mp.getVideoDecodeFramesPerSecond();
+            long videoCachedDuration = mp.getVideoCachedDuration();
+            long audioCachedDuration = mp.getAudioCachedDuration();
+            long videoCachedBytes = mp.getVideoCachedBytes();
+            long audioCachedBytes = mp.getAudioCachedBytes();
+            long tcpSpeeds = mp.getTcpSpeed();
+            long bitRates = mp.getBitRate();
+            long seekLoadDuration = mp.getSeekLoadDuration();
+
+            if (tcpSpeeds == -1) {
+                return;
+            }
+            if (tvSpeed != null) {
+                String formatSize = formatedSpeed(tcpSpeeds);
+                tvSpeed.setText(formatSize);
+            }
+        } else if (mMediaPlayer != null && mMediaPlayer instanceof IjkExoMediaPlayer) {
+            IjkExoMediaPlayer mp = (IjkExoMediaPlayer) mMediaPlayer;
+
+            long tcpSpeeds = mp.getTotalRxBytes(mActivity);
+            if (tvSpeed != null) {
+                String formatSize = formatedSpeed(tcpSpeeds);
+                tvSpeed.setText(formatSize);
+            }
+        }
     }
 
     /**
