@@ -110,25 +110,9 @@ public class PlayerController {
      */
     private int seekBarMaxProgress = 100;
     /**
-     * 当前播放地址
-     */
-    private String currentUrl;
-    /**
-     * 当前选择的视频流索引
-     */
-    private int currentSelect;
-    /**
      * 记录进行后台时的播放状态0为播放，1为暂停
      */
     private int bgState;
-    /**
-     * 第三方so是否支持，默认不支持，true为支持
-     */
-    private boolean playerSupport;
-    /**
-     * 是否是直播 默认为非直播，true为直播false为点播，根据isLive()方法前缀rtmp或者后缀.m3u8判断得出的为直播，比较片面，有好的建议欢迎交流
-     */
-    private boolean isLive;
     /**
      * 是否显示控制面板，默认为隐藏，true为显示false为隐藏
      */
@@ -141,10 +125,6 @@ public class PlayerController {
      * 禁止收起控制面板，默认可以收起，true为禁止false为可触摸
      */
     private boolean isForbidHideControlPanel;
-    /**
-     * 当前是否切换视频流，默认为否，true是切换视频流，false没有切换
-     */
-    private boolean isHasSwitchStream;
     /**
      * 是否在拖动进度条中，默认为停止拖动，true为在拖动中，false为停止拖动
      */
@@ -306,7 +286,7 @@ public class PlayerController {
                     break;
                 /**滑动完成，设置播放进度*/
                 case MESSAGE_SEEK_NEW_POSITION:
-                    if (videoView != null && !isLive && newPosition >= 0) {
+                    if (videoView != null && newPosition >= 0) {
                         videoView.seekTo((int) newPosition);
                         newPosition = -1;
                     }
@@ -347,7 +327,7 @@ public class PlayerController {
                 /**不是用户拖动的，自动播放滑动的情况*/
                 return;
             } else {
-                if(getDuration() == 0) {
+                if(getDuration() < 1) {
                     videoController.setEnabled(false);
                     return;
                 }else {
@@ -374,7 +354,7 @@ public class PlayerController {
         /**开始拖动*/
         @Override
         public void onStartTrackingTouch(SeekBar seekBar) {
-            if(getDuration() == 0) {
+            if(getDuration() < 1) {
                 return;
             }
             isDragging = true;
@@ -387,7 +367,7 @@ public class PlayerController {
         /**停止拖动*/
         @Override
         public void onStopTrackingTouch(SeekBar seekBar) {
-            if(getDuration() == 0) {
+            if(getDuration() < 1) {
                 return;
             }
             if (videoView != null) {
@@ -527,57 +507,11 @@ public class PlayerController {
     }
 
     /**
-     * 开始播放
-     */
-    public PlayerController startPlay() {
-        if (isLive) {
-            if (videoView != null) {
-                videoView.setVideoPath(currentUrl);
-                videoView.seekTo(0);
-            }
-        }
-        return this;
-    }
-
-    /**
-     * 选择要播放的流
-     */
-    public PlayerController switchStream(int index) {
-        isLive();
-        if (videoView != null && videoView.isPlaying()) {
-            getCurrentPosition();
-            videoView.release(false);
-        }
-        isHasSwitchStream = true;
-        return this;
-    }
-
-    /**
-     * 暂停播放
-     */
-    public PlayerController pausePlay() {
-        if (videoView != null) {
-            videoView.pause();
-        }
-        return this;
-    }
-
-    /**
-     * 停止播放
-     */
-    public PlayerController stopPlay() {
-        if (videoView != null) {
-            videoView.release(false);
-        }
-        return this;
-    }
-
-    /**
      * 设置播放位置
      */
     public PlayerController seekTo(int playtime) {
         if (videoView != null) {
-            if(getDuration() > 0) {
+            if(getDuration() > 1) {
                 videoView.seekTo(playtime);
             }
         }
@@ -588,7 +522,7 @@ public class PlayerController {
      * 获取当前播放位置
      */
     public int getCurrentPosition() {
-        if (videoView != null && !isLive) {
+        if (videoView != null) {
             currentPosition = videoView.getCurrentPosition();
         } else {
             /**直播*/
@@ -602,7 +536,7 @@ public class PlayerController {
      */
     public long getDuration() {
         if (videoView != null) {
-            duration = videoView.getDuration();
+            duration = videoView.getDuration();//exoplayer如果是直播流返回1
             return duration;
         } else {
             return 0;
@@ -1222,21 +1156,6 @@ public class PlayerController {
     }
 
     /**
-     * 当前播放的是否是直播
-     */
-    public boolean isLive() {
-        if (currentUrl != null
-                && (currentUrl.startsWith("rtmp://")
-                || (currentUrl.startsWith("http://") && currentUrl.endsWith(".m3u8"))
-                || (currentUrl.startsWith("http://") && currentUrl.endsWith(".flv")))) {
-            isLive = true;
-        } else {
-            isLive = false;
-        }
-        return isLive;
-    }
-
-    /**
      * 判断是否为本地数据源，包括 本地文件、Asset、raw
      */
     public boolean isLocalDataSource(Uri uri) {
@@ -1315,8 +1234,8 @@ public class PlayerController {
     public void updateProgress(long position, long duration) {
         if (duration > 0) {
             long pos = seekBarMaxProgress * position / duration;
-            videoController.setProgress((int) pos);
             int percent = videoView.getBufferPercentage();
+            videoController.setProgress((int) pos);
             videoController.setSecondaryProgress(percent);
             if(syncProgressListener != null) {
                 syncProgressListener.syncProgress((int) pos, percent);
@@ -1704,11 +1623,9 @@ public class PlayerController {
                 }
 
                 if (isLandscape) {
-                    if (!isLive) {
-                        /**进度设置*/
-                        if (progressEnable && getDuration() > 0) {
-                            onProgressSlide(-deltaX / videoView.getWidth());
-                        }
+                    /**进度设置*/
+                    if (progressEnable && getDuration() > 1) {
+                        onProgressSlide(-deltaX / videoView.getWidth());
                     }
                 } else {
                     float percent = deltaY / videoView.getHeight();

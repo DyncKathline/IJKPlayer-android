@@ -229,8 +229,11 @@ public class VideoView extends RelativeLayout {
                 appVideoReplay.setVisibility(View.GONE);
                 appVideoRetry.setVisibility(View.GONE);
                 hideVideoLoading();
-                playerBottom.getSeekBar().setEnabled(true);
-                playerBottom.getIvPlayPause().setEnabled(true);
+                if(videoView.getDuration() > 1) {//exoplayer如果是直播流返回1
+                    playerBottom.getSeekBar().setEnabled(true);
+                }else {
+                    playerBottom.getIvPlayPause().setEnabled(false);
+                }
                 if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
 //                    mPlayerController.showWifiDialog();
                 }else {

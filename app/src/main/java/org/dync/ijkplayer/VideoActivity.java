@@ -308,7 +308,11 @@ public class VideoActivity extends BaseActivity {
                 appVideoReplay.setVisibility(View.GONE);
                 appVideoRetry.setVisibility(View.GONE);
                 hideVideoLoading();
-                seekbar.setEnabled(true);
+                if(videoView.getDuration() > 1) {//exoplayer如果是直播流返回1
+                    seekbar.setEnabled(true);
+                }else {
+                    seekbar.setEnabled(false);
+                }
                 playIcon.setEnabled(true);
                 if(!Utils.isWifiConnected(mActivity) && !mPlayerController.isLocalDataSource(mVideoUri) && !PlayerController.WIFI_TIP_DIALOG_SHOWED) {
 //                    mPlayerController.showWifiDialog();

@@ -26,9 +26,11 @@ android {
 dependencies {
     api fileTree(include: ['*.jar'], dir: 'libs')
 
+    compileOnly 'org.checkerframework:checker-qual:3.3.0'
     api 'com.google.android.exoplayer:exoplayer:' + rootProject.exoplayer
     api 'com.google.android.exoplayer:extension-rtmp:' + rootProject.exoplayer
     api 'com.google.android.exoplayer:extension-okhttp:' + rootProject.exoplayer
+    api 'com.google.android.exoplayer:extension-cronet:' + rootProject.exoplayer
     api 'tv.danmaku.ijk.media:ijkplayer-java:' + rootProject.ijkplayer
 //    api (project(':ffmpeg'))
 }

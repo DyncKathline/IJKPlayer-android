@@ -67,6 +67,10 @@ public class SampleMediaListFragment extends Fragment {
             }
         });
 
+        mAdapter.addItem("rtmp://58.200.131.2:1935/livetv/cctv14", "CCTV-14少儿");
+        mAdapter.addItem("rtmp://58.200.131.2:1935/livetv/gedocu", "金鹰纪实高清");
+        mAdapter.addItem("rtmp://58.200.131.2:1935/livetv/btv10", "北京卡酷");
+        mAdapter.addItem("rtsp://wowzaec2demo.streamlock.net/vod/mp4:BigBuckBunny_115k.mov", "rtsp");
         mAdapter.addItem("http://videos.jzvd.org/v/饺子主动.mp4", "mp4");
         mAdapter.addItem("http://videos.jzvd.org/v/饺子运动.mp4", "mp4");
         mAdapter.addItem("http://videos.jzvd.org/v/饺子有活.mp4", "mp4");

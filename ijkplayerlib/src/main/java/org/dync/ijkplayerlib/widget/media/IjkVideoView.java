@@ -844,8 +844,7 @@ public class IjkVideoView extends FrameLayout implements MediaController.MediaPl
         if (isInPlaybackState()) {
             return (int) mMediaPlayer.getDuration();
         }
-
-        return -1;
+        return 0;
     }
 
     @Override
