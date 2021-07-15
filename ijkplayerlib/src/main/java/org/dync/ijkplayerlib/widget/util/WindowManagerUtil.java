@@ -54,7 +54,7 @@ public class WindowManagerUtil {
      * @param context
      * @param mediaPlayer
      */
-    public static void createSmallWindow(final Context context, IMediaPlayer mediaPlayer) {
+    public static void createSmallWindow(final Context context, final IMediaPlayer mediaPlayer) {
         if (smallWindow != null) {
             return;
         }
@@ -93,7 +93,7 @@ public class WindowManagerUtil {
             smallWindow.setAspectRatio(IRenderView.AR_ASPECT_FIT_PARENT);
             smallWindow.resetRenders();
         }
-        RelativeLayout relativeLayout = new RelativeLayout(context);
+        final RelativeLayout relativeLayout = new RelativeLayout(context);
         ViewGroup.LayoutParams params = new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT);
         relativeLayout.addView(smallWindow, params);
         relativeLayout.setBackgroundColor(ContextCompat.getColor(context, android.R.color.black));
@@ -197,7 +197,7 @@ public class WindowManagerUtil {
 
     /**
      * 在当前页面创建一个视图
-     * @param viewGroup
+     * @param activity
      * @param mediaPlayer
      */
     @SuppressLint("ClickableViewAccessibility")

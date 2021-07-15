@@ -8,7 +8,7 @@ android {
         minSdkVersion 15
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
-        versionName "1.0"
+        versionName "1.0.4"
 
         sourceSets {
             main {
@@ -37,9 +37,9 @@ dependencies {
 //                module: 'ijkplayer-java'
 //    }
     //第二种
-//    api 'org.dync.kathline:ijkplayer-exo2:0.8.9'
-    api (project(':ijkplayer-exo2'))
-//    api ('org.dync.kathline:ijkplayer-exo2:0.8.8.8'){
+    api 'com.github.dynckathline:ijkplayer-exo2:1.0'
+//    api (project(':ijkplayer-exo2'))
+//    api ('com.github.dynckathline:ijkplayer-exo2:1.0'){
 //        exclude group: 'tv.danmaku.ijk.media',
 //                module: 'ijkplayer-java'
 //    }
@@ -65,28 +65,8 @@ tasks.withType(Javadoc) {
 }
 
 ext {
-    //显示的目录bintray.user/bintrayRepo/bintrayName
-    bintrayRepo = 'DyncKathline' //这个应该是传到maven的仓库的，即在Open Source Repository界面
-    bintrayName = 'ijkplayerlib'  //发布的项目名字，即在Create New Package界面
-
-    //GROUP_ID:ARTIFACT_ID:VERSION
-    publishedGroupId = 'org.dync.kathline'//依赖时的GROUP_ID
-    libraryName = 'ijkplayerlib'
-    artifact = 'ijkplayerlib'//依赖时的ARTIFACT_ID，这里要与类库名保持一致，即项目的module名
-
-    libraryDescription = 'With immersion sideslip the effect of closed Activity' //项目的描述
-
-    siteUrl = 'https://github.com/DyncKathline/IJKPlayer-android/issues' // 项目的主页
-    gitUrl = 'https://github.com/DyncKathline/IJKPlayer-android.git' // Git仓库的url
-
-    libraryVersion = '1.0.5' //依赖时的VERSION
-
-    developerId = 'dync'
-    developerName = 'DyncKathline'
-    developerEmail = 'xiongxuesong@dync.cc'
-
-    licenseName = 'The Apache Software License, Version 2.0'
-    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
-    allLicenses = ["Apache-2.0"]
+    PUBLISH_GROUP_ID = "com.github.dynckathline"
+    PUBLISH_ARTIFACT_ID = "ijkplayerlib"
+    PUBLISH_VERSION = android.defaultConfig.versionName
 }
-apply from: '../bintray.gradle'
+apply from: "${rootProject.projectDir}/mavencentral.gradle"

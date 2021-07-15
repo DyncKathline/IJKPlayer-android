@@ -47,6 +47,7 @@ import com.google.android.exoplayer2.source.DefaultMediaSourceFactory;
 import com.google.android.exoplayer2.source.MediaSource;
 import com.google.android.exoplayer2.source.MediaSourceFactory;
 import com.google.android.exoplayer2.source.TrackGroupArray;
+import com.google.android.exoplayer2.text.Cue;
 import com.google.android.exoplayer2.trackselection.DefaultTrackSelector;
 import com.google.android.exoplayer2.trackselection.MappingTrackSelector;
 import com.google.android.exoplayer2.trackselection.TrackSelectionArray;
@@ -682,5 +683,20 @@ public class IjkExoMediaPlayer extends AbstractMediaPlayer implements Player.Lis
                 }
             }
         }
+    }
+
+    /////////////////////////////////////TextOutput/////////////////////////////////////////////
+
+    @Override
+    public void onCues(List<Cue> cues) {
+
+    }
+
+    /////////////////////////////////////MetadataOutput/////////////////////////////////////////////
+
+
+    @Override
+    public void onMetadata(Metadata metadata) {
+
     }
 }

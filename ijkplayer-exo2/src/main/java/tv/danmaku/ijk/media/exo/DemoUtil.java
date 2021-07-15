@@ -74,8 +74,8 @@ public final class DemoUtil {
   private static final String DOWNLOAD_TRACKER_ACTION_FILE = "tracked_actions";
   private static final String DOWNLOAD_CONTENT_DIRECTORY = "downloads";
 
-  private static DataSource.@MonotonicNonNull Factory dataSourceFactory;
-  private static HttpDataSource.@MonotonicNonNull Factory httpDataSourceFactory;
+  private static DataSource.Factory dataSourceFactory;
+  private static HttpDataSource.Factory httpDataSourceFactory;
   private static @MonotonicNonNull DatabaseProvider databaseProvider;
   private static @MonotonicNonNull File downloadDirectory;
   private static @MonotonicNonNull Cache downloadCache;
